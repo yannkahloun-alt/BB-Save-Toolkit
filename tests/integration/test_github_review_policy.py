@@ -28,33 +28,41 @@ def test_pr_validation_keeps_stable_routine_checks_and_safe_scope():
         assert forbidden not in workflow
 
 
-def test_agent_b_contract_is_exact_sha_bound_and_fail_closed():
+def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     policy = _read("docs/AGENT_B_REVIEW.md")
     policy_lower = policy.lower()
+    agent_instructions = _read("AGENTS.md")
 
-    assert "name: agent-b-review" in policy
-    assert "head_sha: <exact current pull_request.head.sha>" in policy
-    assert "all 40 hexadecimal characters" in policy
+    assert "automatically creates a fresh Codex task" in policy
+    assert "isolated worktree" in policy_lower
+    assert "Independent review — PR #<number>" in policy
+    assert "$review-bb-pr" in policy
+    assert "full 40-character" in policy
     assert "APPROVE" in policy
     assert "DO NOT APPROVE" in policy
-    assert "conclusion on APPROVE: success" in policy
-    assert "conclusion on DO NOT APPROVE: failure" in policy
     assert "malformed" in policy
-    assert "Every new commit" in policy
-    assert "must not use" in policy and "pull-request head" in policy
-    assert "comment" in policy_lower
-    assert "never" in policy_lower and "authorization signal" in policy_lower
+    assert "new commit" in policy_lower
+    assert "wait for agent b" in policy_lower
+    assert "not a github-enforced status check" in policy_lower
+    assert "no openai api key" in policy_lower
+    assert "never modify code, merge, or change repository settings" in policy_lower
+    assert "### Pull-request publishing handoff" in agent_instructions
+    assert "Automatically create a fresh Codex task" in agent_instructions
+    assert "Independent review — PR #<number>" in agent_instructions
+    assert "$review-bb-pr" in agent_instructions
+    assert "invalidate the previous verdict" in agent_instructions
+    assert "explicit confirmation" in agent_instructions
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():
     protection = _read("docs/GITHUB_BRANCH_PROTECTION.md")
 
-    for check in ("tests", "coverage", "ruff", "pyflakes", "agent-b-review"):
+    for check in ("tests", "coverage", "ruff", "pyflakes"):
         assert f"`{check}`" in protection
 
     assert "zero required approving reviews" in protection
-    assert "expected source" in protection
-    assert "do not accept **any source**" in protection
+    assert "not a GitHub-enforced status check" in protection
+    assert "exact current head SHA" in protection
     assert "Require branches to be up to date before merging" in protection
     assert "Restrict who can push to matching branches" in protection
     assert "Do not allow bypassing the above settings" in protection

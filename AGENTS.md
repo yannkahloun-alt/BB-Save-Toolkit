@@ -43,6 +43,25 @@ If the task changes a documented contract, update the relevant doc/spec in the s
 - Review `git diff --check` and `git diff` before committing.
 - Keep commits task-focused and descriptive.
 
+### Pull-request publishing handoff
+
+After Agent A creates or materially updates a pull request:
+
+1. Resolve the pull request's exact current 40-character head SHA.
+2. Automatically create a fresh Codex task in an isolated worktree titled
+   `Independent review — PR #<number>`.
+3. Give that task only the repository, pull-request URL/number, and instruction
+   to use `$review-bb-pr` to review the complete diff at the exact current head.
+4. Wait for Agent B to return `APPROVE` or `DO NOT APPROVE`.
+5. Treat a missing, incomplete, malformed, stale-SHA, or `DO NOT APPROVE`
+   verdict as a failed review.
+6. If Agent A pushes another commit, invalidate the previous verdict and launch
+   a new Agent B task for the new head SHA.
+
+Agent B must not modify the branch, merge, or change repository settings.
+Agent A must not merge without the repository owner's explicit confirmation.
+See `docs/AGENT_B_REVIEW.md` for the complete protocol and trust boundary.
+
 ## Validation levels
 
 ### Routine development / task iteration

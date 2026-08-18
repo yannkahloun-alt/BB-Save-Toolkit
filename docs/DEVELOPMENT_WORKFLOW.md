@@ -102,13 +102,14 @@ Avoid meaningless release-style commit names such as `v3.85` during normal devel
 
 ### 8. Independent pull-request review
 
-After Agent A's adversarial self-review and fixes, a separate Agent B reviews
-the complete PR diff at the exact current head SHA. The enforced verdict is the
-external GitHub App check `agent-b-review`, not a native approval or comment.
-Every new commit invalidates the prior verdict and requires a fresh Agent B
-review. See `docs/AGENT_B_REVIEW.md` for the authentication and fail-closed
-contract. Passing review never authorizes a merge without explicit owner
-confirmation.
+After Agent A's adversarial self-review and fixes, Agent A automatically creates
+a fresh Codex task in an isolated worktree and waits for Agent B to review the
+complete GitHub PR diff at the exact current head SHA. Every new commit
+invalidates the old verdict and requires a new Agent B task. The verdict is an
+operational Codex gate rather than a GitHub status check because both agents use
+one human GitHub account and no paid external integration is configured. See
+`docs/AGENT_B_REVIEW.md`. Passing review never authorizes a merge without
+explicit owner confirmation.
 
 ## Branch discipline
 
