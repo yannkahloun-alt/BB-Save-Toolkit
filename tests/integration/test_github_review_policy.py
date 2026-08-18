@@ -30,6 +30,7 @@ def test_pr_validation_keeps_stable_routine_checks_and_safe_scope():
 
 def test_agent_b_contract_is_exact_sha_bound_and_fail_closed():
     policy = _read("docs/AGENT_B_REVIEW.md")
+    policy_lower = policy.lower()
 
     assert "name: agent-b-review" in policy
     assert "head_sha: <exact current pull_request.head.sha>" in policy
@@ -41,7 +42,8 @@ def test_agent_b_contract_is_exact_sha_bound_and_fail_closed():
     assert "malformed" in policy
     assert "Every new commit" in policy
     assert "must not use" in policy and "pull-request head" in policy
-    assert "comment" in policy.lower() and "never an authorization signal" in policy
+    assert "comment" in policy_lower
+    assert "never an authorization signal" in policy_lower
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():
