@@ -108,8 +108,6 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
         stat for stat in STATS
         if anchor_role.get("stats", {}).get(stat, {}).get("fit")
     )
-    non_fit_stats = tuple(stat for stat in STATS if stat not in fit_stats_ordered)
-
     # The advisor is Fit-only. Combinations that select the same Fit stats are
     # exactly equivalent to the trajectory engine, regardless of which neutral
     # stats occupy the remaining slots. Project one canonical representative
@@ -155,10 +153,6 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
         return None
 
     # Prefer a runner-up with a genuinely different Fit-relevant decision.
-    fit_stats = {
-        stat for stat, cfg in anchor_role.get("stats", {}).items()
-        if cfg.get("fit")
-    }
     primary_entry = ranked[0]
     primary_key = primary_entry[5]
     runner_entry = next(

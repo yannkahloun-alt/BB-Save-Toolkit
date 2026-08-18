@@ -8,7 +8,7 @@ Maintain a read-only Battle Brothers save-analysis toolkit whose central model i
 
 ## Non-negotiable rules
 
-1. **Fix all regressions introduced or exposed by a task.** Do not knowingly leave a failing test, surviving mutation in touched correctness logic, stale contract, or broken integration behind because it looks unrelated.
+1. **Fix all regressions introduced or exposed by a task.** Do not knowingly leave a failing test, a valid mutation survivor found during an explicitly requested pre-release campaign, a stale contract, or a broken integration behind because it looks unrelated.
 2. **Never change projection semantics merely to make a test pass.** Establish the intended contract first.
 3. **Incremental reuse is an optimization only.** `incremental == full recomputation` is an invariant. When uncertain, recompute.
 4. **Names are display data, not identity.** `HumanOffset` is save-local. Ambiguous cross-save identity never permits reuse.
@@ -37,34 +37,40 @@ If the task changes a documented contract, update the relevant doc/spec in the s
 - Inspect existing tests before changing implementation.
 - Add regression tests for every bug fix.
 - Run the smallest relevant tests during iteration.
-- Before considering a task done, run the mandatory validation gate from `docs/TESTING.md`.
-- Run targeted mutation testing for touched correctness-critical modules when practical.
+- Before merging to `main`, run the pre-merge validation gate from `docs/TESTING.md`.
+- Do not start mutation testing or `coverage_slow` automatically during routine
+  development or normal pre-merge validation.
 - Review `git diff --check` and `git diff` before committing.
 - Keep commits task-focused and descriptive.
 
-## Mandatory validation gate
+## Validation levels
 
-At minimum for a normal code change:
+### Routine development / task iteration
+
+- targeted tests for changed behavior and affected modules;
+- lint and Ruff;
+- no `coverage_slow`;
+- no mutation testing.
+
+### Pre-merge to main
 
 ```powershell
-python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -q
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+.\run_coverage.ps1
 .\run_lint.ps1 -Tests
 .\run_ruff.ps1 -Tests
 ```
 
-For changes to projection, scoring, parser, incremental invalidation, traits/injuries, advisor, or classification, also run branch coverage:
+### Pre-release / pre-production
 
 ```powershell
-.\run_coverage.ps1
+.\run_tests.ps1
+.\run_mutation.ps1 -Target <changed-or-high-risk-module>
 ```
 
-For correctness-critical touched mutation targets, run:
-
-```powershell
-.\run_mutation.ps1 -Target <module>
-```
-
-Do not run the monolithic `all` mutation campaign as the default validation strategy. Use the module-oriented orchestrator only when a broad campaign is intentionally required.
+`run_tests.ps1` includes `coverage_slow`. Targeted mutation testing is a
+pre-release/pre-production gate only. Broader mutation campaigns, including
+`-Target all`, run only when explicitly requested.
 
 ## Release policy
 

@@ -6,6 +6,9 @@ The mutation framework uses Cosmic Ray through `run_mutation.ps1`.
 
 Mutation testing is a correctness tool, not a vanity score. In this project, survivors often identify missing behavioral contracts that ordinary coverage cannot reveal.
 
+Mutation testing belongs to pre-release/pre-production validation. It is not
+started automatically for routine tasks or pull requests into `main`.
+
 When a touched target has survivors, the default policy is:
 
 > inspect and kill all valid survivors.
@@ -27,7 +30,8 @@ Do not select only convenient survivors to fix.
 
 The old monolithic whole-package strategy was too expensive and produced poor test economics. `-Target all` now orchestrates module-by-module campaigns so each target resolves its own dependencies and produces separate results.
 
-Even so, broad `all` runs are expensive. Prefer touched-module campaigns during normal development.
+Even so, broad `all` runs are expensive. Use touched/high-risk module campaigns
+for pre-release validation and run `all` only when explicitly requested.
 
 ## Survivors
 

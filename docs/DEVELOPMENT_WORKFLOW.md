@@ -67,7 +67,9 @@ Do not put cache persistence into projection algorithms.
 
 ### 5. Validate incrementally
 
-Run focused tests during iteration, then the mandatory gate in `docs/TESTING.md`.
+Run focused tests during iteration, then the applicable pre-merge gate in
+`docs/TESTING.md`. Do not start `coverage_slow` or mutation testing during
+routine development or normal pre-merge validation.
 
 ### 6. Review the diff
 

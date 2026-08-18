@@ -1,0 +1,83 @@
+name: PR validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
+      - name: Run tests excluding coverage_slow
+        run: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+
+  coverage:
+    name: coverage
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
+      - name: Enforce branch coverage
+        shell: pwsh
+        run: ./run_coverage.ps1
+
+  ruff:
+    name: ruff
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
+      - name: Run Ruff
+        shell: pwsh
+        run: ./run_ruff.ps1 -Tests
+
+  pyflakes:
+    name: pyflakes
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Run Pyflakes
+        shell: pwsh
+        run: ./run_lint.ps1 -Tests

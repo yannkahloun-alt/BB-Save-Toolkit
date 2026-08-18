@@ -6,7 +6,10 @@
 python -m pip install -r tests\requirements.txt
 ```
 
-## Fast focused iteration
+## Routine development / task iteration
+
+Run targeted tests for changed behavior and affected modules, followed by lint
+and Ruff. Routine iteration excludes both `coverage_slow` and mutation testing.
 
 Examples:
 
@@ -16,15 +19,38 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -k advisor 
 .\run_tests.ps1 parser
 ```
 
-## Mandatory correctness gate
+Changed behavior must still have explicit regression coverage. This policy
+changes when expensive gates run; it does not weaken correctness requirements.
 
-Before finishing a normal code task:
+## Pre-merge to main
+
+Before merging to `main`, run the full normal suite excluding
+`coverage_slow`, branch coverage, lint, and Ruff:
+
+```powershell
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+.\run_coverage.ps1
+.\run_lint.ps1 -Tests
+.\run_ruff.ps1 -Tests
+```
+
+Pull requests targeting `main` run the same four gates in GitHub Actions as the
+stable checks `tests`, `coverage`, `ruff`, and `pyflakes`.
+
+## Pre-release / pre-production
+
+Before a release or production handoff, additionally run:
 
 ```powershell
 .\run_tests.ps1
+.\run_mutation.ps1 -Target <changed-or-high-risk-module>
 ```
 
-This runs the complete correctness suite, including `coverage_slow` tests.
+`run_tests.ps1` includes `coverage_slow`. Mutation campaigns must be targeted
+to changed or high-risk areas. Broader campaigns, including `-Target all`, run
+only when explicitly requested. The separate manual GitHub workflow can run
+these reproducible gates, but real-save smoke tests and ZIP generation remain
+local/manual because private game data and game files are not available in CI.
 
 ## Static analysis
 
@@ -43,7 +69,9 @@ For parser, projection, scoring, classification, advisor, incremental, trait/per
 .\run_coverage.ps1
 ```
 
-Coverage excludes `coverage_slow` under instrumentation only because tracing makes those combinatorial tests too expensive. They remain part of the non-instrumented correctness suite.
+Coverage excludes `coverage_slow` because tracing makes those combinatorial
+tests too expensive. The shared configuration enforces the documented 89.4%
+branch-aware v3.84 baseline locally and in CI.
 
 Coverage percentage alone is not the goal. New branches affecting correctness need explicit assertions.
 
@@ -61,7 +89,10 @@ The invariant is:
 incremental == independent full recomputation
 ```
 
-## Mutation testing
+## Mutation testing (pre-release / pre-production only)
+
+Mutation testing is not a per-task Definition of Done and must not be started
+automatically during routine implementation or normal pre-merge validation.
 
 List available targets, dependency counts, mutant counts, and qualitative cost:
 
@@ -80,8 +111,8 @@ Mutation policy:
 
 - fix every survivor in touched correctness logic or add the missing test that kills it;
 - do not cherry-pick only "interesting" survivors;
-- module/file-oriented campaigns are preferred for development;
-- `-Target all` is an orchestrator for intentionally broad campaigns, not a routine per-task command.
+- module/file-oriented campaigns are required for normal pre-release checks;
+- `-Target all` is an orchestrator for an explicitly requested broad campaign.
 
 ## Release archive test
 
@@ -98,8 +129,10 @@ A bug fix is done when:
 1. the bug is reproduced by a test/fixture;
 2. the implementation is corrected;
 3. focused tests pass;
-4. full correctness tests pass;
+4. the applicable routine or pre-merge suite passes;
 5. static analysis passes;
 6. relevant coverage is exercised;
-7. relevant mutation survivors are addressed where practical;
-8. docs/specs are updated if the contract changed.
+7. docs/specs are updated if the contract changed.
+
+`coverage_slow` and targeted mutation testing are additional
+pre-release/pre-production gates, not per-task completion requirements.

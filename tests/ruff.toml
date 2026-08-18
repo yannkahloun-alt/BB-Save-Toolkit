@@ -1,4 +1,4 @@
-target-version = "py313"
+target-version = "py312"
 line-length = 120
 cache-dir = "tests/cache/ruff"
 extend-exclude = [
@@ -25,4 +25,5 @@ ignore = [
 [lint.per-file-ignores]
 "tests/**/*.py" = [
     "B011", # assert False is acceptable in tests when intentional
+    "E402", # module-level pytestmark intentionally precedes application imports
 ]

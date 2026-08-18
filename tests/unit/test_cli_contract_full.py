@@ -8,7 +8,7 @@ import bbtool.app.cli as cli
 
 def test_cli_root_is_repository_root():
     expected = Path(cli.__file__).resolve().parents[2]
-    assert cli.ROOT == expected
+    assert expected == cli.ROOT
     assert (cli.ROOT / "bbtool").is_dir()
     assert (cli.ROOT / "config").is_dir()
 

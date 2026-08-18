@@ -1,4 +1,5 @@
-import json,re
+import json
+import re
 import pytest
 pytestmark=[pytest.mark.integration, pytest.mark.coverage_slow]
 from bbtool.app.output import create_workspace,write_raw_inputs,write_analysis_json,write_debug_bundle,write_projection_validation

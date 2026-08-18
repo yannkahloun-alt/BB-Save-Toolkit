@@ -9,10 +9,7 @@ _PATH_RE = re.compile(r"(bbtool(?:/[A-Za-z0-9_]+)+\.py)")
 
 
 def _searchable_text(value: object) -> str:
-    if isinstance(value, bytes):
-        text = value.decode("utf-8", errors="ignore")
-    else:
-        text = str(value)
+    text = value.decode("utf-8", errors="ignore") if isinstance(value, bytes) else str(value)
     # Handle plain Windows paths and JSON-escaped Windows paths.
     return text.replace("\\\\", "/").replace("\\", "/")
 

@@ -35,8 +35,10 @@ def test_effective_value_dynamic_operator_strings_use_value_equality(bro_factory
     b = _bro(bro_factory)
     mul = "".join(["*", "="])
     div = "".join(["/", "="])
-    assert mul == "*=" and mul is not "*="
-    assert div == "/=" and div is not "/="
+    expected_mul = "*="
+    expected_div = "/="
+    assert mul == expected_mul and mul is not expected_mul
+    assert div == expected_div and div is not expected_div
     assert perks.effective_stat_value(b, "MAtk", 10, _effects("MAtk", {"op": mul, "value": 2})) == 20
     assert perks.effective_stat_value(b, "MAtk", 10, _effects("MAtk", {"op": div, "value": 2})) == 5
 
@@ -81,8 +83,10 @@ def test_finalization_dynamic_stat_strings_use_value_equality(bro_factory):
     b = _bro(bro_factory)
     hp = "".join(["H", "P"])
     resolve = "".join(["Res", "olve"])
-    assert hp == "HP" and hp is not "HP"
-    assert resolve == "Resolve" and resolve is not "Resolve"
+    expected_hp = "HP"
+    expected_resolve = "Resolve"
+    assert hp == expected_hp and hp is not expected_hp
+    assert resolve == expected_resolve and resolve is not expected_resolve
     assert perks.effective_stat_value(
         b, hp, 61, _effects(hp, {"op": "*=", "value": 1.25, "property": "HitpointsMult"})
     ) == 76

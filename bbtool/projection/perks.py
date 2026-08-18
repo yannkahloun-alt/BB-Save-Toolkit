@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
-from typing import Optional
 
 from ..models import Brother, STATS
 
@@ -218,7 +217,7 @@ def effective_stat_value(
     bro: Brother,
     stat: str,
     raw_value: float,
-    effects_by_stat: Optional[dict[str, list[dict]]] = None,
+    effects_by_stat: dict[str, list[dict]] | None = None,
 ) -> float:
     """
     Apply permanent exact perk/trait/permanent-injury effects to one AGGREGATED raw stat value.
@@ -266,7 +265,7 @@ def effective_stat_value(
 def effective_values(
     bro: Brother,
     raw_values: dict[str, float],
-    effects_by_stat: Optional[dict[str, list[dict]]] = None,
+    effects_by_stat: dict[str, list[dict]] | None = None,
 ) -> dict[str, float]:
     effects_by_stat = effects_by_stat or _effects_by_stat(bro)
     return {

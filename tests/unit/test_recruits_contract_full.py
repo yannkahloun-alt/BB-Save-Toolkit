@@ -42,7 +42,7 @@ def test_daily_wage_known_unknown_and_greedy():
 
 
 def test_equipment_value_resolved_unknown_and_exact_circle_boundary():
-    header={'StatsEnd':0}; # p=6, pouches at6, count at7, item starts8
+    header={'StatsEnd':0} # p=6, pouches at6, count at7, item starts8
     meta={'AABBCCDD':{'SerializedLength':5,'Value':100}}
     b=bytearray(b'\0'*20); b[6]=0; b[7]=1; b[8]=0; b[9:13]=bytes.fromhex('AABBCCDD')
     assert sp._parse_recruit_equipment_value(bytes(b),header,13,meta)==100

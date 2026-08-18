@@ -68,7 +68,7 @@ def test_context_cache_clears_at_or_above_limit(monkeypatch, existing_count, sho
         assert len(context._BRO_CONTEXT_CACHE) == existing_count + 1
     else:
         assert all(k not in context._BRO_CONTEXT_CACHE for k in sentinels)
-        assert context._BRO_CONTEXT_CACHE == {key: result}
+        assert {key: result} == context._BRO_CONTEXT_CACHE
 
 
 def test_bro_fingerprint_includes_sorted_perks():

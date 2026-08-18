@@ -1,5 +1,6 @@
 from pathlib import Path
-import re, pytest
+import re
+import pytest
 pytestmark=pytest.mark.integration
 ROOT=Path(__file__).resolve().parents[2]
 def test_css_static_classes_are_referenced_or_dynamic():

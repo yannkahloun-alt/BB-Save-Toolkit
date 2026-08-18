@@ -2,21 +2,23 @@
 
 The same pytest suite is used locally and by the assistant.
 
-## Fast correctness run
+## Pre-merge correctness run
 
 From the toolkit root:
 
 ```powershell
-python -m pytest -q
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
 ```
 
-Or on Windows:
+This is the functional-test gate used for pull requests into `main`. Routine
+development may run narrower targeted tests. The complete suite is reserved for
+pre-release/pre-production validation:
 
 ```powershell
 .\run_tests.ps1
 ```
 
-This always runs the complete suite, including `coverage_slow` tests.
+That command includes `coverage_slow` tests.
 
 ## Branch coverage
 
@@ -35,12 +37,16 @@ Then run:
 Equivalent direct command:
 
 ```powershell
-python -m pytest -q -m "not coverage_slow" --cov=bbtool --cov-branch --cov-report=term-missing --cov-report=html
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -q -m "not coverage_slow" --cov=bbtool --cov-branch --cov-report=term-missing --cov-report=html:tests/coverage/html --cov-report=json:tests/coverage/coverage.json
 ```
 
-The terminal shows the branch-aware coverage percentage and missing lines. The navigable HTML report is generated at `htmlcov\index.html`.
+The terminal shows the branch-aware coverage percentage and missing lines. The
+shared configuration enforces the current baseline. The navigable HTML report
+is generated at `tests\coverage\html\index.html`.
 
-`coverage_slow` tests are excluded only from instrumentation because tracing makes their combinatorial projection workloads extremely slow. They remain mandatory in the normal correctness suite.
+`coverage_slow` tests are excluded from pre-merge and instrumented coverage
+because tracing makes their combinatorial projection workloads extremely slow.
+They remain mandatory at the pre-release/pre-production tier.
 
 ## Selectors
 

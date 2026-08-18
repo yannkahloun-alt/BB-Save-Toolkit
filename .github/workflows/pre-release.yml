@@ -1,0 +1,50 @@
+name: Pre-release validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      mutation_target:
+        description: Optional run_mutation.ps1 target (leave blank to skip mutation)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pre-release:
+    name: pre-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
+      - name: Run full correctness suite including coverage_slow
+        shell: pwsh
+        run: ./run_tests.ps1
+      - name: Enforce branch coverage
+        shell: pwsh
+        run: ./run_coverage.ps1
+      - name: Run Pyflakes
+        shell: pwsh
+        run: ./run_lint.ps1 -Tests
+      - name: Run Ruff
+        shell: pwsh
+        run: ./run_ruff.ps1 -Tests
+      - name: Run optional targeted mutation campaign
+        if: ${{ inputs.mutation_target != '' }}
+        shell: pwsh
+        env:
+          MUTATION_TARGET: ${{ inputs.mutation_target }}
+        run: ./run_mutation.ps1 -Target $env:MUTATION_TARGET
