@@ -4,7 +4,7 @@ import json
 from typing import Any
 from ..models import STATS
 
-ROLE_PROJECTION_ENGINE_VERSION = 3
+ROLE_PROJECTION_ENGINE_VERSION = 4
 BROTHER_SUMMARY_ENGINE_VERSION = 2
 
 def canonical_json(value: Any) -> str:

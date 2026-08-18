@@ -157,10 +157,11 @@ def test_report_explains_ceiling_without_rewriting_projection():
             }
         },
         "ProjectedRanges": {
-            "Fatigue": {"min": 140.0, "ev": 140.0, "max": 140.0}
+            "Fatigue": {"min": 140.0, "ev": 140.0, "max": 140.0,
+                        "baseline": 95.0, "target": 115.0, "weight": 2.0}
         },
     }
     html = development_focus_html(b, row)
-    assert "Expected 140" in html
+    assert 'title="Expected 140"' in html
     assert "Fit ceiling 120" in html
     assert "using 120" in html

@@ -73,6 +73,9 @@ CLI, orchestration, console diagnostics, output writing, and runtime workspace m
 ### `bbtool/html_report.py`, `report.js`, `report.css`
 
 Presentation layer. Report/UI-only changes should not invalidate numerical caches.
+The archetype-details renderer consumes the projection payload's per-stat
+minimum, maximum, expected, baseline, target, and weight values; it does not
+recompute trajectory or Fit semantics in the presentation layer.
 
 ## Fit semantics
 
