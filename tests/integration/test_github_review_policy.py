@@ -58,6 +58,9 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "refuse to review a draft PR" in agent_instructions
     assert "must not mark a PR ready" in agent_instructions
     assert "state transition belongs exclusively to Agent A" in policy
+    assert "After the exact current head passes every" in policy
+    assert "verifies that it is" in policy and "non-draft" in policy
+    assert "after the pull request has been pushed" not in policy
     assert "DO NOT APPROVE" in policy
     assert "if the PR is still a draft" in policy
     assert "never mark a PR ready" in policy

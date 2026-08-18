@@ -7,11 +7,13 @@ second Codex agent as a distinct native approving reviewer, and a trustworthy
 required `agent-b-review` status check would require an external service or
 credential. This project deliberately avoids that paid integration.
 
-Instead, Agent A automatically creates a fresh Codex task for Agent B after the
-pull request has been pushed. The task runs independently in an isolated
-worktree, reviews the GitHub pull request at its exact current head SHA, and
-returns `APPROVE` or `DO NOT APPROVE`. Agent A waits for that result before
-reporting readiness to the owner.
+Instead, Agent A keeps the pull request draft through implementation,
+self-review, fixes, and required CI. After the exact current head passes every
+required check, Agent A marks the PR **Ready for review**, verifies that it is
+non-draft, and automatically creates a fresh Codex task for Agent B. The task
+runs independently in an isolated worktree, reviews the GitHub pull request at
+that exact head SHA, and returns `APPROVE` or `DO NOT APPROVE`. Agent A waits
+for that result before reporting readiness to the owner.
 
 This is an operational Codex gate, not a GitHub-enforced status check. GitHub
 branch protection enforces the deterministic `tests`, `coverage`, `ruff`, and
