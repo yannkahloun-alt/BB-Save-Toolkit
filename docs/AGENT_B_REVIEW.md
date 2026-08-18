@@ -1,94 +1,76 @@
-# Automated independent Agent B review
+# Independent Agent B review
 
-## Enforcement boundary
+## Free single-account compromise
 
-The repository uses one human GitHub account, so native pull-request approvals
-cannot represent an independent Agent B verdict. The compromise enforcement is
-a trusted GitHub Actions job named exactly `agent-b-review`.
+The repository uses one human GitHub account. GitHub therefore cannot treat a
+second Codex agent as a distinct native approving reviewer, and a trustworthy
+required `agent-b-review` status check would require an external service or
+credential. This project deliberately avoids that paid integration.
 
-The workflow uses `pull_request_target`, so GitHub loads its definition from the
-trusted base branch rather than from the pull-request head. It never checks out,
-imports, sources, or executes pull-request files. It retrieves the complete diff,
-commit inventory, changed-file inventory, and trusted base-branch policies as
-text through GitHub's API and submits them to the OpenAI Responses API.
+Instead, Agent A automatically creates a fresh Codex task for Agent B after the
+pull request has been pushed. The task runs independently in an isolated
+worktree, reviews the GitHub pull request at its exact current head SHA, and
+returns `APPROVE` or `DO NOT APPROVE`. Agent A waits for that result before
+reporting readiness to the owner.
 
-This is weaker identity separation than a dedicated GitHub App because the
-check source is GitHub Actions. It is nevertheless enforceable for this
-single-owner repository when changes to `main` are protected and the workflow
-definition and repository secrets remain trusted.
+This is an operational Codex gate, not a GitHub-enforced status check. GitHub
+branch protection enforces the deterministic `tests`, `coverage`, `ruff`, and
+`pyflakes` checks. Explicit owner confirmation remains mandatory before merge.
 
-## Review protocol
+## Agent A protocol
 
-1. Agent A implements the task, runs the routine gates, performs an adversarial
-   self-review, fixes its findings, and opens or updates the pull request.
-2. Pull-request `opened`, `reopened`, `synchronize`, and `ready_for_review`
-   events start the trusted `agent-b-review` workflow.
-3. The workflow rejects fork pull requests and actors other than the configured
-   repository owner before any step receives `OPENAI_API_KEY`.
-4. The workflow fetches the PR again and requires the event head SHA to equal
-   the current full 40-character `pull_request.head.sha`.
-5. Agent B reviews every commit and the complete `base...head` diff against
-   policy files read from the trusted base SHA. PR text is explicitly treated as
-   untrusted data rather than instructions.
-6. The Responses API enforces a strict JSON schema containing the reviewed SHA,
-   review completeness, findings, summary, and exactly `APPROVE` or
-   `DO NOT APPROVE`.
-7. The workflow fetches the PR again after review. It succeeds only if the PR is
-   still at the reviewed SHA, review completion is true, the verdict is
-   `APPROVE`, and no blocking finding exists.
-8. `DO NOT APPROVE`, blocking findings, missing credentials, API errors,
-   malformed or incomplete responses, oversized or incomplete diffs, and stale
-   SHAs fail the job.
-9. PR-scoped concurrency cancels an obsolete run after a new commit. The new
-   head starts a fresh review; the older check cannot satisfy protection for the
-   new SHA.
-10. Passing checks establish technical readiness only. Merging still requires a
-    new, explicit confirmation from the repository owner.
+1. Implement the requested change and run the appropriate routine validation.
+2. Perform an adversarial self-review of the complete diff and fix every
+   finding.
+3. Commit and push the coherent change, then create or update the draft pull
+   request with its full description.
+4. Resolve and record the pull request's full 40-character current head SHA.
+5. Automatically create a **fresh Codex task** titled
+   `Independent review — PR #<number>` in an isolated worktree.
+6. Give Agent B only the repository, pull-request URL/number, and instruction to
+   use `$review-bb-pr`. Do not give it Agent A's conclusions as trusted facts.
+7. Wait for Agent B to inspect the complete GitHub diff, required checks, and
+   repository policy at that exact SHA.
+8. Accept only an explicit `APPROVE` for the same head SHA. Treat a missing,
+   incomplete, malformed, stale, or `DO NOT APPROVE` response as a failed review.
+9. If Agent B reports findings, fix them, rerun affected validation, push a new
+   commit, and launch a **new** exact-SHA Agent B review. A verdict for the old
+   SHA is invalid.
+10. Report readiness and the verdict to the owner. Never merge or change branch
+    protection without the owner's explicit confirmation.
 
-## Secret and model configuration
+The separate task may run entirely in the background. It appears in the Codex
+sidebar, and the owner may open it in another app window for observation, but
+opening a physical window is not required for the review to run.
 
-Create the repository Actions secret `OPENAI_API_KEY`. The workflow passes it
-only to the trusted inline review step. PR code is never checked out or run, and
-fork or untrusted-actor requests fail before that step.
+## Agent B protocol
 
-The default model is `gpt-5.6-terra` with high reasoning effort. An owner may
-set the repository Actions variable `AGENT_B_MODEL` to another Responses API
-model that supports strict structured outputs. A missing, unauthorized, or
-unsupported model fails closed.
+Agent B must:
 
-OpenAI API usage is billed to the API project associated with the secret. The
-workflow sets `store: false`, but normal API data-handling terms still apply.
+- be a fresh task that did not produce the change;
+- use `$review-bb-pr` and obtain the pull request directly from GitHub;
+- record the exact current head SHA before reviewing;
+- inspect the complete diff and all commits rather than trusting Agent A's
+  summary;
+- verify `tests`, `coverage`, `ruff`, and `pyflakes`;
+- verify that routine PR CI excludes `coverage_slow`, mutation testing,
+  real-save smoke tests, and release ZIP generation;
+- return concrete findings and exactly `APPROVE` or `DO NOT APPROVE`;
+- refuse approval if the SHA changes or required evidence is incomplete; and
+- never modify code, merge, or change repository settings during the review.
 
-## Trust and prompt-injection limitations
+## Trust boundary and limitation
 
-The pull-request diff must be visible to Agent B to be reviewed, so malicious
-text in code or documentation is an unavoidable model input. The trusted system
-instruction labels all PR-derived material as untrusted data and prohibits
-following embedded instructions. The workflow, schema, authorization rules,
-SHA checks, and pass/fail logic remain trusted base-branch code outside the
-model's control.
+The fresh task and isolated worktree provide real separation between the
+producing and reviewing agent. Exact-SHA comparison prevents a verdict from
+being reused after a new commit. The review transcript also remains visible as
+a separate Codex task.
 
-Only the exact structured verdict influences the job. Comments, labels, PR
-descriptions, commit messages, filenames, and text resembling `APPROVE` cannot
-directly set the result. The model is not given a shell, checkout, GitHub token,
-OpenAI key, tool, or function call.
+GitHub itself cannot authenticate this Codex verdict under a single human
+account. A comment, label, or manually fabricated status would not make it
+enforceable. Consequently, someone with direct push or branch-protection bypass
+rights could ignore the Codex review. Branch restrictions and the owner's merge
+discipline are part of this compromise.
 
-This compromise does not provide the distinct check-source identity of a
-dedicated GitHub App. Repository administrators who can modify `main`, Actions
-secrets, or protection settings remain inside the trust boundary.
-
-## One-time setup
-
-1. Create an OpenAI API project key with an appropriate spend limit.
-2. In GitHub, open **Settings > Secrets and variables > Actions > Secrets**.
-3. Create `OPENAI_API_KEY` with the API key as its value.
-4. Open a temporary same-repository PR from the trusted owner and confirm the
-   `agent-b-review` job appears, reviews the exact SHA, and fails closed when the
-   key is absent or invalid.
-5. Configure `main` protection as described in
-   `docs/GITHUB_BRANCH_PROTECTION.md`.
-
-The workflow introduced by a pull request cannot run via `pull_request_target`
-until it exists on the base branch. Its rollout PR therefore requires explicit
-owner review and merge using the existing four green CI gates. All subsequent
-same-repository PRs receive the automated Agent B gate.
+No OpenAI API key, GitHub App, second human account, paid API usage, repository
+secret, or local installation is required for this workflow.

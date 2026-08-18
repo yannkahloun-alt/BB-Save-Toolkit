@@ -37,10 +37,10 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 Pull requests targeting `main` run the same four gates in GitHub Actions as the
 stable checks `tests`, `coverage`, `ruff`, and `pyflakes`.
 
-Branch protection additionally requires the trusted `agent-b-review` Actions
-job. It uses the OpenAI Responses API to review the exact current PR head SHA;
-it does not replace any of the four deterministic validation gates. See
-`docs/AGENT_B_REVIEW.md`.
+Agent A additionally launches and waits for an independent Agent B Codex task
+that reviews the exact current PR head SHA. This operational review does not
+replace any of the four deterministic GitHub checks and is not itself a required
+status check in the free single-account design. See `docs/AGENT_B_REVIEW.md`.
 
 ## Pre-release / pre-production
 
