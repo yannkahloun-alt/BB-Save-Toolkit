@@ -1,100 +1,140 @@
-# Architecture — v3.46 Fit-only model
+# Architecture — current repository baseline
 
-## Design rule
+## Central analytical model
 
-There is one central concept: **level-11 Fit to a configured archetype**. Secondary systems must consume that model rather than recreate their own scoring formula.
+The toolkit has one primary gameplay concept: **level-11 Fit to a configured archetype**. Secondary systems consume that model instead of inventing parallel scoring systems.
 
-## Archetype schema
+Core flow:
 
-Each evaluated stat contains:
+```text
+save bytes
+  -> parser / current brother facts
+  -> source-derived references
+  -> effective stats / permanent transforms
+  -> trajectory projection per archetype
+  -> Fit / ranges / feasibility
+  -> classification + structural paths + Level-Up Advisor
+  -> JSON / HTML outputs
+```
 
-- `target`: the level-11 reference corresponding to utility 1.0;
-- `weight`: relative contribution to archetype Fit;
-- `baseline`: optional lower reference used to shape the continuous utility curve.
+## Module boundaries
 
-The loader derives `projected_curve` from `baseline -> 0.55`, `target -> 1.0`, with a small capped upside above target. Stats absent from the JSON do not contribute to Fit.
+### `bbtool/save_parser.py`
 
-Perk metadata is data-only for now. Structural projection perks such as Colossus may create alternate paths because they change effective stats.
+Read-only binary save parser. It extracts roster/recruit facts, serialized IDs, traits, injuries, perks, stars, current rolls, and quarantined future-roll validation data.
 
-## Stars
+`BrotherID = human:<HumanOffset>` is save-local. Names are display-only.
 
-Stars have no direct Fit value. They only alter future vanilla roll ranges:
+### `references/`
 
-`stars -> roll ranges -> simulated level-ups -> final stats -> Fit`.
+Contains tracked seed/catalog data plus generators for runtime vanilla references. Generated references are derived from source scripts/save-hash semantics and are disposable caches.
 
-Therefore two brothers with identical final projected stats receive identical Fit regardless of how many stars produced those stats.
+Important generated caches include enriched dictionaries, backgrounds, trait effects, permanent-injury effects, and perk audit data.
+
+### `bbtool/projection/`
+
+Pure computation layer where practical.
+
+- `context.py` compiles reusable brother projection context.
+- `perks.py` applies exact permanent structural perk, trait, and permanent-injury effects to effective stats.
+- `trajectory.py` simulates legal future 3-stat level-up decisions and is the source of truth for development trajectories.
+- `scoring.py` evaluates continuous archetype Fit, including optional Fit-only ceilings.
+- `planner.py` assembles role projection outputs.
+
+The normal projection never uses hidden serialized FutureRolls to make decisions.
+
+### `bbtool/levelup_advisor.py`
+
+Evaluates legal current 3-stat choices using the same trajectory/Fit model. Known current rolls are injected as exact ranges; later levels remain probabilistic.
+
+### `bbtool/classification.py` and `bbtool/app/analysis.py`
+
+Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, structural paths, advisor output, and summaries.
+
+### `bbtool/incremental/`
+
+Dependency-aware reuse layer. It must remain above the computation engines rather than embedding persistence in trajectory/scoring code.
+
+Current artifacts can be cached independently where dependencies permit:
+
+```text
+role projection
+structural paths
+advisor
+summary
+```
+
+Conservative exact-state reuse is production-safe. Cross-save progression identity remains an open roadmap item; experimental FutureRoll continuity helpers are diagnostic only until validated on real before/after progression saves.
+
+### `bbtool/app/`
+
+CLI, orchestration, console diagnostics, output writing, and runtime workspace management.
+
+### `bbtool/html_report.py`, `report.js`, `report.css`
+
+Presentation layer. Report/UI-only changes should not invalidate numerical caches.
+
+## Fit semantics
+
+A configured Fit stat may contain:
+
+```text
+target
+baseline
+weight
+ceiling (optional)
+```
+
+Stars influence roll ranges only. They do not add Fit directly.
+
+`ceiling` is valuation-only:
+
+```text
+fit_value = min(effective_value, ceiling)
+```
+
+The uncapped projected stat remains the actual displayed projection.
+
+## Permanent effects
+
+Effective projected stats may include exact unconditional permanent transforms from:
+
+```text
+structural perks
+traits
+permanent injuries
+```
+
+Temporary injuries are intentionally excluded from long-term build evaluation.
 
 ## Trajectory engine
 
-`projection/trajectory.py` is the source of truth for future development.
+For each future development round:
 
-For each simulated development round:
+1. derive legal star-adjusted roll ranges;
+2. evaluate legal 3-stat picks using expected terminal Fit;
+3. choose the Fit-optimal legal pick with deterministic tie behavior;
+4. apply future gains to raw stats;
+5. evaluate permanent transforms on aggregated values;
+6. continue through level 11;
+7. score the final effective profile.
 
-1. produce legal rolls from star-adjusted ranges;
-2. evaluate each legal pick combination by the expected final Fit it enables at level 11;
-3. choose at most three attributes using that final-Fit lookahead policy;
-4. apply permanent perk transforms correctly on aggregated raw stats;
-5. continue to level 11;
-6. score the resulting profile against the archetype Fit curves.
+The engine uses deterministic low-discrepancy sampling and exact/min/max anchors. Five-stat archetypes use a mathematically equivalent drop-composition optimization instead of exponential recursive future ordering.
 
-The lookahead uses only the configured roll ranges for unknown future levels. Hidden serialized future rolls are validation-only and never influence normal pick decisions.
+## Ground-truth validation
 
-The standard distribution uses 512 deterministic low-discrepancy trajectories. Ambiguous cases are refined to 2048. Explicit all-MIN/all-MAX paths anchor the full range.
+Serialized `FutureRolls` are validation-only. Ground-truth validation feeds exact serialized rolls into the public trajectory engine as degenerate ranges. There is no separate ground-truth planner.
 
-Outputs:
+This preserves the invariant that algorithm changes affect blind projection and validation through one implementation.
 
-- Expected Fit;
-- P5/P95 Likely Fit range;
-- Full Fit min/max;
-- `P(Fit >= 100%)` Fit Feasibility;
-- projected stat ranges for Fit stats.
+## Incremental invariant
 
-## Level-Up Advisor
+```text
+incremental result == full recomputation result
+```
 
-The Advisor has no separate weighted scoring formula.
+If artifact compatibility cannot be proven, recompute. Cache contents are derived analysis only; current save facts always come from the current parser run.
 
-It evaluates all legal 3-stat combinations from the current observed level-up. For a known `+4` roll, the current round is passed to the trajectory engine as `4-4`; later rounds use normal ranges. Primary and Runner-up are then projected through the same Fit engine.
+## Open architecture work
 
-A Runner-up is labelled `GAMBLE` when its Expected Fit is lower than Primary but, under paired identical future-roll scenarios, it sometimes finishes with higher Fit. The report exposes that probability rather than inventing a gamble score.
-
-## Strategic Classification
-
-Classification is Fit-only:
-
-- **Invest**: Expected Fit >= configured Invest threshold.
-- **Use**: Expected Fit >= configured Use threshold.
-- **Fodder**: Expected Fit is below Use, but the Full Fit ceiling still reaches the Use threshold.
-- **Trash**: even the Full Fit ceiling remains below the Use threshold.
-
-Best-role ordering uses Expected Fit first, then Fit Feasibility, then the Likely Fit floor. Structural path selection first maximizes strategic category, prefers fewer hypothetical structural perks, then uses the same Fit dimensions.
-
-## Removed legacy concepts
-
-v3.9 deliberately deletes the v2-era analytical branches that no longer feed the v3 model:
-
-- Development Burden;
-- Patch / Support / Core pick accounting;
-- Current Readiness;
-- projected/current gates;
-- viability `min` and `ready` archetype fields;
-- fixed deterministic `_role_alloc` development plans;
-- exact Burden uncertainty / feasibility;
-- legacy `bbtool.engine` compatibility facade;
-- Gifted-specific projection analysis (removed earlier in v3.4).
-
-Historical rationale remains in `CHANGELOG.md`; these concepts are not active runtime inputs or outputs.
-
-## Performance invariants
-
-Optimizations must not alter Fit semantics. The current engine caches brother-level projection context and role-level trajectory context, shares low-discrepancy dimensions, specializes the common 4-Fit-stat / 3-pick loop, and uses adaptive 512 -> 2048 sampling only where needed.
-
-If future archetypes introduce 5+ active Fit stats, profile the generic top-3 selection path and consider a mathematically equivalent specialization rather than constraining archetype design for performance.
-
-
-## Projection ground truth
-
-The save serializes the remaining level-up rolls for every attribute through level 11. The parser exposes them as `FutureRolls`. They are deliberately quarantined from normal analysis: probabilistic Fit, classification, and Level-Up Advisor never read them.
-
-There is **no separate ground-truth planner**. `project_seeded_fit_trajectory()` converts each serialized roll into a per-round degenerate range (`4 -> 4-4`) and calls the public `project_fit_trajectory()` engine with `samples=1`. The blind projection, Advisor-compatible exact-round overrides, and ground truth therefore share the same round-range compilation, pick selection, perk transforms, specialized 4-stat hot path, and final Fit scoring. Only the range inputs differ.
-
-This is an architectural proof invariant: any future change to the trajectory algorithm automatically applies to ground-truth validation because there is only one simulation implementation.
+The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Its main unresolved architectural blocker is proven stable cross-save brother identity after normal progression.
