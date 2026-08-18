@@ -45,13 +45,25 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "wait for agent b" in policy_lower
     assert "not a github-enforced status check" in policy_lower
     assert "no openai api key" in policy_lower
-    assert "never modify code, merge, or change repository settings" in policy_lower
+    assert "remain strictly read-only" in policy_lower
     assert "### Pull-request publishing handoff" in agent_instructions
     assert "Automatically create a fresh Codex task" in agent_instructions
     assert "Independent review — PR #<number>" in agent_instructions
     assert "$review-bb-pr" in agent_instructions
     assert "invalidate the previous verdict" in agent_instructions
     assert "explicit confirmation" in agent_instructions
+    assert "Agent A marks the" in agent_instructions
+    assert "Ready for review" in agent_instructions
+    assert "Agent B is strictly read-only" in agent_instructions
+    assert "refuse to review a draft PR" in agent_instructions
+    assert "must not mark a PR ready" in agent_instructions
+    assert "state transition belongs exclusively to Agent A" in policy
+    assert "After the exact current head passes every" in policy
+    assert "verifies that it is" in policy and "non-draft" in policy
+    assert "after the pull request has been pushed" not in policy
+    assert "DO NOT APPROVE" in policy
+    assert "if the PR is still a draft" in policy
+    assert "never mark a PR ready" in policy
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():

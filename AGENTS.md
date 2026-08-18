@@ -47,18 +47,25 @@ If the task changes a documented contract, update the relevant doc/spec in the s
 
 After Agent A creates or materially updates a pull request:
 
-1. Resolve the pull request's exact current 40-character head SHA.
-2. Automatically create a fresh Codex task in an isolated worktree titled
+1. Keep the pull request draft while implementation, self-review, fixes, and
+   required CI are incomplete.
+2. When the exact current head has all required checks green, Agent A marks the
+   pull request **Ready for review** and verifies that it is no longer a draft.
+3. Resolve the pull request's exact current 40-character head SHA.
+4. Automatically create a fresh Codex task in an isolated worktree titled
    `Independent review — PR #<number>`.
-3. Give that task only the repository, pull-request URL/number, and instruction
+5. Give that task only the repository, pull-request URL/number, and instruction
    to use `$review-bb-pr` to review the complete diff at the exact current head.
-4. Wait for Agent B to return `APPROVE` or `DO NOT APPROVE`.
-5. Treat a missing, incomplete, malformed, stale-SHA, or `DO NOT APPROVE`
+6. Wait for Agent B to return `APPROVE` or `DO NOT APPROVE`.
+7. Treat a draft PR, missing, incomplete, malformed, stale-SHA, or
+   `DO NOT APPROVE`
    verdict as a failed review.
-6. If Agent A pushes another commit, invalidate the previous verdict and launch
-   a new Agent B task for the new head SHA.
+8. If Agent A pushes another commit, invalidate the previous verdict, complete
+   the Agent A gates again, and launch a new Agent B task for the new head SHA.
 
-Agent B must not modify the branch, merge, or change repository settings.
+Agent B is strictly read-only. It must refuse to review a draft PR.
+It must not mark a PR ready, modify the branch, submit GitHub reviews or
+comments, merge, or change any GitHub or repository setting.
 Agent A must not merge without the repository owner's explicit confirmation.
 See `docs/AGENT_B_REVIEW.md` for the complete protocol and trust boundary.
 
