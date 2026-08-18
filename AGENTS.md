@@ -96,13 +96,16 @@ explicit local validation and pre-release work.
 ### Pre-release / pre-production
 
 ```powershell
-.\run_tests.ps1
-.\run_mutation.ps1 -Target <changed-or-high-risk-module>
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+.\run_coverage.ps1
+.\run_lint.ps1 -Tests
+.\run_ruff.ps1 -Tests
 ```
 
-`run_tests.ps1` includes `coverage_slow`. Targeted mutation testing is a
-pre-release/pre-production gate only. Broader mutation campaigns, including
-`-Target all`, run only when explicitly requested.
+The default GitHub release workflow excludes `coverage_slow` and mutation
+testing. Run either gate only when explicitly requested for a particular
+release. Mutation campaigns must be targeted to changed or high-risk modules;
+broader campaigns, including `-Target all`, require an explicit request.
 
 ## Release policy
 

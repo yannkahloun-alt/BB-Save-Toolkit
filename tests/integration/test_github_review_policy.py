@@ -68,6 +68,20 @@ def test_release_workflow_pins_every_action_to_a_commit():
         assert all(character in "0123456789abcdef" for character in revision)
 
 
+def test_release_workflow_matches_repository_release_gate():
+    workflow = _read(".github/workflows/pre-release.yml")
+    agent_instructions = _read("AGENTS.md")
+
+    command = (
+        'python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest '
+        '-m "not coverage_slow" -q'
+    )
+    assert command in workflow
+    assert command in agent_instructions
+    assert "The default GitHub release workflow excludes `coverage_slow`" in agent_instructions
+    assert "run either gate only when explicitly requested" in agent_instructions.lower()
+
+
 def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     policy = _read("docs/AGENT_B_REVIEW.md")
     policy_lower = policy.lower()
