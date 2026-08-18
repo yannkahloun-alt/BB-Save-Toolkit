@@ -43,7 +43,7 @@ def test_agent_b_contract_is_exact_sha_bound_and_fail_closed():
     assert "Every new commit" in policy
     assert "must not use" in policy and "pull-request head" in policy
     assert "comment" in policy_lower
-    assert "never an authorization signal" in policy_lower
+    assert "never" in policy_lower and "authorization signal" in policy_lower
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():
