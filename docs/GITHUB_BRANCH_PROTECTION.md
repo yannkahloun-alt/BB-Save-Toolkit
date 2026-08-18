@@ -35,6 +35,7 @@ squash-merges.
 GitHub cannot enforce the Agent B verdict without a distinct external identity
 or service.
 
-The manually dispatched `pre-release` job is deliberately not a required PR
-check. It includes the expensive pre-release tier and is run only when a release
-or production handoff is being prepared.
+The manually dispatched release workflow's stable `release-tests`,
+`release-quality`, `release-package`, and `release-summary` jobs are
+deliberately not required PR checks. They include expensive or release-only
+work and run only when a release or production handoff is being prepared.

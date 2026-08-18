@@ -55,11 +55,18 @@ Before a release or production handoff, additionally run:
 .\run_mutation.ps1 -Target <changed-or-high-risk-module>
 ```
 
-`run_tests.ps1` includes `coverage_slow`. Mutation campaigns must be targeted
-to changed or high-risk areas. Broader campaigns, including `-Target all`, run
-only when explicitly requested. The separate manual GitHub workflow can run
-these reproducible gates, but real-save smoke tests and ZIP generation remain
-local/manual because private game data and game files are not available in CI.
+`run_tests.ps1` includes `coverage_slow`, but the manually dispatched GitHub
+**Release validation** workflow excludes that marker by default. It runs the
+remaining reproducible tests, coverage, lint, and Ruff gates, then builds and
+verifies the release ZIP and retains it as a downloadable artifact. Its stable
+job results and run summary bind the outcome to the selected ref and exact
+commit SHA. Real-save smoke tests remain local because private game data and
+game files are not available in CI.
+
+Neither `coverage_slow` nor mutation testing is invoked or required by that
+workflow. Both remain separate, explicitly requested pre-release work. Mutation
+campaigns target changed or high-risk areas; broader campaigns such as
+`-Target all` run only when explicitly requested.
 
 ## Static analysis
 
