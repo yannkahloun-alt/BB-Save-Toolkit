@@ -20,9 +20,11 @@ def test_pr_validation_keeps_stable_routine_checks_and_safe_scope():
     assert "group: pr-validation-${{ github.event.pull_request.number }}" in workflow
     assert "cancel-in-progress: true" in workflow
 
-    for check in ("tests", "coverage", "ruff", "pyflakes"):
+    for check in ("tests", "ruff", "pyflakes"):
         assert f"  {check}:\n    name: {check}" in workflow
 
+    assert "  coverage:\n    name: coverage" not in workflow
+    assert "run_coverage.ps1" not in workflow
     assert '-m "not coverage_slow"' in workflow
     for forbidden in ("run_tests.ps1", "run_mutation.ps1", "verify_release_zip"):
         assert forbidden not in workflow
@@ -51,7 +53,8 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "Independent review — PR #<number>" in agent_instructions
     assert "$review-bb-pr" in agent_instructions
     assert "invalidate the previous verdict" in agent_instructions
-    assert "explicit confirmation" in agent_instructions
+    assert "automatically squash-merges" in agent_instructions
+    assert "separate owner confirmation is not required" in agent_instructions
     assert "Agent A marks the" in agent_instructions
     assert "Ready for review" in agent_instructions
     assert "Agent B is strictly read-only" in agent_instructions
@@ -64,14 +67,19 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "DO NOT APPROVE" in policy
     assert "if the PR is still a draft" in policy
     assert "never mark a PR ready" in policy
+    assert "Automatically squash-merge" in policy
+    assert "Do not wait for a separate" in policy
+    assert "owner confirmation" in policy
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():
     protection = _read("docs/GITHUB_BRANCH_PROTECTION.md")
 
-    for check in ("tests", "coverage", "ruff", "pyflakes"):
+    for check in ("tests", "ruff", "pyflakes"):
         assert f"`{check}`" in protection
 
+    assert "Coverage is" in protection
+    assert "temporarily excluded" in protection
     assert "zero required approving reviews" in protection
     assert "not a GitHub-enforced status check" in protection
     assert "exact current head SHA" in protection

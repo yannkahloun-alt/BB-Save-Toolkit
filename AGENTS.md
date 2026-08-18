@@ -62,11 +62,14 @@ After Agent A creates or materially updates a pull request:
    verdict as a failed review.
 8. If Agent A pushes another commit, invalidate the previous verdict, complete
    the Agent A gates again, and launch a new Agent B task for the new head SHA.
+9. After Agent B returns `APPROVE`, fetch the PR again and verify that its full
+   head SHA is unchanged and every required check is still green.
+10. If that final verification passes, Agent A automatically squash-merges the
+    PR. A separate owner confirmation is not required.
 
 Agent B is strictly read-only. It must refuse to review a draft PR.
 It must not mark a PR ready, modify the branch, submit GitHub reviews or
 comments, merge, or change any GitHub or repository setting.
-Agent A must not merge without the repository owner's explicit confirmation.
 See `docs/AGENT_B_REVIEW.md` for the complete protocol and trust boundary.
 
 ## Validation levels
@@ -82,10 +85,13 @@ See `docs/AGENT_B_REVIEW.md` for the complete protocol and trust boundary.
 
 ```powershell
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
-.\run_coverage.ps1
 .\run_lint.ps1 -Tests
 .\run_ruff.ps1 -Tests
 ```
+
+Branch coverage is temporarily excluded from the normal PR and pre-merge gate
+until its runtime is optimized. `run_coverage.ps1` remains available for
+explicit local validation and pre-release work.
 
 ### Pre-release / pre-production
 

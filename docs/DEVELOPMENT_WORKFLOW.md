@@ -111,8 +111,9 @@ draft. Every new commit invalidates the old verdict and requires Agent A to
 complete its gates before launching a new Agent B task. The verdict is an
 operational Codex gate rather than a GitHub status check because both agents use
 one human GitHub account and no paid external integration is configured. See
-`docs/AGENT_B_REVIEW.md`. Passing review never authorizes a merge without
-explicit owner confirmation.
+`docs/AGENT_B_REVIEW.md`. After an exact-head `APPROVE`, Agent A re-fetches
+the PR, verifies that the SHA and required checks are unchanged, and
+automatically squash-merges it.
 
 ## Branch discipline
 

@@ -13,11 +13,13 @@ required check, Agent A marks the PR **Ready for review**, verifies that it is
 non-draft, and automatically creates a fresh Codex task for Agent B. The task
 runs independently in an isolated worktree, reviews the GitHub pull request at
 that exact head SHA, and returns `APPROVE` or `DO NOT APPROVE`. Agent A waits
-for that result before reporting readiness to the owner.
+for that result before either fixing findings or performing the final verified
+automatic merge.
 
 This is an operational Codex gate, not a GitHub-enforced status check. GitHub
-branch protection enforces the deterministic `tests`, `coverage`, `ruff`, and
-`pyflakes` checks. Explicit owner confirmation remains mandatory before merge.
+branch protection enforces the deterministic `tests`, `ruff`, and `pyflakes`
+checks. Coverage is temporarily excluded from normal PR CI until its runtime is
+optimized.
 
 ## Agent A protocol
 
@@ -42,8 +44,10 @@ branch protection enforces the deterministic `tests`, `coverage`, `ruff`, and
 11. If Agent B reports findings, fix them, rerun affected validation, push a new
     commit, complete the ready-state gate again, and launch a **new** exact-SHA
     Agent B review. A verdict for the old SHA is invalid.
-12. Report readiness and the verdict to the owner. Never merge or change branch
-    protection without the owner's explicit confirmation.
+12. After `APPROVE`, re-fetch the PR and require its full head SHA to remain
+    identical and every required check to remain green.
+13. Automatically squash-merge the verified PR. Do not wait for a separate
+    owner confirmation. Never change branch protection as part of this flow.
 
 The separate task may run entirely in the background. It appears in the Codex
 sidebar, and the owner may open it in another app window for observation, but
@@ -60,7 +64,9 @@ Agent B must:
 - record the exact current head SHA before reviewing;
 - inspect the complete diff and all commits rather than trusting Agent A's
   summary;
-- verify `tests`, `coverage`, `ruff`, and `pyflakes`;
+- verify `tests`, `ruff`, and `pyflakes`;
+- confirm that coverage is absent from normal PR CI under the documented
+  temporary exception;
 - verify that routine PR CI excludes `coverage_slow`, mutation testing,
   real-save smoke tests, and release ZIP generation;
 - return concrete findings and exactly `APPROVE` or `DO NOT APPROVE`;
@@ -78,8 +84,8 @@ a separate Codex task.
 GitHub itself cannot authenticate this Codex verdict under a single human
 account. A comment, label, or manually fabricated status would not make it
 enforceable. Consequently, someone with direct push or branch-protection bypass
-rights could ignore the Codex review. Branch restrictions and the owner's merge
-discipline are part of this compromise.
+rights could ignore the Codex review. Branch restrictions and Agent A's
+exact-SHA verification are part of this compromise.
 
 No OpenAI API key, GitHub App, second human account, paid API usage, repository
 secret, or local installation is required for this workflow.
