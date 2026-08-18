@@ -37,6 +37,11 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 Pull requests targeting `main` run the same four gates in GitHub Actions as the
 stable checks `tests`, `coverage`, `ruff`, and `pyflakes`.
 
+Branch protection additionally requires the external `agent-b-review` Check
+Run. It is produced by the dedicated Agent B GitHub App for the exact current PR
+head SHA; it is not a test job and does not replace any of the four validation
+gates. See `docs/AGENT_B_REVIEW.md`.
+
 ## Pre-release / pre-production
 
 Before a release or production handoff, additionally run:
