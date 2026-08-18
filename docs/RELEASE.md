@@ -12,6 +12,11 @@ workflow keeps release work separate from pull-request CI and records stable
 `release-tests`, `release-quality`, `release-package`, and `release-summary`
 jobs against the exact commit.
 
+The entered version must exactly match the first release heading in
+`docs/CHANGELOG.md`; the workflow rejects a mismatch before packaging. This
+binds the artifact name and audit summary to version metadata in the selected
+commit.
+
 The workflow runs:
 
 ```powershell

@@ -55,6 +55,9 @@ def test_release_workflow_is_manual_auditable_and_packages_verified_zip():
     assert "GITHUB_STEP_SUMMARY" in workflow
     assert "${{ github.sha }}" in workflow
     assert "run_mutation.ps1" not in workflow
+    assert "Select-String -Path docs/CHANGELOG.md" in workflow
+    assert "$env:RELEASE_VERSION -cne $declaredVersion" in workflow
+    assert "does not match changelog version" in workflow
 
 
 def test_release_workflow_pins_every_action_to_a_commit():
