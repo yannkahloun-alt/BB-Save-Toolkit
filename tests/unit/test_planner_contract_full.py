@@ -102,7 +102,14 @@ def test_project_role_increments_only_full_and_total_and_returns_exact_ranges(mo
         components = {"x": 1}
         monkeypatch.setattr(planner, "_project_role_common", lambda bro, role: (trajectory, values, components))
 
-        result = planner.project_role(object(), {"name": "R"})
+        role = {
+            "name": "R",
+            "stats": {
+                stat: {"baseline": 10, "target": 20, "weight": 1}
+                for stat in trajectory["fit_stats"]
+            },
+        }
+        result = planner.project_role(object(), role)
 
         assert planner.PROFILE["project_role_calls"] == 11
         assert planner.PROFILE["fast_projection_calls"] == 20
@@ -112,7 +119,12 @@ def test_project_role_increments_only_full_and_total_and_returns_exact_ranges(mo
         assert result["FitTrajectoryPruned"] is True
         assert set(result["ProjectedRanges"]) == set(STATS[:4])
         for stat in STATS[:4]:
-            assert result["ProjectedRanges"][stat] == trajectory["stat_ranges"][stat]
+            assert result["ProjectedRanges"][stat] == {
+                **trajectory["stat_ranges"][stat],
+                "baseline": float(role["stats"][stat]["baseline"]),
+                "target": float(role["stats"][stat]["target"]),
+                "weight": float(role["stats"][stat].get("weight", 1.0)),
+            }
     finally:
         planner.PROFILE.clear()
         planner.PROFILE.update(original)

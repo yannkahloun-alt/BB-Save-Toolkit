@@ -103,15 +103,86 @@ def range_text(rng):
     return f"{lo:g}–{hi:g}"
 
 
+def _axis_position(value: float, axis_min: float, axis_max: float) -> float:
+    """Return an uncluttered, numerically accurate percentage on one stat axis."""
+    if axis_max <= axis_min:
+        return 50.0
+    return 100.0 * (float(value) - axis_min) / (axis_max - axis_min)
+
+
+def _fit_stat_rows(row: dict):
+    for stat in STAT_ORDER:
+        rng = row.get("ProjectedRanges", {}).get(stat)
+        if rng:
+            yield stat, rng
+
+
+def target_profile_html(row: dict) -> str:
+    stats = ''.join(
+        '<div class="target-profile-stat">'
+        f'<span class="stat-icon" aria-hidden="true">{STAT_SHORT[stat]}</span>'
+        f'<strong>{esc(stat)}</strong>'
+        f'<span><small>Target</small><b>{float(rng["target"]):g}</b></span>'
+        f'<span><small>Baseline</small><b>{float(rng["baseline"]):g}</b></span>'
+        '</div>'
+        for stat, rng in _fit_stat_rows(row)
+    )
+    explanations = (
+        ("EXPECTED", "Average projected value at level 11 under the optimized stat allocation."),
+        ("TARGET", "The desired end value for this archetype to be maximally effective in this role."),
+        ("BASELINE", "The minimum useful value for this stat in this role."),
+        ("RANGE", "Possible level 11 values under the optimized stat allocation (min → max)."),
+        ("WEIGHT", "The importance of this stat in the Fit calculation. Higher weight = higher impact."),
+    )
+    explanation_html = ''.join(
+        f'<div><strong>{heading}</strong><span>{esc(copy)}</span></div>'
+        for heading, copy in explanations
+    )
+    return (
+        '<details class="target-profile-explainer">'
+        '<summary><span class="target-profile-label">TARGET PROFILE</span>'
+        f'<div class="target-profile-stats">{stats}</div>'
+        '<span class="target-profile-chevron" aria-hidden="true"></span></summary>'
+        f'<div class="projection-explanations">{explanation_html}</div>'
+        '</details>'
+    )
+
+
 def development_focus_html(b, row: dict, effective=None) -> str:
-    """Explain only the Fit stats that define the archetype trajectory."""
+    """Render pipeline-provided level-11 ranges and references on one axis."""
     effective=effective or {}
     chips=[]
-    for stat in STAT_ORDER:
-        comp=row.get("ProjectedComponents",{}).get(stat)
-        rng=row.get("ProjectedRanges",{}).get(stat)
-        if not comp or not rng: continue
+    for stat, rng in _fit_stat_rows(row):
+        comp=row.get("ProjectedComponents",{}).get(stat, {})
         current=float(effective.get(stat,getattr(b,stat)))
+        values = [float(rng[key]) for key in ("min", "max", "ev", "baseline", "target")]
+        data_min, data_max = min(values), max(values)
+        span = data_max - data_min
+        padding = max(span * 0.08, 1.0)
+        axis_min, axis_max = data_min - padding, data_max + padding
+        range_left = _axis_position(float(rng["min"]), axis_min, axis_max)
+        range_right = _axis_position(float(rng["max"]), axis_min, axis_max)
+        marker_data = [
+            (kind, key, label, _axis_position(float(rng[key]), axis_min, axis_max))
+            for kind, key, label in (
+                ("baseline", "baseline", "Baseline"),
+                ("target", "target", "Target"),
+                ("expected", "ev", "Expected"),
+            )
+        ]
+        label_rows = {}
+        previous_position = None
+        previous_row = 0
+        for kind, _key, _label, position in sorted(marker_data, key=lambda item: item[3]):
+            row_index = previous_row + 1 if previous_position is not None and position - previous_position < 12 else 0
+            label_rows[kind] = row_index
+            previous_position, previous_row = position, row_index
+        markers = ''.join(
+            f'<span class="projection-marker marker-{kind}" style="left:{position:.4f}%;--label-top:{27 + 13 * label_rows[kind]}px" '
+            f'title="{label} {float(rng[key]):g}" aria-label="{label} {float(rng[key]):g}">'
+            f'<i></i><b>{float(rng[key]):g}</b></span>'
+            for kind, key, label, position in marker_data
+        )
         cap_note = ""
         if comp.get("ceiling") is not None:
             cap_note = (
@@ -125,9 +196,13 @@ def development_focus_html(b, row: dict, effective=None) -> str:
             )
         chips.append(
             '<div class="development-focus-chip">'
-            f'<span>{STAT_SHORT[stat]}</span><strong>{current:g} <em>→</em> {esc(range_text(rng))}</strong>'
-            f'<small class="focus-level">Expected {float(rng["ev"]):g}</small>'
-            f'<small class="focus-weight">Weight {float(comp["weight"]):g}</small>'
+            '<div class="development-card-head">'
+            f'<span class="stat-icon" aria-hidden="true">{STAT_SHORT[stat]}</span><strong>{esc(stat)}</strong>'
+            f'<small>Weight <b>{float(rng["weight"]):g}</b></small></div>'
+            f'<div class="development-values">{current:g} <em>→</em> {esc(range_text(rng))}</div>'
+            '<div class="projection-axis">'
+            f'<span class="projected-range" style="left:{range_left:.4f}%;width:{range_right-range_left:.4f}%"></span>'
+            f'{markers}</div>'
             f'{cap_note}</div>'
         )
     return '<div class="development-focus-grid">'+''.join(chips)+'</div>' if chips else '<span class="muted">No Fit stat configured.</span>'
@@ -565,10 +640,17 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
     """Shared rich archetype body for base and structural trajectories."""
     effective = effective or {}
     return (
-        '<div class="role-detail-body"><div class="detail-block"><h4>Effective current stats</h4>'
+        '<div class="role-detail-body">'
+        f'{target_profile_html(row)}'
+        '<div class="detail-block"><h4>EFFECTIVE CURRENT STATS</h4>'
         f'<div class="stat-grid structural-stats">{current_stat_chips(b,effective,role_important_stats(role_cfg))}</div></div>'
-        '<div class="detail-block development-focus-block"><h4>Fit development — Level 11</h4>'
-        f'{development_focus_html(b,row,effective)}</div></div>'
+        '<div class="detail-block development-focus-block"><h4>FIT DEVELOPMENT — LEVEL 11 <span>(optimized stat allocation)</span></h4>'
+        f'{development_focus_html(b,row,effective)}</div>'
+        '<div class="projection-legend">'
+        '<span class="legend-baseline">Baseline (minimum useful)</span>'
+        '<span class="legend-target">Target (desired)</span>'
+        '<span class="legend-expected">Expected (projection)</span>'
+        '</div></div>'
     )
 
 

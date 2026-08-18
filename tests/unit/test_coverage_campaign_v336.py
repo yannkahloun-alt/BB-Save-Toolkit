@@ -42,9 +42,12 @@ def base_fit(name="Test Bro"):
             "HP": {"weight": 1}, "MAtk": {"weight": 2}, "MDef": {"weight": 2},
         },
         "ProjectedRanges": {
-            "HP": {"p5": 80, "p95": 90, "min": 75, "max": 95, "ev": 85},
-            "MAtk": {"p5": 80, "p95": 90, "min": 75, "max": 95, "ev": 85},
-            "MDef": {"p5": 28, "p95": 35, "min": 25, "max": 38, "ev": 32},
+            "HP": {"p5": 80, "p95": 90, "min": 75, "max": 95, "ev": 85,
+                   "baseline": 70, "target": 90, "weight": 1},
+            "MAtk": {"p5": 80, "p95": 90, "min": 75, "max": 95, "ev": 85,
+                     "baseline": 80, "target": 90, "weight": 2},
+            "MDef": {"p5": 28, "p95": 35, "min": 25, "max": 38, "ev": 32,
+                     "baseline": 25, "target": 35, "weight": 2},
         },
     }
 

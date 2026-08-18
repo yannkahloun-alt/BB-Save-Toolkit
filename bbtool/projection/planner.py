@@ -62,6 +62,9 @@ def project_role(bro: Brother, role: dict) -> dict:
                 "min": trajectory["stat_ranges"][stat]["min"],
                 "ev": trajectory["stat_ranges"][stat]["ev"],
                 "max": trajectory["stat_ranges"][stat]["max"],
+                "baseline": float(role["stats"][stat]["baseline"]),
+                "target": float(role["stats"][stat]["target"]),
+                "weight": float(role["stats"][stat].get("weight", 1.0)),
             }
             for stat in STATS
             if stat in trajectory.get("fit_stats", ())
