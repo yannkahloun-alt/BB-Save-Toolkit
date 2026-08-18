@@ -1,0 +1,28 @@
+target-version = "py313"
+line-length = 120
+cache-dir = "tests/cache/ruff"
+extend-exclude = [
+    "tests/cache",
+    "tests/coverage",
+]
+
+[lint]
+select = [
+    "F",    # Pyflakes
+    "E4",   # import/layout errors, not formatting noise
+    "E7",   # statement errors
+    "E9",   # runtime/syntax errors
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "RUF100", # stale noqa suppressions
+]
+ignore = [
+    "E701", # project currently uses compact one-line simple statements extensively
+    "E702", # same; keep first pass behavioral, not formatting-driven
+]
+
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+    "B011", # assert False is acceptable in tests when intentional
+]

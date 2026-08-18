@@ -1,0 +1,28 @@
+{
+  "schema": "bb-classification-v0.9",
+  "semantics": {
+    "projected_fit": "Expected level-11 archetype Fit.",
+    "fit_feasibility": "Probability that simulated development reaches Fit >= 100%.",
+    "fit_range": "Likely/full level-11 Fit ranges from the trajectory engine.",
+    "fodder_vs_trash": "After Invest/Use fail, Fodder means the archetype remains reachable at the Use Fit threshold in the full simulated range; Trash cannot reach it."
+  },
+  "thresholds": {
+    "Invest": {
+      "min_projected_fit": 0.95
+    },
+    "Use": {
+      "min_projected_fit": 0.65
+    },
+    "Fodder": {
+      "min_full_max_fit": 0.65
+    },
+    "Trash": {
+      "default": true
+    }
+  },
+  "display": {
+    "premium_fit": 0.95,
+    "good_fit": 0.82,
+    "viable_fit": 0.68
+  }
+}

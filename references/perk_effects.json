@@ -1,0 +1,17 @@
+{
+  "_meta": {"format":"bbtool.perk_effects.v2"},
+  "perks": {
+    "colossus": {
+      "Name": "Colossus",
+      "Effects": [
+        {"stat":"HP","op":"*=","value":1.25,"property":"HitpointsMult","exact":true,"conditional":false}
+      ]
+    },
+    "fortified": {
+      "Name": "Fortified Mind",
+      "Effects": [
+        {"stat":"Resolve","op":"*=","value":1.25,"property":"BraveryMult","exact":true,"conditional":false}
+      ]
+    }
+  }
+}

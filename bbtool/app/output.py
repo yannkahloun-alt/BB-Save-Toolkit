@@ -1,0 +1,409 @@
+
+"""Creation of reproducible analysis run folders and archives."""
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from datetime import datetime
+import json
+from collections import defaultdict
+from pathlib import Path
+import shutil
+import zipfile
+
+from ..formatting import component_summary
+from ..models import STATS
+from ..html_report import render_html_report
+from ..projection import (
+    project_fit_trajectory, project_seeded_fit_trajectory,
+    gain_range, development_rounds_to_11,
+)
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+
+
+@dataclass(frozen=True)
+class RunWorkspace:
+    root: Path
+    base: str
+    generated_at: str
+    source_save: Path
+
+
+def create_workspace(save: Path, out_root: Path) -> RunWorkspace:
+    out_root.mkdir(parents=True, exist_ok=True)
+    run_dt = datetime.now().astimezone()
+    stamp = run_dt.strftime("%Y%m%d-%H%M%S")
+    generated_at = run_dt.isoformat(timespec="seconds")
+    base = f"{save.stem}-{stamp}"
+    root = out_root / base
+    root.mkdir(parents=True, exist_ok=False)
+    return RunWorkspace(
+        root=root,
+        base=base,
+        generated_at=generated_at,
+        source_save=save,
+    )
+
+
+def _public_bro_dict(bro) -> dict:
+    """Serialize only information the normal analysis is allowed to consume.
+
+    FutureRolls are hidden save-state ground truth and belong exclusively in the
+    projection-validation artifact. CurrentRolls remain public because they are
+    the rolls currently shown to the player and are consumed by the Advisor.
+    """
+    data = asdict(bro)
+    data["BrotherID"] = bro.BrotherID
+    data.pop("FutureRolls", None)
+    return data
+
+
+def write_raw_inputs(workspace: RunWorkspace, bros, recruits) -> None:
+    save_copy = (
+        workspace.root
+        / f"{workspace.base}{workspace.source_save.suffix}"
+    )
+    shutil.copy2(workspace.source_save, save_copy)
+
+    (workspace.root / f"{workspace.base}-roster.json").write_text(
+        json.dumps([_public_bro_dict(bro) for bro in bros], indent=2),
+        encoding="utf-8",
+    )
+    (workspace.root / f"{workspace.base}-recruits.json").write_text(
+        json.dumps(recruits, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _decorate_fit_rows(fits: list[dict]) -> None:
+    for row in fits:
+        row["ProjectedComponentSummary"] = component_summary(row["ProjectedComponents"])
+        row["ProjectedRangeSummary"] = "; ".join(
+            f"{stat}:{value['min']}-{value['max']} (EV {value['ev']})"
+            for stat, value in row.get("ProjectedRanges", {}).items()
+        )
+
+def write_analysis_json(
+    workspace: RunWorkspace,
+    fits: list[dict],
+    summaries: list[dict],
+) -> None:
+    _decorate_fit_rows(fits)
+    (workspace.root / f"{workspace.base}-role-fit.json").write_text(
+        json.dumps(fits, indent=2),
+        encoding="utf-8",
+    )
+    (
+        workspace.root
+        / f"{workspace.base}-classification.json"
+    ).write_text(
+        json.dumps(summaries, indent=2),
+        encoding="utf-8",
+    )
+
+
+
+def _blind_projection_for_validation(bro, role) -> dict:
+    """Return the exact blind trajectory distribution used by classification.
+
+    Current visible level-up rolls are fixed exactly as they are in planner.py;
+    hidden future rolls are deliberately not supplied here. In normal runs this
+    resolves to the trajectory cache populated during Strategic Classification.
+    """
+    current = getattr(bro, "CurrentRolls", {}) or {}
+    first_round_ranges = None
+    if int(getattr(bro, "LevelPoints", 0)) > 0 and current:
+        first_round_ranges = {stat: (int(value), int(value)) for stat, value in current.items()}
+    return project_fit_trajectory(
+        bro, role, rounds=development_rounds_to_11(bro),
+        first_round_ranges=first_round_ranges,
+    )
+
+
+def _discrete_sum_distribution(lo: int, hi: int, rounds: int) -> dict[int, int]:
+    """Exact count distribution for the sum of ``rounds`` uniform integer rolls."""
+    dist = {0: 1}
+    for _ in range(rounds):
+        nxt = defaultdict(int)
+        for subtotal, count in dist.items():
+            for roll in range(lo, hi + 1):
+                nxt[subtotal + roll] += count
+        dist = dict(nxt)
+    return dist
+
+
+def _midrank_from_counts(dist: dict, actual) -> float | None:
+    total = sum(dist.values())
+    if not total:
+        return None
+    below = sum(count for value, count in dist.items() if value < actual)
+    equal = dist.get(actual, 0)
+    return round(100.0 * (below + 0.5 * equal) / total, 1)
+
+
+def _roll_luck_to_level11(bro) -> dict:
+    """Rank the serialized real roll sequence against vanilla roll RNG.
+
+    This is oracle-only validation data.  Per-stat ranks use the exact discrete
+    distribution of the cumulative rolls remaining through level 11.
+    """
+    rounds = development_rounds_to_11(bro)
+    sequences = getattr(bro, "FutureRolls", {}) or {}
+    by_stat = {}
+    for stat in STATS:
+        values = tuple(int(v) for v in sequences.get(stat, ())[:rounds])
+        if len(values) != rounds:
+            continue
+        lo, hi = gain_range(stat, int(getattr(bro, stat + "Stars")))
+        actual_sum = sum(values)
+        dist = _discrete_sum_distribution(lo, hi, rounds)
+        by_stat[stat] = {
+            "PercentilePct": _midrank_from_counts(dist, actual_sum),
+            "ActualSum": actual_sum,
+            "ExpectedSum": round(rounds * (lo + hi) / 2.0, 1),
+            "MinSum": rounds * lo,
+            "MaxSum": rounds * hi,
+            "RollRange": [lo, hi],
+            "Rolls": list(values),
+        }
+    return {"Rounds": rounds, "ByStat": by_stat}
+
+
+def _role_relevant_roll_rank(role: dict, roll_luck: dict) -> float | None:
+    """Fit-weighted rank of the raw level-11 roll luck relevant to a role.
+
+    This intentionally stays separate from the Fit simulator: it is the weighted
+    average of the exact per-stat cumulative-roll percentiles, using the role's
+    Fit weights.  It measures raw RNG quality, before pick competition, targets,
+    perk transforms, or Fit curves can change the outcome.
+    """
+    stats = role.get("stats", {}) or {}
+    by_stat = roll_luck.get("ByStat", {}) or {}
+    weighted = []
+    for stat, spec in stats.items():
+        if spec.get("fit") is False:
+            continue
+        entry = by_stat.get(stat)
+        if not entry or entry.get("PercentilePct") is None:
+            return None
+        weight = float(spec.get("weight", 1.0))
+        weighted.append((weight, float(entry["PercentilePct"])))
+    total_weight = sum(weight for weight, _ in weighted)
+    if total_weight <= 0:
+        return None
+    return round(sum(weight * pct for weight, pct in weighted) / total_weight, 1)
+
+
+def _empirical_percentile(outcomes, realized: float) -> tuple[float | None, int]:
+    """Mid-rank percentile of a real Fit inside the blind simulated distribution."""
+    values = tuple(float(v) for v in (outcomes or ()))
+    n = len(values)
+    if not n:
+        return None, 0
+    eps = 1e-12
+    below = sum(v < realized - eps for v in values)
+    equal = sum(abs(v - realized) <= eps for v in values)
+    percentile = 100.0 * (below + 0.5 * equal) / n
+    return round(percentile, 1), n
+
+
+def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> dict:
+    """Compare probabilistic Fit projections with rolls serialized in the save.
+
+    This diagnostic is intentionally excluded from classification/advisor inputs.
+    """
+    bro_by_id = {bro.BrotherID: bro for bro in bros}
+    bros_by_name = {}
+    for bro in bros:
+        bros_by_name.setdefault(bro.Name, []).append(bro)
+    role_by_name = {role["name"]: role for role in roles}
+    rows = []
+    roll_range_violations = []
+    roll_luck_by_bro = {bro.BrotherID: _roll_luck_to_level11(bro) for bro in bros}
+    for bro in bros:
+        rounds = development_rounds_to_11(bro)
+        for stat, values in (getattr(bro, "FutureRolls", {}) or {}).items():
+            lo, hi = gain_range(stat, int(getattr(bro, stat + "Stars")))
+            for idx, value in enumerate(values[:rounds]):
+                if not lo <= int(value) <= hi:
+                    roll_range_violations.append({
+                        "BrotherID": bro.BrotherID, "Name": bro.Name, "Stat": stat, "Round": idx + 1,
+                        "Roll": int(value), "ExpectedRange": [lo, hi],
+                    })
+
+    for projected in fits:
+        projected_id = projected.get("BrotherID")
+        bro = bro_by_id.get(projected_id)
+        if bro is None and projected_id is None:
+            legacy_matches = bros_by_name.get(projected.get("Name"), [])
+            bro = legacy_matches[0] if len(legacy_matches) == 1 else None
+        role = role_by_name.get(projected.get("Role"))
+        if bro is None or role is None:
+            continue
+        actual = project_seeded_fit_trajectory(bro, role)
+        if actual is None:
+            continue
+        expected = float(projected.get("ProjectedFitPct", projected.get("ProjectedFit", 0.0)))
+        likely_min = float(projected.get("ProjectedFitLikelyMinPct", expected))
+        likely_max = float(projected.get("ProjectedFitLikelyMaxPct", expected))
+        full_min = float(projected.get("ProjectedFitFullMinPct", expected))
+        full_max = float(projected.get("ProjectedFitFullMaxPct", expected))
+        realized = float(actual["fit_pct"])
+        blind = _blind_projection_for_validation(bro, role)
+        actual_percentile, percentile_samples = _empirical_percentile(
+            blind.get("_outcomes_pct"), realized
+        )
+        rows.append({
+            "BrotherID": bro.BrotherID, "Name": bro.Name, "Role": role["name"],
+            "ExpectedFitPct": round(expected, 1),
+            "SeededFitPct": round(realized, 1),
+            "DeltaVsExpectedPct": round(realized - expected, 1),
+            "ActualPercentilePct": actual_percentile,
+            "ActualPercentileSampleCount": percentile_samples,
+            "RelevantRollRankPct": _role_relevant_roll_rank(role, _roll_luck_to_level11(bro)),
+            "LikelyRangePct": [round(likely_min, 1), round(likely_max, 1)],
+            "FullRangePct": [round(full_min, 1), round(full_max, 1)],
+            "InsideLikelyRange": likely_min - 1e-9 <= realized <= likely_max + 1e-9,
+            "InsideFullRange": full_min - 1e-9 <= realized <= full_max + 1e-9,
+            "SeededReached100": realized >= 100.0 - 1e-9,
+            "ProjectedFeasibilityPct": projected.get("FitFeasibilityPct"),
+            "Rounds": actual["rounds"],
+            "Choices": actual["choices"],
+        })
+    n = len(rows)
+    return {
+        "purpose": "validation only; contains hidden future save rolls; never used by classification or advisor",
+        "roll_luck_to_level11": roll_luck_by_bro,
+        "rows": rows,
+        "summary": {
+            "comparisons": n,
+            "inside_likely": sum(bool(r["InsideLikelyRange"]) for r in rows),
+            "inside_likely_pct": round(100.0 * sum(bool(r["InsideLikelyRange"]) for r in rows) / n, 1) if n else None,
+            "inside_full": sum(bool(r["InsideFullRange"]) for r in rows),
+            "inside_full_pct": round(100.0 * sum(bool(r["InsideFullRange"]) for r in rows) / n, 1) if n else None,
+            "mean_abs_delta_vs_expected": round(sum(abs(float(r["DeltaVsExpectedPct"])) for r in rows) / n, 2) if n else None,
+            "max_abs_delta_vs_expected": round(max((abs(float(r["DeltaVsExpectedPct"])) for r in rows), default=0.0), 2) if n else None,
+            "actual_percentile_mean": round(sum(float(r["ActualPercentilePct"]) for r in rows if r["ActualPercentilePct"] is not None) / sum(r["ActualPercentilePct"] is not None for r in rows), 1) if any(r["ActualPercentilePct"] is not None for r in rows) else None,
+            "relevant_roll_rank_mean": round(sum(float(r["RelevantRollRankPct"]) for r in rows if r["RelevantRollRankPct"] is not None) / sum(r["RelevantRollRankPct"] is not None for r in rows), 1) if any(r["RelevantRollRankPct"] is not None for r in rows) else None,
+            "roll_range_violations": len(roll_range_violations),
+        },
+        "roll_range_violations": roll_range_violations,
+    }
+
+
+def write_projection_validation(
+    workspace: RunWorkspace,
+    bros,
+    fits: list[dict],
+    roles: list[dict],
+) -> Path:
+    """Write the quarantined seeded-future validation artifact.
+
+    This is the only JSON output allowed to expose FutureRolls / seeded choices.
+    """
+    validation = build_projection_validation(bros, fits, roles)
+    payload = {
+        "_meta": {
+            "format": "bbtool.projection_validation.v3",
+            "generated_at": workspace.generated_at,
+            "source_save": workspace.source_save.name,
+            "purpose": "projection calibration against hidden serialized future rolls",
+            "warning": "validation-only oracle data; never feed into classification or advisor",
+        },
+        "summary": validation["summary"],
+        "roll_luck_to_level11": validation["roll_luck_to_level11"],
+        "rows": validation["rows"],
+        "roll_range_violations": validation["roll_range_violations"],
+    }
+    path = workspace.root / f"{workspace.base}-projection-validation.json"
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
+        encoding="utf-8",
+    )
+    return path
+
+
+def write_debug_bundle(
+    workspace: RunWorkspace,
+    bros,
+    recruits,
+    fits: list[dict],
+    summaries: list[dict],
+    roles: list[dict],
+    classification_cfg: dict,
+    reference_status: dict,
+    projection_profile: dict,
+) -> Path:
+    """
+    Single-file support bundle intended to be dropped into ChatGPT instead of
+    the whole run ZIP. It contains the raw roster/recruit data, analysis JSON,
+    active configuration, and runtime/reference diagnostics.
+    """
+    payload = {
+        "_meta": {
+            "format": "bbtool.debug_bundle.v1",
+            "generated_at": workspace.generated_at,
+            "source_save": workspace.source_save.name,
+            "purpose": "single-file diagnostic bundle",
+        },
+        "roster": [_public_bro_dict(bro) for bro in bros],
+        "recruits": recruits,
+        "role_fit": fits,
+        "classification": summaries,
+        "config": {
+            "archetypes": roles,
+            "classification": classification_cfg,
+        },
+        "runtime": {
+            "references": reference_status,
+            "projection_profile": projection_profile,
+        },
+    }
+
+    path = workspace.root / f"{workspace.base}-debug.json"
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
+        encoding="utf-8",
+    )
+    return path
+
+
+
+def write_html(
+    workspace: RunWorkspace,
+    bros,
+    recruits,
+    fits: list[dict],
+    summaries: list[dict],
+    roles: list[dict],
+    class_cfg: dict,
+) -> Path:
+    shutil.copy2(PACKAGE_ROOT / "report.css", workspace.root / "report.css")
+    shutil.copy2(PACKAGE_ROOT / "report.js", workspace.root / "report.js")
+
+    report_path = workspace.root / f"{workspace.base}-report.html"
+    report_path.write_text(
+        render_html_report(
+            workspace.source_save,
+            bros,
+            fits,
+            summaries,
+            roles,
+            class_cfg,
+            generated_at=workspace.generated_at,
+            recruits=recruits,
+        ),
+        encoding="utf-8",
+    )
+    return report_path
+
+
+def archive_workspace(workspace: RunWorkspace, out_root: Path) -> Path:
+    archive_path = out_root / f"{workspace.base}.zip"
+    with zipfile.ZipFile(
+        archive_path, "w", zipfile.ZIP_DEFLATED
+    ) as archive:
+        for item in workspace.root.rglob("*"):
+            if item.is_file():
+                archive.write(item, item.relative_to(out_root))
+    return archive_path

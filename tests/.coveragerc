@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = bbtool
+
+[report]
+show_missing = True
+skip_covered = False
+precision = 1
+
+[html]
+directory = htmlcov

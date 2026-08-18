@@ -1,0 +1,7 @@
+{
+  "_meta": {
+    "format": "bbtool.descriptions.v1",
+    "note": "Best-effort source-backed tooltip cache"
+  },
+  "entries": {}
+}

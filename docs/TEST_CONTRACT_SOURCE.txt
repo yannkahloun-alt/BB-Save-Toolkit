@@ -1,0 +1,491 @@
+### 1. Progression des stats
+
+Ce sont les tests les plus fondamentaux.
+
+* `gain_range()` pour chaque famille de stat :
+
+  * Initiative 0★ → 3–5
+  * MAtk/MDef 0★ → 1–3
+  * autres stats 0★ → 2–4
+* Effet des stars :
+
+  * 1★ augmente le minimum de +1
+  * 2★ augmente le minimum de +2
+  * 3★ augmente minimum de +2 et maximum de +1
+* Tester toutes les stats × 0/1/2/3 stars.
+* `average_gain()` doit être exactement le milieu de la range.
+* `development_rounds_to_11()` :
+
+  * niveau 1, aucun point pending
+  * niveau 2 avec `LevelPoints=1`
+  * niveau 10
+  * niveau 11
+  * niveau >11
+  * éviter tout résultat négatif.
+
+### 2. Courbe de Fit
+
+`curve_value()` doit être verrouillé très précisément.
+
+* valeur sous le premier point ;
+* exactement sur chaque point ;
+* interpolation entre deux points ;
+* valeur au-dessus du dernier point ;
+* segment avec `x0 == x1` ;
+* courbe vide.
+* Vérifier la continuité aux bornes.
+
+Puis `weighted_role_score()` :
+
+* une seule stat ;
+* plusieurs stats de poids identiques ;
+* poids différents ;
+* stat `fit=false` ignorée ;
+* rôle sans aucune stat Fit → 0 ;
+* saturation au target ;
+* valeur sous baseline ;
+* score >100 si la configuration le permet ;
+* composants retournés cohérents avec le score total.
+
+### 3. Effets de perks sur les stats
+
+Très important, car ces effets alimentent toute la projection.
+
+* aucun perk → valeur effective = valeur brute ;
+* `+=`, `-=`, `*=`, `/=`;
+* plusieurs effets sur une même stat dans le bon ordre ;
+* division par zéro ignorée proprement ;
+* Colossus :
+
+  * multiplication HP ;
+  * arrondi par `floor`, pas round ;
+* Fortified Mind :
+
+  * multiplication Resolve ;
+  * arrondi Battle Brothers positif (`floor(x+0.5)`), pas bankers-round Python ;
+* effet sur stat non reconnue ignoré ;
+* perk inconnu ignoré ;
+* effet conditionnel ignoré ;
+* effet non exact ignoré.
+* `effective_values()` cohérent avec `effective_stat_value()`.
+* `effective_stat_profile()` retourne les bons multiplicateurs.
+* cache perks : reset puis résultat identique.
+
+### 4. Structural perks
+
+* `structural_projection_perks()` ne retourne que les perks :
+
+  * présents dans `perk_model.json`,
+  * exacts,
+  * non conditionnels,
+  * affectant une vraie stat.
+* Vérifier explicitement que **Fortified Mind n’est pas structural**.
+* Vérifier que Colossus l’est si c’est bien la config actuelle.
+* `structural_projection_perk_stats()` retourne seulement les stats réellement modifiées.
+* perk inconnu → aucune stat.
+
+### 5. Sampling déterministe
+
+C’est une zone importante parce qu’on veut éviter toute confusion avec Monte-Carlo.
+
+* `_radical_inverse()` sur quelques valeurs connues ;
+* `_sample_dimension()` :
+
+  * même entrée → même sortie ;
+  * valeurs dans [0,1) ;
+* `_sample_coordinates()` :
+
+  * bon nombre de samples ;
+  * bon nombre de dimensions ;
+  * déterminisme entre deux runs ;
+* aucune utilisation d’un RNG aléatoire dans la projection.
+* 512 samples identiques d’un run à l’autre.
+* 2048 samples identiques d’un run à l’autre.
+
+### 6. Normalisation des ranges de rolls
+
+* ranges normales construites à partir des stars ;
+* range dégénérée `[3,3]` acceptée ;
+* nombre de rounds inférieur à 10 ;
+* nombre de rounds nul ;
+* `round_ranges` partiellement fournies ;
+* stat absente d’un round ;
+* valeurs min=max.
+* Vérifier qu’un futur seedé passe bien comme ranges dégénérées.
+
+### 7. Moteur de trajectoire
+
+C’est la partie la plus critique.
+
+Tests unitaires de `project_fit_trajectory()` :
+
+* zéro round → Fit actuel ;
+* une seule stat Fit ;
+* deux stats Fit ;
+* trois stats Fit ;
+* quatre stats Fit ;
+* rôle où les 4 stats ont exactement le même intérêt ;
+* choix de 3 parmi 4 correctement arbitré ;
+* stat sous baseline mais rentable au niveau 11 ;
+* stat déjà saturée au target → elle doit perdre de la priorité ;
+* roll élevé sur stat faible vs roll moyen sur stat importante ;
+* changement du poids modifie correctement le choix ;
+* changement baseline modifie correctement le choix ;
+* changement target modifie correctement le choix.
+* Le premier choix ne dépend pas des vrais `FutureRolls`.
+* Une future range probabiliste différente peut modifier le lookahead attendu, mais jamais via l’oracle caché.
+* `forced_first_combo` est respecté.
+* `include_trace=False` ne doit pas modifier le résultat numérique.
+* `samples=1` avec ranges dégénérées → min=max=expected=P5=P95.
+* Expected doit être compris dans full min/max.
+* P5 ≤ Expected ≤ P95 dans les cas standards.
+* P5/P95 inclus dans full range.
+* Full min ≤ full max.
+* feasibility entre 0 et 100.
+* si tous les outcomes ≥100 → feasibility 100.
+* si aucun outcome ≥100 → feasibility 0.
+
+### 8. Optimisation spécialisée 4 stats
+
+Vu qu’on a beaucoup optimisé cette partie, elle mérite ses propres tests.
+
+* résultat identique à une implémentation brute de référence sur petit nombre de rounds ;
+* mêmes picks ;
+* même Expected ;
+* mêmes P5/P95 ;
+* mêmes full min/max ;
+* mêmes outcomes.
+* Cas 1 round, 2 rounds, 3 rounds.
+* Rôle avec exactement 4 stats.
+* Rôle avec 3 stats ne doit pas entrer dans cette optimisation.
+* Futur rôle avec 5 stats : fallback générique obligatoire.
+* Test explicite empêchant une future optimisation 5 stats silencieuse.
+
+### 9. Refinement 512 → 2048
+
+* cas non ambigu → reste à 512 ;
+* cas ambigu → refinement à 2048 ;
+* refinement ne doit pas changer la logique, seulement améliorer la résolution ;
+* résultat déterministe ;
+* `ActualPercentileSampleCount` cohérent avec le nombre final de samples.
+
+### 10. Cache de trajectoire
+
+* même bro + même rôle + même config → cache hit ;
+* changement de stat → cache miss ;
+* changement de stars → cache miss ;
+* changement de perk → cache miss ;
+* changement de rôle/weight/target/baseline → cache miss ;
+* changement de rounds → cache miss ;
+* changement de `round_ranges` → cache miss ;
+* changement de `samples` → cache miss ;
+* `reset_trajectory_cache()` remet bien le compteur à zéro.
+* résultat cache hit strictement identique au recalcul.
+
+### 11. Projection seedée / oracle de validation
+
+C’est un invariant fondamental du projet.
+
+* `project_seeded_fit_trajectory()` = `project_fit_trajectory()` avec ranges dégénérées ;
+* mêmes picks ;
+* même Fit ;
+* même trace ;
+* aucun second moteur caché ;
+* FutureRolls incomplets → comportement défini ;
+* aucun FutureRolls → validation impossible / `None` selon le contrat.
+* seed réel hors range normale → détecté par validation, pas utilisé en analyse normale.
+
+### 12. Planner `project_role`
+
+* `project_role()` contient les bons champs ;
+* Fit correspond au moteur de trajectoire ;
+* P5/P95 correspondent au moteur ;
+* full range correspond ;
+* feasibility correspond ;
+* composants Fit cohérents.
+* `project_role_fast()` est un sous-ensemble strictement identique du full.
+* Tous les 9 archétypes.
+* Rôle avec perk effectif.
+* Rôle sans perk.
+
+### 13. Level-Up Advisor
+
+Très important.
+
+* aucun `CurrentRolls` → pas de recommandation ;
+* pas de `LevelPoints` → comportement correct ;
+* 8 rolls présents ;
+* choisir exactement 3 stats ;
+* Recommended est réellement le meilleur Fit final attendu ;
+* Alternative est réellement le deuxième meilleur ;
+* pas de doublon entre Recommended et Alternative ;
+* tie-break déterministe ;
+* modifier `FutureRolls` cachés ne change rien ;
+* modifier `CurrentRolls` peut changer le conseil ;
+* stat saturée peut être ignorée même avec gros roll ;
+* stat sous baseline peut être recommandée si profitable à terme ;
+* rôle ancre choisi correctement ;
+* Advisor sur path structurel utilise le **même** `advise_levelup()`;
+* Colossus path et base peuvent donner des conseils différents si l’état effectif diffère ;
+* `_roll_quality()` :
+
+  * low / average / high selon la vraie range et les stars ;
+* `_roll_band()` :
+
+  * labels corrects ;
+* skipped important stats correctement expliquées.
+* Level 11 / aucun développement restant.
+
+### 14. Classification
+
+* seuils `premium_fit`, `good_fit`, `viable_fit`;
+* exactement sur chaque seuil ;
+* juste en dessous / au-dessus.
+* `classify_bro()` :
+
+  * Invest
+  * Use
+  * Fodder
+  * Trash
+* rôle avec Fit très haut mais conflit perk ;
+* rôle compatible ;
+* rôle avec structural path meilleur que base ;
+* tri stable entre rôles à Fit égal.
+* `role_sort_key()` déterministe.
+* `perk_compatibility()` :
+
+  * aucun conflit ;
+  * un conflit ;
+  * plusieurs conflits.
+
+### 15. Luck brute par stat
+
+Déjà partiellement testé, mais il faut compléter.
+
+* distribution d’une somme de 1 roll ;
+* 2 rolls ;
+* 10 rolls ;
+* ranges 1–3, 2–4, 3–5, etc.
+* valeur minimale → percentile correct ;
+* valeur moyenne ;
+* valeur maximale ;
+* midrank en présence d’égalité ;
+* stat déterministe → percentile 50.
+* Stars correctement prises en compte.
+* nombre de rounds restant correctement pris en compte.
+
+### 16. RelevantRollRankPct
+
+* un seul stat role ;
+* deux stats mêmes weights ;
+* weights différents ;
+* stat `fit=false` ignorée ;
+* target/baseline ne doivent **pas** influencer Luck ;
+* perks ne doivent pas influencer Luck ;
+* choix de level-up ne doivent pas influencer Luck ;
+* rôle sans stat pertinente → valeur attendue.
+* Vérifier explicitement :
+
+  * Luck P90 + P réel élevé dans cas favorable ;
+  * Luck P10 + P réel bas dans cas défavorable.
+
+### 17. Percentile réel
+
+* realized sous tous les outcomes → percentile proche de 0 ;
+* au-dessus de tous → proche de 100 ;
+* exactement égal à plusieurs outcomes → midrank correct ;
+* distribution constante → résultat cohérent ;
+* liste vide → `None`.
+* 512 et 2048 samples.
+
+### 18. Projection-validation
+
+Tests sur `build_projection_validation()` :
+
+* exactement N bros × 9 rôles ;
+* avec 9 bros → exactement 81 rows ;
+* aucune duplication `Bro × Role`;
+* `ExpectedFitPct` reprend bien la projection aveugle ;
+* `SeededFitPct` reprend l’oracle ;
+* Delta = Seeded - Expected ;
+* InsideLikely correctement calculé sur borne basse/haute ;
+* InsideFull idem ;
+* `SeededReached100`;
+* summary :
+
+  * comparisons
+  * inside likely
+  * inside likely %
+  * inside full
+  * MAE
+  * max abs delta
+  * actual percentile mean
+  * relevant roll rank mean
+  * roll range violations.
+* P5–P95, pas retour accidentel à P10–P90.
+* hidden future data uniquement dans ce fichier, jamais dans debug JSON normal.
+
+### 19. Parser binaire : primitives
+
+Ce sont des tests simples mais utiles.
+
+* `u16`, `i16`, `u32`, `f32`;
+* limites de buffer ;
+* `lp_string()` valide ;
+* longueur trop grande ;
+* UTF-8 invalide ;
+* fin de buffer ;
+* `printable_ascii()`.
+
+### 20. Parser Brother
+
+Ici il faut créer de petits buffers synthétiques.
+
+* header humain valide ;
+* AP valide ;
+* les 8 stats dans le bon ordre ;
+* candidats hors plages rejetés ;
+* plusieurs candidats : comportement déterministe.
+* identity :
+
+  * name/title ;
+  * XP ;
+  * level ;
+  * perk points ;
+  * level points ;
+* invalid name ;
+* invalid level ;
+* invalid XP ;
+* invalid light wound float.
+* stars correctement parsées.
+* FutureRolls correctement parsés dans l’ordre des 10 niveaux.
+* CurrentRolls correctement récupérés si disponibles.
+* duplicate brother names → `DuplicateBrotherNameError`.
+* roster vide.
+* save tronquée → erreur contrôlée, pas crash obscur.
+
+### 21. Parser recruits
+
+* recrutement roster détecté ;
+* plusieurs settlements ;
+* tryout done / not done ;
+* hire cost ;
+* daily wage ;
+* equipment value ;
+* équipement non résolu ;
+* background connu/inconnu ;
+* recruit incomplet rejeté proprement.
+* rounding Squirrel correct.
+
+### 22. Références / dictionary
+
+* `load_reference_dictionary()` sur cache valide ;
+* item connu ;
+* item inconnu ;
+* fallback noms ;
+* perks présents ;
+* références invalides ou absentes.
+* regeneration à tester séparément comme integration test, pas unit test pur.
+
+### 23. Config
+
+* les 9 archétypes chargent ;
+* noms uniques ;
+* chaque stat Fit a `target`, `baseline`, `weight`;
+* baseline ≤ target si c’est l’invariant attendu ;
+* weight >0 ;
+* courbes valides et monotones selon nos règles ;
+* aucun archétype vide ;
+* classification thresholds ordonnés ;
+* perk_model contient uniquement catégories autorisées.
+* test explicite : **si un archétype passe à 5 stats Fit, le moteur générique doit fonctionner**.
+
+### 24. Modèle `Brother`
+
+* création minimale ;
+* toutes les stats accessibles ;
+* stars accessibles ;
+* CurrentRolls/FutureRolls par défaut ;
+* `dataclasses.replace()` conserve les champs attendus.
+* sérialisation publique exclut les données de validation cachées.
+
+### 25. Outputs JSON
+
+* `classification.json` sans FutureRolls ;
+* `debug.json` sans FutureRolls ;
+* `projection-validation.json` avec oracle de validation ;
+* paths corrects ;
+* JSON sérialisable ;
+* dates/formats.
+* pas de NaN/Infinity.
+
+### 26. HTML : Strategic Classification
+
+Même si ce ne sont pas des tests “métier”, ils évitent les régressions qu’on a justement eues.
+
+* une vraie ligne par path ;
+* rowspan Brother/Background correct ;
+* selected path unique ;
+* mêmes classes sémantiques Path / Fit-range / P(Fit) ;
+* aucune classe heat sur P(Fit) ;
+* Base/Colossus présents ;
+* P5–P95 dans tooltip ;
+* aucune mention P10–P90.
+* catégories Invest/Use/Fodder/Trash avec icône correcte.
+
+### 27. HTML : Brother Details
+
+* Current Brother Details n’a **aucune `.important`** liée au rôle ;
+* effective/raw affiché uniquement si différent ;
+* Archetype Details :
+
+  * chaque rôle a classe + icône ;
+  * rôle retenu a style selected/doré ;
+  * non retenu reste neutre ;
+* tous les rôles ont le même format que Colossus :
+
+  * Effective current stats
+  * Fit development — Level 11
+* pas de bloc `Projected level 11 range`;
+* `Expected` présent, pas `EV`;
+* `Weight` présent ;
+* pas de `lvl 11` dans chaque chip.
+
+### 28. HTML : Level Up
+
+* onglet visible seulement quand nécessaire ;
+* lit `LevelUpAdvice`, ne recalcule rien ;
+* Recommended correctement affiché ;
+* Alternative correctement affichée ;
+* stats et rolls affichés correctement ;
+* anchor role affiché ;
+* structural path affiché si pertinent.
+* test de branchement : mock `advise_levelup()` → sa sortie apparaît telle quelle dans le HTML.
+
+### 29. CSS / JS smoke tests
+
+Pas besoin de tester chaque propriété CSS, mais :
+
+* toutes les classes CSS statiques sont référencées ;
+* exceptions dynamiques explicitement whitelistées (`band-low`, `band-high`, etc.) ;
+* aucune classe HTML inconnue importante ;
+* JS ne référence pas d’ID/classe absente ;
+* tabs roster / levelup / management / recruits existent ;
+* filtrage category fonctionne avec les valeurs attendues.
+
+### 30. Invariants architecturaux
+
+Ceux-là sont très utiles pour éviter qu’on recrée les problèmes d’aujourd’hui.
+
+* une seule définition de `advise_levelup`;
+* une seule définition de `project_fit_trajectory`;
+* `project_seeded_fit_trajectory` doit appeler le moteur commun, pas réimplémenter ;
+* HTML Level Up ne doit jamais importer/coder une logique de choix ;
+* aucun `FutureRolls` référencé dans `levelup_advisor.py`;
+* aucun `FutureRolls` référencé dans classification normale ;
+* `projection-validation` est le seul output autorisé à exploiter l’oracle.
+* pas de terme `Monte-Carlo` dans code/docs sauf éventuellement historique explicitement marqué.
+* pas de fichier config d’archétypes concurrent.
+* pas de `.pyc`, `__pycache__`, `.pytest_cache` dans les releases.
+
+---

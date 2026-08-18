@@ -1,0 +1,1234 @@
+{
+  "140AD17E": {
+    "name": "Adventurous Noble",
+    "type": "background"
+  },
+  "3C1774B5": {
+    "name": "Apprentice",
+    "type": "background"
+  },
+  "52330AD5": {
+    "name": "Assassin",
+    "type": "background"
+  },
+  "A96F7125": {
+    "name": "Assassin (Southern)",
+    "type": "background"
+  },
+  "2AAE8559": {
+    "name": "Bastard",
+    "type": "background"
+  },
+  "513CA7C5": {
+    "name": "Beggar",
+    "type": "background"
+  },
+  "24623B29": {
+    "name": "Beggar (Southern)",
+    "type": "background"
+  },
+  "2128342F": {
+    "name": "Bowyer",
+    "type": "background"
+  },
+  "4C95ED0E": {
+    "name": "Brawler",
+    "type": "background"
+  },
+  "9E3EE827": {
+    "name": "Butcher",
+    "type": "background"
+  },
+  "25863EEB": {
+    "name": "Butcher (Southern)",
+    "type": "background"
+  },
+  "BB0CBBB3": {
+    "name": "Caravan Hand",
+    "type": "background"
+  },
+  "36AD2550": {
+    "name": "Caravan Hand (Southern)",
+    "type": "background"
+  },
+  "F1D4D64F": {
+    "name": "Companion (Spear)",
+    "type": "background"
+  },
+  "C23261F9": {
+    "name": "Companion (Axe)",
+    "type": "background"
+  },
+  "D1B9D2CC": {
+    "name": "Companion (X-bow)",
+    "type": "background"
+  },
+  "44EDF915": {
+    "name": "Companion (Southern Lance)",
+    "type": "background"
+  },
+  "D9846B5C": {
+    "name": "Companion (Southern Mallet)",
+    "type": "background"
+  },
+  "A49582A7": {
+    "name": "Companion (Southern Bow)",
+    "type": "background"
+  },
+  "7EF5172D": {
+    "name": "Crusader",
+    "type": "background"
+  },
+  "71648BCF": {
+    "name": "Cultist",
+    "type": "background"
+  },
+  "02F755E2": {
+    "name": "Cultist Converted",
+    "type": "background"
+  },
+  "6C9CE698": {
+    "name": "Cripple",
+    "type": "background"
+  },
+  "2BEEF2DE": {
+    "name": "Cripple (Southern)",
+    "type": "background"
+  },
+  "7B9A3CF7": {
+    "name": "Daytaler",
+    "type": "background"
+  },
+  "F6D131D4": {
+    "name": "Daytaler (Southern)",
+    "type": "background"
+  },
+  "0746329A": {
+    "name": "Deserter",
+    "type": "background"
+  },
+  "71BA80F4": {
+    "name": "Disowned Noble",
+    "type": "background"
+  },
+  "29A78F2E": {
+    "name": "Eunuch",
+    "type": "background"
+  },
+  "5CD45309": {
+    "name": "Eunuch (Southern)",
+    "type": "background"
+  },
+  "C6DD9695": {
+    "name": "Farmhand",
+    "type": "background"
+  },
+  "FA656BC3": {
+    "name": "Fisherman",
+    "type": "background"
+  },
+  "F1D086E6": {
+    "name": "Fisherman (Southern)",
+    "type": "background"
+  },
+  "B36261EF": {
+    "name": "Flagellant",
+    "type": "background"
+  },
+  "33311369": {
+    "name": "Gambler",
+    "type": "background"
+  },
+  "8ECF4795": {
+    "name": "Gambler (Southern)",
+    "type": "background"
+  },
+  "24ACB273": {
+    "name": "Gravedigger",
+    "type": "background"
+  },
+  "EA19650F": {
+    "name": "Graverobber",
+    "type": "background"
+  },
+  "3A157B3E": {
+    "name": "Hedge Knight",
+    "type": "background"
+  },
+  "AEF7C74B": {
+    "name": "Historian",
+    "type": "background"
+  },
+  "754B3FBD": {
+    "name": "Historian (Southern)",
+    "type": "background"
+  },
+  "3B540890": {
+    "name": "Houndmaster",
+    "type": "background"
+  },
+  "3B7D9408": {
+    "name": "Hunter",
+    "type": "background"
+  },
+  "B5DD9094": {
+    "name": "Juggler",
+    "type": "background"
+  },
+  "B47205E5": {
+    "name": "Killer on the run",
+    "type": "background"
+  },
+  "EF80F20F": {
+    "name": "King's Guard",
+    "type": "background"
+  },
+  "2D27199D": {
+    "name": "Lumberjack",
+    "type": "background"
+  },
+  "9F01869F": {
+    "name": "Mason",
+    "type": "background"
+  },
+  "8297FEBA": {
+    "name": "Messenger",
+    "type": "background"
+  },
+  "AAB09341": {
+    "name": "Militia",
+    "type": "background"
+  },
+  "EAD11AC4": {
+    "name": "Miller",
+    "type": "background"
+  },
+  "A8E56738": {
+    "name": "Miner",
+    "type": "background"
+  },
+  "274CE4B2": {
+    "name": "Minstrel",
+    "type": "background"
+  },
+  "EEFBA04C": {
+    "name": "Monk",
+    "type": "background"
+  },
+  "60686C60": {
+    "name": "Monk turned Flagellant",
+    "type": "background"
+  },
+  "14C7F489": {
+    "name": "Orc Slayer",
+    "type": "background"
+  },
+  "DB315732": {
+    "name": "Pacified Flagellant",
+    "type": "background"
+  },
+  "C16724D1": {
+    "name": "Peddler",
+    "type": "background"
+  },
+  "545302CF": {
+    "name": "Peddler (Southern)",
+    "type": "background"
+  },
+  "872280DE": {
+    "name": "Poacher",
+    "type": "background"
+  },
+  "0B912487": {
+    "name": "Pimp",
+    "type": "background"
+  },
+  "A4BD4435": {
+    "name": "Raider",
+    "type": "background"
+  },
+  "9AA50C11": {
+    "name": "Ratcatcher",
+    "type": "background"
+  },
+  "7CEF5D75": {
+    "name": "Refugee",
+    "type": "background"
+  },
+  "120DA558": {
+    "name": "Regent in Absentia",
+    "type": "background"
+  },
+  "21D1CD1C": {
+    "name": "Retired Soldier",
+    "type": "background"
+  },
+  "7C6EB7FB": {
+    "name": "Sellsword",
+    "type": "background"
+  },
+  "D45B05E3": {
+    "name": "Servant",
+    "type": "background"
+  },
+  "33EF85FD": {
+    "name": "Servant (Southern)",
+    "type": "background"
+  },
+  "E09EB018": {
+    "name": "Shepherd",
+    "type": "background"
+  },
+  "6F7C3275": {
+    "name": "Shepherd (Southern)",
+    "type": "background"
+  },
+  "AE7DD55A": {
+    "name": "Squire",
+    "type": "background"
+  },
+  "E04D804B": {
+    "name": "Swordmaster",
+    "type": "background"
+  },
+  "F8B44DE8": {
+    "name": "Tailor",
+    "type": "background"
+  },
+  "E766D491": {
+    "name": "Tailor (Southern)",
+    "type": "background"
+  },
+  "15D99E2B": {
+    "name": "Thief",
+    "type": "background"
+  },
+  "F83BDAA3": {
+    "name": "Thief (Southern)",
+    "type": "background"
+  },
+  "DFABA699": {
+    "name": "Vagabond",
+    "type": "background"
+  },
+  "6DF381C6": {
+    "name": "Wildman",
+    "type": "background"
+  },
+  "269F1831": {
+    "name": "Witchhunter",
+    "type": "background"
+  },
+  "8D48C75B": {
+    "name": "Beast Slayer",
+    "type": "background"
+  },
+  "CB90AA90": {
+    "name": "Barbarian",
+    "type": "background"
+  },
+  "3CB03F39": {
+    "name": "Nomad",
+    "type": "background"
+  },
+  "7CE83341": {
+    "name": "Nomad (Ranged)",
+    "type": "background"
+  },
+  "DBE74EB4": {
+    "name": "Manhunter",
+    "type": "background"
+  },
+  "77CC2A7F": {
+    "name": "Indebted (Southern)",
+    "type": "background"
+  },
+  "48217ABD": {
+    "name": "Indebted (Northern)",
+    "type": "background"
+  },
+  "71888843": {
+    "name": "Indebted",
+    "type": "background"
+  },
+  "4D5160C4": {
+    "name": "Belly Dancer",
+    "type": "background"
+  },
+  "DFFE0AFE": {
+    "name": "Converted Crusader",
+    "type": "background"
+  },
+  "D4D12DEC": {
+    "name": "Oathtaker (Old)",
+    "type": "background"
+  },
+  "D2749588": {
+    "name": "Oathtaker (Young)",
+    "type": "background"
+  },
+  "99930147": {
+    "name": "Anatomist",
+    "type": "background"
+  },
+  "EEC70B5F": {
+    "name": "Lindwurm Slayer",
+    "type": "background"
+  },
+  "C738AEC4": {
+    "name": "Gladiator (Companion)",
+    "type": "background"
+  },
+  "144868A8": {
+    "name": "Gladiator",
+    "type": "background"
+  },
+  "C6A73142": {
+    "name": "Old Gladiator",
+    "type": "background"
+  },
+  "DF6EF729": {
+    "name": "Asthmatic",
+    "type": "trait"
+  },
+  "6FF46EFE": {
+    "name": "Athletic",
+    "type": "trait"
+  },
+  "A8EF0AC9": {
+    "name": "Bleeder",
+    "type": "trait"
+  },
+  "988F2179": {
+    "name": "Bloodthirsty",
+    "type": "trait"
+  },
+  "15A02709": {
+    "name": "Brave",
+    "type": "trait"
+  },
+  "D1B92F40": {
+    "name": "Bright",
+    "type": "trait"
+  },
+  "8F1F3216": {
+    "name": "Brute",
+    "type": "trait"
+  },
+  "7CF4C987": {
+    "name": "Clubfooted",
+    "type": "trait"
+  },
+  "B65EAFC8": {
+    "name": "Clumsy",
+    "type": "trait"
+  },
+  "A6BB1D0B": {
+    "name": "Cocky",
+    "type": "trait"
+  },
+  "38B69657": {
+    "name": "Craven",
+    "type": "trait"
+  },
+  "9CFA5D8B": {
+    "name": "Dastard",
+    "type": "trait"
+  },
+  "62BEC5FA": {
+    "name": "Deathwish",
+    "type": "trait"
+  },
+  "8E02892D": {
+    "name": "Determined",
+    "type": "trait"
+  },
+  "E8BBE11A": {
+    "name": "Dexterous",
+    "type": "trait"
+  },
+  "F21D84F3": {
+    "name": "Disloyal",
+    "type": "trait"
+  },
+  "B9DADFBC": {
+    "name": "Dumb",
+    "type": "trait"
+  },
+  "A0CF9774": {
+    "name": "Drunkard",
+    "type": "trait"
+  },
+  "843D8DD9": {
+    "name": "Eagle Eyes",
+    "type": "trait"
+  },
+  "B4A3C9D5": {
+    "name": "Fat",
+    "type": "trait"
+  },
+  "5065D234": {
+    "name": "Fainthearted",
+    "type": "trait"
+  },
+  "6AD5327F": {
+    "name": "Fearless",
+    "type": "trait"
+  },
+  "0B0E08CE": {
+    "name": "Fragile",
+    "type": "trait"
+  },
+  "E5EB98D2": {
+    "name": "Gluttonous",
+    "type": "trait"
+  },
+  "E54F06E1": {
+    "name": "Greedy",
+    "type": "trait"
+  },
+  "494312EC": {
+    "name": "Hesitant",
+    "type": "trait"
+  },
+  "1CE5EF83": {
+    "name": "Impatient",
+    "type": "trait"
+  },
+  "1F2911A2": {
+    "name": "Insecure",
+    "type": "trait"
+  },
+  "F138A2EF": {
+    "name": "Iron Lungs",
+    "type": "trait"
+  },
+  "F640E09A": {
+    "name": "Iron Jaw",
+    "type": "trait"
+  },
+  "5E1A0586": {
+    "name": "Irrational",
+    "type": "trait"
+  },
+  "46ADB947": {
+    "name": "Loyal",
+    "type": "trait"
+  },
+  "9CA0EBB9": {
+    "name": "Old",
+    "type": "trait"
+  },
+  "9A95BB9E": {
+    "name": "Optimist",
+    "type": "trait"
+  },
+  "367B7B71": {
+    "name": "Pessimist",
+    "type": "trait"
+  },
+  "C2C1134F": {
+    "name": "Quick",
+    "type": "trait"
+  },
+  "70AA50F5": {
+    "name": "Short Sighted",
+    "type": "trait"
+  },
+  "124A03A3": {
+    "name": "Spartan",
+    "type": "trait"
+  },
+  "1ED3819C": {
+    "name": "Strong",
+    "type": "trait"
+  },
+  "880DBD6B": {
+    "name": "Superstitious",
+    "type": "trait"
+  },
+  "9D81C274": {
+    "name": "Sure Footing",
+    "type": "trait"
+  },
+  "818E0F24": {
+    "name": "Survivor",
+    "type": "trait"
+  },
+  "994FE708": {
+    "name": "Tiny",
+    "type": "trait"
+  },
+  "B4760E9D": {
+    "name": "Tough",
+    "type": "trait"
+  },
+  "C5E53A6E": {
+    "name": "Team Player",
+    "type": "trait"
+  },
+  "767F08BC": {
+    "name": "Swift",
+    "type": "trait"
+  },
+  "E220534E": {
+    "name": "Weasel",
+    "type": "trait"
+  },
+  "DA78B736": {
+    "name": "Huge",
+    "type": "trait"
+  },
+  "9F4D214B": {
+    "name": "Nightblind",
+    "type": "trait"
+  },
+  "FD829D68": {
+    "name": "Ailing",
+    "type": "trait"
+  },
+  "ACC46F0E": {
+    "name": "Night Owl",
+    "type": "trait"
+  },
+  "0756CE67": {
+    "name": "Paranoid",
+    "type": "trait"
+  },
+  "C5B9A3A5": {
+    "name": "Lucky",
+    "type": "trait"
+  },
+  "5EEFDF76": {
+    "name": "Addict",
+    "type": "trait"
+  },
+  "3E7523FA": {
+    "name": "Fast Adaptation",
+    "type": "perk"
+  },
+  "F9473B3C": {
+    "name": "Crippling Strikes",
+    "type": "perk"
+  },
+  "4C867685": {
+    "name": "Colossus",
+    "type": "perk"
+  },
+  "9D82F592": {
+    "name": "Nine Lives",
+    "type": "perk"
+  },
+  "A546AF20": {
+    "name": "Bags and Belts",
+    "type": "perk"
+  },
+  "565F97BE": {
+    "name": "Pathfinder",
+    "type": "perk"
+  },
+  "AB0464F3": {
+    "name": "Adrenaline",
+    "type": "perk"
+  },
+  "A3233C22": {
+    "name": "Recover",
+    "type": "perk"
+  },
+  "C07D23FB": {
+    "name": "Student",
+    "type": "perk"
+  },
+  "059702B2": {
+    "name": "Executioner",
+    "type": "perk"
+  },
+  "CA385200": {
+    "name": "Bullseye",
+    "type": "perk"
+  },
+  "ECCF150A": {
+    "name": "Dodge",
+    "type": "perk"
+  },
+  "2468BB8C": {
+    "name": "Fortified Mind",
+    "type": "perk"
+  },
+  "8BDA1308": {
+    "name": "Resilient",
+    "type": "perk"
+  },
+  "07AD742B": {
+    "name": "Steel Brow",
+    "type": "perk"
+  },
+  "0BADB437": {
+    "name": "Quick Hands",
+    "type": "perk"
+  },
+  "9899E380": {
+    "name": "Gifted",
+    "type": "perk"
+  },
+  "71C41BDA": {
+    "name": "Backstabber",
+    "type": "perk"
+  },
+  "1423C822": {
+    "name": "Anticipation",
+    "type": "perk"
+  },
+  "A1DE723D": {
+    "name": "Shield Expert",
+    "type": "perk"
+  },
+  "04A8366D": {
+    "name": "Brawny",
+    "type": "perk"
+  },
+  "CA7913AA": {
+    "name": "Relentless",
+    "type": "perk"
+  },
+  "09E3AD30": {
+    "name": "Rotation",
+    "type": "perk"
+  },
+  "E3FC2F93": {
+    "name": "Rally the Troops",
+    "type": "perk"
+  },
+  "E1E8D40B": {
+    "name": "Taunt",
+    "type": "perk"
+  },
+  "5F1ECE27": {
+    "name": "Mace Mastery",
+    "type": "perk"
+  },
+  "F1AB0AC0": {
+    "name": "Flail Mastery",
+    "type": "perk"
+  },
+  "53D89DC8": {
+    "name": "Hammer Mastery",
+    "type": "perk"
+  },
+  "1B63AB23": {
+    "name": "Axe Mastery",
+    "type": "perk"
+  },
+  "CF52B42E": {
+    "name": "Cleaver Mastery",
+    "type": "perk"
+  },
+  "D03C87C1": {
+    "name": "Sword Mastery",
+    "type": "perk"
+  },
+  "BBA910B8": {
+    "name": "Dagger Mastery",
+    "type": "perk"
+  },
+  "1DE5F9FF": {
+    "name": "Polearm Mastery",
+    "type": "perk"
+  },
+  "E49B81C1": {
+    "name": "Spear Mastery",
+    "type": "perk"
+  },
+  "4BA8F880": {
+    "name": "Crossbow Mastery",
+    "type": "perk"
+  },
+  "3967AB23": {
+    "name": "Bow Mastery",
+    "type": "perk"
+  },
+  "B7571E54": {
+    "name": "Throwing Mastery",
+    "type": "perk"
+  },
+  "BACAD9E4": {
+    "name": "Reach Advantage",
+    "type": "perk"
+  },
+  "026F2FA2": {
+    "name": "Overwhelm",
+    "type": "perk"
+  },
+  "12CC3EA1": {
+    "name": "Lone Wolf",
+    "type": "perk"
+  },
+  "5D8933A5": {
+    "name": "Underdog",
+    "type": "perk"
+  },
+  "404C93E1": {
+    "name": "Footwork",
+    "type": "perk"
+  },
+  "97CB0D95": {
+    "name": "Berserk",
+    "type": "perk"
+  },
+  "80A40871": {
+    "name": "Head Hunter",
+    "type": "perk"
+  },
+  "385FD79D": {
+    "name": "Nimble",
+    "type": "perk"
+  },
+  "37CEF631": {
+    "name": "Battle Forged",
+    "type": "perk"
+  },
+  "ABC22EAE": {
+    "name": "Fearsome",
+    "type": "perk"
+  },
+  "C3229207": {
+    "name": "Duelist",
+    "type": "perk"
+  },
+  "7C856C1D": {
+    "name": "Killing Frenzy",
+    "type": "perk"
+  },
+  "F521E3DD": {
+    "name": "Indomitable",
+    "type": "perk"
+  },
+  "2C24230B": {
+    "name": "Broken Arm",
+    "type": "injury"
+  },
+  "28445DB0": {
+    "name": "Broken Leg",
+    "type": "injury"
+  },
+  "09836E27": {
+    "name": "Broken Nose",
+    "type": "injury"
+  },
+  "948EC880": {
+    "name": "Broken Ribs",
+    "type": "injury"
+  },
+  "E92E68A7": {
+    "name": "Bruised Leg",
+    "type": "injury"
+  },
+  "3CA0E901": {
+    "name": "Crushed Finger",
+    "type": "injury"
+  },
+  "721925C6": {
+    "name": "Split Hand",
+    "type": "injury"
+  },
+  "9BEC7D5A": {
+    "name": "Sick",
+    "type": "injury"
+  },
+  "929F3696": {
+    "name": "Infected Wound",
+    "type": "injury"
+  },
+  "02A4686A": {
+    "name": "Drunk",
+    "type": "injury"
+  },
+  "083009F5": {
+    "name": "Hungover",
+    "type": "injury"
+  },
+  "51994232": {
+    "name": "Exhausted",
+    "type": "injury"
+  },
+  "AC1BFE37": {
+    "name": "Broken Knee",
+    "type": "permanentInjury"
+  },
+  "C93E3963": {
+    "name": "Broken Elbow Joint",
+    "type": "permanentInjury"
+  },
+  "83B8CEC7": {
+    "name": "Brain Damage",
+    "type": "permanentInjury"
+  },
+  "41052580": {
+    "name": "Maimed Foot",
+    "type": "permanentInjury"
+  },
+  "3E2CA5D6": {
+    "name": "Missing Ear",
+    "type": "permanentInjury"
+  },
+  "AD97DB01": {
+    "name": "Missing Eye",
+    "type": "permanentInjury"
+  },
+  "7D13BB0E": {
+    "name": "Missing Finger",
+    "type": "permanentInjury"
+  },
+  "2FDDE79B": {
+    "name": "Missing Nose",
+    "type": "permanentInjury"
+  },
+  "97D37685": {
+    "name": "Partly Collapsed Lung",
+    "type": "permanentInjury"
+  },
+  "330BF306": {
+    "name": "Traumatized",
+    "type": "permanentInjury"
+  },
+  "30184A38": {
+    "name": "Weakened Heart",
+    "type": "permanentInjury"
+  },
+  "11AEA18F": {
+    "name": "Afraid",
+    "type": "permanentInjury"
+  },
+  "A9EB4E01": {
+    "name": "Training Experience",
+    "type": "training"
+  },
+  "76AE8904": {
+    "name": "Training Experience",
+    "type": "training"
+  },
+  "0603DC33": {
+    "name": "Potion of Knowledge (Old)",
+    "type": "knowledge"
+  },
+  "8729FD77": {
+    "name": "Enhanced Learning",
+    "type": "learning"
+  },
+  "DC2B39A5": {
+    "name": "Pit Fighter",
+    "type": "trait"
+  },
+  "38B9EBE5": {
+    "name": "Arena Fighter",
+    "type": "trait"
+  },
+  "90786E95": {
+    "name": "Arena Veteran",
+    "type": "trait"
+  },
+  "8C535E47": {
+    "name": "Glorious Resolve",
+    "type": "trait"
+  },
+  "C5C522E8": {
+    "name": "Glorious Endurance",
+    "type": "trait"
+  },
+  "0625ED75": {
+    "name": "Glorious Quickness",
+    "type": "trait"
+  },
+  "DA1D1224": {
+    "name": "Player Character",
+    "type": "trait"
+  },
+  "17B36776": {
+    "name": "Hate of Undead",
+    "type": "trait"
+  },
+  "EB251F2F": {
+    "name": "Hate of Greenskins",
+    "type": "trait"
+  },
+  "0CF9D3DA": {
+    "name": "Hate of Beasts",
+    "type": "trait"
+  },
+  "6F2C8614": {
+    "name": "Fear of Undead",
+    "type": "trait"
+  },
+  "C3A17B67": {
+    "name": "Fear of Greenskins",
+    "type": "trait"
+  },
+  "6472F278": {
+    "name": "Fear of Beasts",
+    "type": "trait"
+  },
+  "5A92A3F2": {
+    "name": "Cult of Davkul - Fanatic",
+    "type": "trait"
+  },
+  "635178DF": {
+    "name": "Cult of Davkul - Zealot",
+    "type": "trait"
+  },
+  "35186772": {
+    "name": "Cult of Davkul - Acolyte",
+    "type": "trait"
+  },
+  "893869F6": {
+    "name": "Cult of Davkul - Disciple",
+    "type": "trait"
+  },
+  "C8944B46": {
+    "name": "Cult of Davkul - Chosen",
+    "type": "trait"
+  },
+  "2EBB3F39": {
+    "name": "Cult of Davkul - Prophet",
+    "type": "trait"
+  },
+  "80ED057C": {
+    "name": "Voice of Davkul",
+    "type": "internal"
+  },
+  "4B1B8DF7": {
+    "name": "Mad",
+    "type": "trait"
+  },
+  "B6885D2E": {
+    "name": "Oath of Wrath",
+    "type": "trait"
+  },
+  "15CA117E": {
+    "name": "Oath of Fortification 1",
+    "type": "trait"
+  },
+  "0D6FA3A4": {
+    "name": "Oath of Fortification 2",
+    "type": "trait"
+  },
+  "59E45E97": {
+    "name": "Oath of Sacrifice",
+    "type": "trait"
+  },
+  "8D416008": {
+    "name": "Oath of Humility",
+    "type": "trait"
+  },
+  "EC56A980": {
+    "name": "Oath of Valor",
+    "type": "trait"
+  },
+  "E8C9ABDD": {
+    "name": "Oath of Distinction",
+    "type": "trait"
+  },
+  "6C486AF9": {
+    "name": "Oath of Vengeance",
+    "type": "trait"
+  },
+  "33F16C92": {
+    "name": "Oath of Righteousness",
+    "type": "trait"
+  },
+  "F92CAF1B": {
+    "name": "Oath of Dominion",
+    "type": "trait"
+  },
+  "D6461010": {
+    "name": "Oath of Honor 1",
+    "type": "trait"
+  },
+  "B6FBBE7B": {
+    "name": "Oath of Honor 2",
+    "type": "trait"
+  },
+  "216F69CF": {
+    "name": "Oath of Endurance",
+    "type": "trait"
+  },
+  "1264B27C": {
+    "name": "Oath of Cameraderie",
+    "type": "trait"
+  },
+  "13C30358": {
+    "name": "Morale",
+    "type": "internal"
+  },
+  "C7E3D324": {
+    "name": "Unknown internal C7E3D324",
+    "type": "internal"
+  },
+  "68DADB2C": {
+    "name": "Unknown trait 68DADB2C",
+    "type": "trait"
+  },
+  "6D8B77EF": {
+    "name": "Unknown internal 6D8B77EF",
+    "type": "internal"
+  },
+  "56C676CD": {
+    "name": "Crack the Whip?",
+    "type": "internal"
+  },
+  "B1EE9B89": {
+    "name": "Burnt Face",
+    "type": "injury"
+  },
+  "ACBC18B5": {
+    "name": "Burnt Hands",
+    "type": "injury"
+  },
+  "55BAFB4C": {
+    "name": "Burnt Legs",
+    "type": "injury"
+  },
+  "90926FBB": {
+    "name": "Inhaled Flames",
+    "type": "injury"
+  },
+  "5509577A": {
+    "name": "Crushed Windpipe",
+    "type": "injury"
+  },
+  "3B908417": {
+    "name": "Cut Achilles Tendon",
+    "type": "injury"
+  },
+  "7FCC5910": {
+    "name": "Cut Arm",
+    "type": "injury"
+  },
+  "E4D3C726": {
+    "name": "Cut Arm Sinew",
+    "type": "injury"
+  },
+  "12FE53EA": {
+    "name": "Cut Artery",
+    "type": "injury"
+  },
+  "92F052BA": {
+    "name": "Cut Leg Muscles",
+    "type": "injury"
+  },
+  "C134425E": {
+    "name": "Cut Neck Vein",
+    "type": "injury"
+  },
+  "7F727079": {
+    "name": "Deep Abdominal Cut",
+    "type": "injury"
+  },
+  "EF0CD9B6": {
+    "name": "Deep Chest Cut",
+    "type": "injury"
+  },
+  "FB7C404A": {
+    "name": "Deep Face Cut",
+    "type": "injury"
+  },
+  "C18A973C": {
+    "name": "Dislocated Shoulder",
+    "type": "injury"
+  },
+  "EBAA3B93": {
+    "name": "Exposed Ribs",
+    "type": "injury"
+  },
+  "7CC6A8A6": {
+    "name": "Fractured Elbow",
+    "type": "injury"
+  },
+  "1E99C9E8": {
+    "name": "Fractured Hand",
+    "type": "injury"
+  },
+  "B7720040": {
+    "name": "Fractured Ribs",
+    "type": "injury"
+  },
+  "46426E44": {
+    "name": "Fractured Skull",
+    "type": "injury"
+  },
+  "CF19A6E1": {
+    "name": "Grazed Eye Socket",
+    "type": "injury"
+  },
+  "6012EEA7": {
+    "name": "Grazed Kidney",
+    "type": "injury"
+  },
+  "55B29B85": {
+    "name": "Grazed Neck",
+    "type": "injury"
+  },
+  "4A9EFC1C": {
+    "name": "Injured Knee Cap",
+    "type": "injury"
+  },
+  "92E5CC3D": {
+    "name": "Pierced Arm Muscles",
+    "type": "injury"
+  },
+  "AFA7F95C": {
+    "name": "Pierced Cheek",
+    "type": "injury"
+  },
+  "7215AAAB": {
+    "name": "Pierced Chest",
+    "type": "injury"
+  },
+  "6631250A": {
+    "name": "Pierced Hand",
+    "type": "injury"
+  },
+  "0EBAC62B": {
+    "name": "Pierced Leg Muscles",
+    "type": "injury"
+  },
+  "D50F8C09": {
+    "name": "Pierced Lung",
+    "type": "injury"
+  },
+  "560A9411": {
+    "name": "Pierced Shoulder",
+    "type": "injury"
+  },
+  "444F995B": {
+    "name": "Pierced Side",
+    "type": "injury"
+  },
+  "1B87A90F": {
+    "name": "Ripped Ear",
+    "type": "injury"
+  },
+  "D5A23C02": {
+    "name": "Severe Concussion",
+    "type": "injury"
+  },
+  "FB987AC6": {
+    "name": "Smashed Hand",
+    "type": "injury"
+  },
+  "80E701C4": {
+    "name": "Split Nose",
+    "type": "injury"
+  },
+  "B5C70687": {
+    "name": "Split Shoulder",
+    "type": "injury"
+  },
+  "E8F6C4D5": {
+    "name": "Sprained Ankle",
+    "type": "injury"
+  },
+  "3FD05AAF": {
+    "name": "Stabbed Guts",
+    "type": "injury"
+  }
+}

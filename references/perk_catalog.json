@@ -1,0 +1,213 @@
+{
+  "_meta": {
+    "format": "bbtool.perk_catalog.v1",
+    "source": "references/dictionary_core.json",
+    "scope": "standard/save-visible vanilla perks known to the shipped dictionary",
+    "count": 50,
+    "reviewed": 50,
+    "remaining": 0
+  },
+  "perks": [
+    {
+      "Name": "Adrenaline",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Anticipation",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Axe Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Backstabber",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Bags and Belts",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Battle Forged",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Berserk",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Bow Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Brawny",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Bullseye",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Cleaver Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Colossus",
+      "BestRoleStatus": "structural"
+    },
+    {
+      "Name": "Crippling Strikes",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Crossbow Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Dagger Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Dodge",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Duelist",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Executioner",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Fast Adaptation",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Fearsome",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Flail Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Footwork",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Fortified Mind",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Gifted",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Hammer Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Head Hunter",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Indomitable",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Killing Frenzy",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Lone Wolf",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Mace Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Nimble",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Nine Lives",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Overwhelm",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Pathfinder",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Polearm Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Quick Hands",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Rally the Troops",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Reach Advantage",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Recover",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Relentless",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Resilient",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Rotation",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Shield Expert",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Spear Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Steel Brow",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Student",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Sword Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Taunt",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Throwing Mastery",
+      "BestRoleStatus": "excluded"
+    },
+    {
+      "Name": "Underdog",
+      "BestRoleStatus": "excluded"
+    }
+  ],
+  "remaining": []
+}

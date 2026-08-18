@@ -1,0 +1,207 @@
+{
+  "_meta": {
+    "format": "bbtool.perk_model.v1",
+    "purpose": "Machine-readable BestRole perk classification.",
+    "core_rule": "A perk may influence BestRole only when its core-stat impact is intrinsic and predictable without first assuming the role, equipment, or tactical behavior that the perk would then be used to justify."
+  },
+  "structural": {
+    "Colossus": {
+      "classification": "structural_bestrole",
+      "reason": "Permanent intrinsic HP multiplier; independent of role, gear, and combat behavior."
+    }
+  },
+  "excluded": {
+    "Adrenaline": {
+      "classification": "excluded_bestrole",
+      "reason": "Turn-order tempo ability; not structural Initiative."
+    },
+    "Anticipation": {
+      "classification": "excluded_bestrole",
+      "reason": "Ranged-only situational defense; not stable projected RDef."
+    },
+    "Axe Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Backstabber": {
+      "classification": "excluded_bestrole",
+      "reason": "Accuracy depends on surrounding the target; not intrinsic MAtk."
+    },
+    "Bags and Belts": {
+      "classification": "excluded_bestrole",
+      "reason": "Loadout-dependent inventory/Fatigue economy."
+    },
+    "Battle Forged": {
+      "classification": "excluded_bestrole",
+      "reason": "Survivability depends on heavy armor chosen after role selection."
+    },
+    "Berserk": {
+      "classification": "excluded_bestrole",
+      "reason": "AP refund after a kill."
+    },
+    "Bow Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Brawny": {
+      "classification": "excluded_bestrole",
+      "reason": "Benefit depends on heavy gear chosen for an already-defined build."
+    },
+    "Bullseye": {
+      "classification": "excluded_bestrole",
+      "reason": "Mitigates situational ranged obstruction penalties; not intrinsic RAtk."
+    },
+    "Cleaver Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Crippling Strikes": {
+      "classification": "excluded_bestrole",
+      "reason": "Injury-enabling offensive mechanic; no structural core stat."
+    },
+    "Crossbow Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Dagger Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Dodge": {
+      "classification": "excluded_bestrole",
+      "reason": "Derived defense depends on Initiative, gear, accumulated Fatigue, and play."
+    },
+    "Duelist": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon-build dependent."
+    },
+    "Executioner": {
+      "classification": "excluded_bestrole",
+      "reason": "Conditional damage bonus against injured targets."
+    },
+    "Fast Adaptation": {
+      "classification": "excluded_bestrole",
+      "reason": "Conditional hit chance after misses; not intrinsic attack skill."
+    },
+    "Fearsome": {
+      "classification": "excluded_bestrole",
+      "reason": "Morale mechanic using existing Resolve; does not add structural Resolve."
+    },
+    "Flail Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Footwork": {
+      "classification": "excluded_bestrole",
+      "reason": "Tactical disengagement/repositioning."
+    },
+    "Hammer Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Head Hunter": {
+      "classification": "excluded_bestrole",
+      "reason": "Conditional head-hit sequencing mechanic."
+    },
+    "Indomitable": {
+      "classification": "excluded_bestrole",
+      "reason": "Activated defensive state; not permanent defense."
+    },
+    "Killing Frenzy": {
+      "classification": "excluded_bestrole",
+      "reason": "Temporary damage bonus after a kill."
+    },
+    "Lone Wolf": {
+      "classification": "excluded_bestrole",
+      "reason": "Large but isolation-dependent tactical stat bonus."
+    },
+    "Mace Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Nimble": {
+      "classification": "excluded_bestrole",
+      "reason": "Survivability depends on light-gear Fatigue penalty."
+    },
+    "Nine Lives": {
+      "classification": "excluded_bestrole",
+      "reason": "Lethal-damage survival trigger; does not increase structural HP."
+    },
+    "Overwhelm": {
+      "classification": "excluded_bestrole",
+      "reason": "Combat debuff applied to enemies; action/Initiative dependent."
+    },
+    "Pathfinder": {
+      "classification": "excluded_bestrole",
+      "reason": "Terrain-dependent movement AP/Fatigue economy."
+    },
+    "Polearm Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Quick Hands": {
+      "classification": "excluded_bestrole",
+      "reason": "Loadout-switching utility; equipment/build dependent."
+    },
+    "Rally the Troops": {
+      "classification": "excluded_bestrole",
+      "reason": "Tactical Banner function; does not create Banner role."
+    },
+    "Reach Advantage": {
+      "classification": "excluded_bestrole",
+      "reason": "Temporary defense depends on 2H weapon and successful attacks."
+    },
+    "Recover": {
+      "classification": "excluded_bestrole",
+      "reason": "Manages accumulated Fatigue; does not enlarge structural Fatigue pool."
+    },
+    "Relentless": {
+      "classification": "excluded_bestrole",
+      "reason": "Preserves Initiative under accumulated Fatigue; downstream of role/playstyle."
+    },
+    "Resilient": {
+      "classification": "excluded_bestrole",
+      "reason": "Situational status-effect mitigation."
+    },
+    "Rotation": {
+      "classification": "excluded_bestrole",
+      "reason": "Tactical repositioning."
+    },
+    "Shield Expert": {
+      "classification": "excluded_bestrole",
+      "reason": "Shield-build dependent defense."
+    },
+    "Spear Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Steel Brow": {
+      "classification": "excluded_bestrole",
+      "reason": "Changes head-hit damage handling; no structural stat."
+    },
+    "Student": {
+      "classification": "excluded_bestrole",
+      "reason": "XP/progression perk; no final structural stat."
+    },
+    "Sword Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Taunt": {
+      "classification": "excluded_bestrole",
+      "reason": "Tactical enemy-control ability."
+    },
+    "Throwing Mastery": {
+      "classification": "excluded_bestrole",
+      "reason": "Weapon mastery; weapon/loadout is chosen after archetype selection."
+    },
+    "Underdog": {
+      "classification": "excluded_bestrole",
+      "reason": "Mitigates surround pressure; does not add intrinsic MDef."
+    },
+    "Fortified Mind": {
+      "classification": "archetype_enhancing",
+      "reason": "Role-specific Resolve multiplier: Fortified Mind is a normal/required Banner build perk, so using it to reveal Banner potential would assume the role it then justifies."
+    }
+  }
+}

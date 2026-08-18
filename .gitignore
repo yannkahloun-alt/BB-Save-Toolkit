@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Toolkit runtime output
+output/
+references/dictionary.json
+references/backgrounds.json
+references/trait_effects.json
+references/permanent_injury_effects.json
+references/perk_audit.json
+
+# Test/coverage/mutation artifacts
+tests/cache/
+tests/coverage/
+tests/mutation/results/
+tests/mutation/generated/
+tests/mutation/.backup/
+tests/mutation/mutation-history.json
+
+# Local saves / fixtures not explicitly checked in
+*.sav
+*.sav.tmp
+
+# Release artifacts
+/dist/
+*.zip
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
