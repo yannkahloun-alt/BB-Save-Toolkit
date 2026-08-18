@@ -1,38 +1,58 @@
-name: Pre-release validation
+name: Release validation
+run-name: Release ${{ inputs.release_version }} from ${{ github.ref_name }}
 
 on:
   workflow_dispatch:
     inputs:
-      mutation_target:
-        description: Optional run_mutation.ps1 target (leave blank to skip mutation)
-        required: false
+      release_version:
+        description: Release version to validate and package (for example, v3.86.0)
+        required: true
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: pre-release-${{ github.ref }}
+  group: release-validation-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  pre-release:
-    name: pre-release
+  release-tests:
+    name: release-tests
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out the requested ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v7
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: tests/requirements.txt
       - name: Install development dependencies
         run: python -m pip install -r tests/requirements.txt
-      - name: Run full correctness suite including coverage_slow
+      - name: Run release suite without coverage_slow
         shell: pwsh
-        run: ./run_tests.ps1
+        run: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+
+  release-quality:
+    name: release-quality
+    runs-on: windows-latest
+    steps:
+      - name: Check out the requested ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
       - name: Enforce branch coverage
         shell: pwsh
         run: ./run_coverage.ps1
@@ -42,9 +62,96 @@ jobs:
       - name: Run Ruff
         shell: pwsh
         run: ./run_ruff.ps1 -Tests
-      - name: Run optional targeted mutation campaign
-        if: ${{ inputs.mutation_target != '' }}
+
+  release-package:
+    name: release-package
+    needs:
+      - release-tests
+      - release-quality
+    runs-on: windows-latest
+    steps:
+      - name: Check out the validated commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+      - name: Validate the release version
         shell: pwsh
         env:
-          MUTATION_TARGET: ${{ inputs.mutation_target }}
-        run: ./run_mutation.ps1 -Target $env:MUTATION_TARGET
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          if ($env:RELEASE_VERSION -notmatch '^v\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$') {
+            throw "release_version must look like v3.85 or v3.85.1-rc.1"
+          }
+          $releaseHeading = Select-String -Path docs/CHANGELOG.md -Pattern '^## (v\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?)\b' | Select-Object -First 1
+          if (-not $releaseHeading) {
+            throw 'docs/CHANGELOG.md has no release heading'
+          }
+          $declaredVersion = $releaseHeading.Matches[0].Groups[1].Value
+          if ($env:RELEASE_VERSION -cne $declaredVersion) {
+            throw "release_version $env:RELEASE_VERSION does not match changelog version $declaredVersion"
+          }
+      - name: Build release ZIP from tracked files
+        id: archive
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $baseName = "BB-Save-Toolkit-$env:RELEASE_VERSION"
+          $archivePath = "dist/$baseName.zip"
+          git archive --format=zip --prefix="$baseName/" --output=$archivePath HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "archive_path=$archivePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "artifact_name=$baseName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Verify release ZIP
+        shell: pwsh
+        env:
+          ARCHIVE_PATH: ${{ steps.archive.outputs.archive_path }}
+        run: python tools/verify_release_zip.py $env:ARCHIVE_PATH
+      - name: Upload verified release ZIP
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: ${{ steps.archive.outputs.artifact_name }}
+          path: ${{ steps.archive.outputs.archive_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+  release-summary:
+    name: release-summary
+    if: ${{ always() }}
+    needs:
+      - release-tests
+      - release-quality
+      - release-package
+    runs-on: windows-latest
+    steps:
+      - name: Record release validation outcome
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_SHA: ${{ github.sha }}
+          TESTS_RESULT: ${{ needs.release-tests.result }}
+          QUALITY_RESULT: ${{ needs.release-quality.result }}
+          PACKAGE_RESULT: ${{ needs.release-package.result }}
+        run: |
+          @"
+          # Release validation
+
+          - Version: ``$env:RELEASE_VERSION``
+          - Ref: ``$env:RELEASE_REF``
+          - Commit: ``$env:RELEASE_SHA``
+          - Release tests: **$env:TESTS_RESULT**
+          - Quality and coverage: **$env:QUALITY_RESULT**
+          - Verified ZIP artifact: **$env:PACKAGE_RESULT**
+          "@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+
+          if ($env:TESTS_RESULT -ne 'success' -or
+              $env:QUALITY_RESULT -ne 'success' -or
+              $env:PACKAGE_RESULT -ne 'success') {
+            throw 'Release validation did not complete successfully.'
+          }
