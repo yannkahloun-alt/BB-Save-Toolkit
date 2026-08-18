@@ -1,4 +1,5 @@
-import struct, pytest
+import struct
+import pytest
 pytestmark=pytest.mark.unit
 from bbtool.save_parser import u16,i16,u32,f32,lp_string,printable_ascii,_squirrel_round
 

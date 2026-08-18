@@ -55,6 +55,11 @@ These are architectural contracts, not implementation suggestions.
 ## Testing
 
 - A bug fix is incomplete without a regression test unless a test is technically impossible; document exceptions.
-- Full correctness tests include `coverage_slow` tests.
-- Coverage instrumentation may exclude `coverage_slow` because tracing makes combinatorial projection tests pathologically slow.
-- Mutation survivors in touched correctness-critical logic are defects to investigate, not numbers to ignore.
+- Routine and pre-merge validation exclude `coverage_slow`; those tests are a
+  pre-release/pre-production gate.
+- Coverage instrumentation excludes `coverage_slow` because tracing makes
+  combinatorial projection tests pathologically slow.
+- Mutation testing is pre-release/pre-production only and is never started
+  automatically for routine tasks or normal pre-merge validation.
+- Valid mutation survivors found during an explicitly requested campaign are
+  defects to investigate, not numbers to ignore.

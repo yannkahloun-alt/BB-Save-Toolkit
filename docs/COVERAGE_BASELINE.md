@@ -1,3 +1,21 @@
+# Coverage enforcement baseline — v3.84
+
+Reference command:
+
+```powershell
+.\run_coverage.ps1
+```
+
+The current v3.84 `main` baseline is **89.4% branch-aware total coverage** with
+`coverage_slow` excluded. The shared coverage configuration enforces 89.4% as
+the minimum, so both local pre-merge validation and GitHub Actions fail on a
+regression. Raising this floor should accompany additional committed coverage.
+
+The older measurements below are historical snapshots. They describe the code
+at those releases and are not current enforcement thresholds.
+
+---
+
 # Coverage baseline — v3.37
 
 Reference command:

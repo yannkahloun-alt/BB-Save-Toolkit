@@ -6,6 +6,7 @@ source = bbtool
 show_missing = True
 skip_covered = False
 precision = 1
+fail_under = 89.4
 
 [html]
 directory = htmlcov

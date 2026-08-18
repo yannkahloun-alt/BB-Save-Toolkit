@@ -1,4 +1,5 @@
-import inspect, pytest
+import inspect
+import pytest
 pytestmark=pytest.mark.unit
 from bbtool.projection.trajectory import _radical_inverse,_sample_dimension,_sample_coordinates,_normalize_round_ranges
 import bbtool.projection.trajectory as tr

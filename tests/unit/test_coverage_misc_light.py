@@ -5,12 +5,12 @@ import bbtool.app.main as appmain
 import bbtool.app.output as out
 import bbtool.html_report as hr
 from bbtool.formatting import component_summary
-from bbtool.save_parser import DuplicateBrotherNameError
 
 pytestmark=pytest.mark.unit
 
 
 def test_console_step_and_profile_and_status(capsys, monkeypatch):
+    assert callable(appmain.main)
     monkeypatch.setattr(console.time,'perf_counter',lambda:1.0)
     with console.Step('X') as step:
         step.started=0.5

@@ -128,7 +128,7 @@ def test_runner_generated_background_and_perks_each_mark_generated(monkeypatch, 
     ):
         _patch_runner(monkeypatch, tmp_path, reference_status=status)
         ticks = iter([1.0, 4.0])
-        monkeypatch.setattr(runner.time, "perf_counter", lambda: next(ticks))
+        monkeypatch.setattr(runner.time, "perf_counter", lambda ticks=ticks: next(ticks))
 
         runner.run(_opts(tmp_path, no_projection=True))
 

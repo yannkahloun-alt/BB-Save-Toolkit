@@ -67,7 +67,9 @@ Do not put cache persistence into projection algorithms.
 
 ### 5. Validate incrementally
 
-Run focused tests during iteration, then the mandatory gate in `docs/TESTING.md`.
+Run focused tests during iteration, then the applicable pre-merge gate in
+`docs/TESTING.md`. Do not start `coverage_slow` or mutation testing during
+routine development or normal pre-merge validation.
 
 ### 6. Review the diff
 
@@ -97,6 +99,16 @@ Harden advisor cache invalidation
 ```
 
 Avoid meaningless release-style commit names such as `v3.85` during normal development.
+
+### 8. Independent pull-request review
+
+After Agent A's adversarial self-review and fixes, a separate Agent B reviews
+the complete PR diff at the exact current head SHA. The enforced verdict is the
+external GitHub App check `agent-b-review`, not a native approval or comment.
+Every new commit invalidates the prior verdict and requires a fresh Agent B
+review. See `docs/AGENT_B_REVIEW.md` for the authentication and fail-closed
+contract. Passing review never authorizes a merge without explicit owner
+confirmation.
 
 ## Branch discipline
 

@@ -13,7 +13,7 @@ def first_difference(a, b, path="$"):
         return None
     if isinstance(a, list):
         if len(a)!=len(b): return f"{path}.length", len(a), len(b)
-        for i,(left,right) in enumerate(zip(a,b)):
+        for i,(left,right) in enumerate(zip(a,b, strict=False)):
             diff=first_difference(left,right,f"{path}[{i}]")
             if diff is not None: return diff
         return None

@@ -10,7 +10,7 @@ def test_config_unique_roles(cfg): assert len(cfg.roles)==len({r['name'] for r i
 def test_config_fit_stat_invariants(cfg):
     for r in cfg.roles:
         assert r['stats']
-        for s,c in r['stats'].items():
+        for _s,c in r['stats'].items():
             if c.get('fit'):
                 assert {'target','baseline','weight','projected_curve'}<=c.keys(); assert c['baseline']<=c['target']; assert c['weight']>0
                 ys=[p[1] for p in c['projected_curve']]; assert ys==sorted(ys)

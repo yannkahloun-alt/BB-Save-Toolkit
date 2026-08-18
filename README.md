@@ -41,30 +41,26 @@ python .\bb_analyze.py <save.sav> --full-recompute
 python -m pip install -r tests\requirements.txt
 ```
 
-Mandatory correctness run:
+Routine development uses targeted tests plus static analysis. The local
+pre-merge gates are:
 
 ```powershell
-.\run_tests.ps1
-```
-
-Static analysis:
-
-```powershell
+python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+.\run_coverage.ps1
 .\run_lint.ps1 -Tests
 .\run_ruff.ps1 -Tests
 ```
 
-Coverage:
+Pull requests targeting `main` run those same four gates in GitHub Actions.
+Branch protection should require the checks `tests`, `coverage`, `ruff`, and
+`pyflakes`; see `docs/GITHUB_BRANCH_PROTECTION.md`.
+
+Pre-release validation additionally runs the complete suite (including
+`coverage_slow`) and targeted mutation testing:
 
 ```powershell
-.\run_coverage.ps1
-```
-
-Mutation targets:
-
-```powershell
-.\run_mutation.ps1 -ListTargets
-.\run_mutation.ps1 -Target projection/scoring
+.\run_tests.ps1
+.\run_mutation.ps1 -Target <changed-or-high-risk-module>
 ```
 
 See `docs/TESTING.md` and `docs/MUTATION_TESTING.md` for policy.

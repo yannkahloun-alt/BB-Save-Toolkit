@@ -23,10 +23,7 @@ def session_stats(db_path: str) -> dict[str, int]:
 
         # Cosmic Ray 8.7 stores completed outcomes in work_results, one row
         # per completed job. work_items itself only contains job IDs.
-        if "work_results" in tables:
-            complete = cur.execute("SELECT COUNT(*) FROM work_results").fetchone()[0]
-        else:
-            complete = 0
+        complete = cur.execute("SELECT COUNT(*) FROM work_results").fetchone()[0] if "work_results" in tables else 0
 
         return {"total": int(total), "complete": int(complete)}
     finally:

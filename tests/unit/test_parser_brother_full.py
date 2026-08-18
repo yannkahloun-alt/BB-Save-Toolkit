@@ -2,7 +2,7 @@ import struct
 import pytest
 pytestmark=pytest.mark.unit
 from bbtool.save_parser import (try_parse_human_header,find_identity,find_roster_identity,parse_stars,
-    parse_levelup_roll_sequence,parse_roster,DuplicateBrotherNameError,BROTHER_SIGNATURE)
+    parse_levelup_roll_sequence,parse_roster,BROTHER_SIGNATURE)
 
 
 def lp(s):
