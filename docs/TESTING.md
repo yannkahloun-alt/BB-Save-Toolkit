@@ -25,21 +25,25 @@ changes when expensive gates run; it does not weaken correctness requirements.
 ## Pre-merge to main
 
 Before merging to `main`, run the full normal suite excluding
-`coverage_slow`, branch coverage, lint, and Ruff:
+`coverage_slow`, lint, and Ruff:
 
 ```powershell
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
-.\run_coverage.ps1
 .\run_lint.ps1 -Tests
 .\run_ruff.ps1 -Tests
 ```
 
-Pull requests targeting `main` run the same four gates in GitHub Actions as the
-stable checks `tests`, `coverage`, `ruff`, and `pyflakes`.
+Pull requests targeting `main` run the same three gates in GitHub Actions as
+the stable checks `tests`, `ruff`, and `pyflakes`.
+
+Branch coverage is temporarily excluded from normal PR CI and the routine
+pre-merge gate because its runtime is too high. The coverage tooling and
+baseline remain intact for explicit local validation and pre-release work. This
+temporary exception must be revisited when a safe optimization is selected.
 
 Agent A additionally launches and waits for an independent Agent B Codex task
 that reviews the exact current PR head SHA. This operational review does not
-replace any of the four deterministic GitHub checks and is not itself a required
+replace any of the three deterministic GitHub checks and is not itself a required
 status check in the free single-account design. See `docs/AGENT_B_REVIEW.md`.
 
 ## Pre-release / pre-production
@@ -76,7 +80,7 @@ For parser, projection, scoring, classification, advisor, incremental, trait/per
 
 Coverage excludes `coverage_slow` because tracing makes those combinatorial
 tests too expensive. The shared configuration enforces the documented 89.4%
-branch-aware v3.84 baseline locally and in CI.
+branch-aware v3.84 baseline whenever coverage is explicitly run.
 
 Coverage percentage alone is not the goal. New branches affecting correctness need explicit assertions.
 
@@ -136,7 +140,8 @@ A bug fix is done when:
 3. focused tests pass;
 4. the applicable routine or pre-merge suite passes;
 5. static analysis passes;
-6. relevant coverage is exercised;
+6. relevant tests are exercised, with branch coverage run when explicitly
+   requested or required for pre-release work;
 7. docs/specs are updated if the contract changed.
 
 `coverage_slow` and targeted mutation testing are additional

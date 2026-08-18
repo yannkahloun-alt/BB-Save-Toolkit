@@ -13,7 +13,7 @@ pattern `main` and enable:
 - **Require a pull request before merging**;
 - **Require status checks to pass before merging**;
 - **Require branches to be up to date before merging**;
-- the exact required checks `tests`, `coverage`, `ruff`, and `pyflakes`;
+- the exact required checks `tests`, `ruff`, and `pyflakes`;
 - **zero required approving reviews**; the same human account cannot provide a
   distinct native approval, and Agent B instead reviews in a separate Codex
   task;
@@ -23,13 +23,17 @@ pattern `main` and enable:
   `main` through pull requests rather than direct pushes;
 - block force pushes and branch deletion.
 
-The four validation checks appear after PR validation has run. Configure
+The three validation checks appear after PR validation has run. Coverage is
+temporarily excluded from PR CI and branch protection until its runtime is
+optimized. Configure
 strict/up-to-date checks so success on an old head SHA cannot satisfy a changed
 pull request. Restrict bypass permission to an explicitly documented emergency
-owner path; routine automation identities must not bypass the rule. Before
-merging, the owner must also confirm that the separate Codex Agent B task
-returned `APPROVE` for the exact current head SHA. GitHub cannot enforce that
-last condition without a distinct external identity or service.
+owner path; routine automation identities must not bypass the rule. After the
+separate Codex Agent B task returns `APPROVE`, Agent A verifies the
+exact current head SHA and required checks again, then automatically
+squash-merges.
+GitHub cannot enforce the Agent B verdict without a distinct external identity
+or service.
 
 The manually dispatched `pre-release` job is deliberately not a required PR
 check. It includes the expensive pre-release tier and is run only when a release
