@@ -36,7 +36,11 @@ def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory)
     current=html.split('CURRENT BROTHER DETAILS',1)[1].split('ARCHETYPE DETAILS',1)[0]
     assert ' important' not in current
     assert 'EFFECTIVE CURRENT STATS' in html and 'FIT DEVELOPMENT — LEVEL 11' in html and 'optimized stat allocation' in html
-    assert 'TARGET PROFILE' in html and html.count('target-profile-chevron') == len(cfg.roles)
+    rendered_archetypes = len(result.fits) + sum(
+        len(summary.get('StructuralPerkAlternatives', []))
+        for summary in result.summaries
+    )
+    assert 'TARGET PROFILE' in html and html.count('target-profile-chevron') == rendered_archetypes
     assert 'Baseline (minimum useful)' in html and 'Target (desired)' in html and 'Expected (projection)' in html
     assert 'Projected level 11 range' not in html and '>EV<' not in html and 'Weight' in html
     assert 'class-icon' in html and 'role-card retained-role' in html
