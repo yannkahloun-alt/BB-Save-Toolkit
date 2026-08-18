@@ -64,3 +64,20 @@ def test_valid_summary_carries_downstream_artifacts_into_new_manifest(bro_factor
     assert "summary" in entry
     assert "structural_paths" in entry
     assert "advisor" in entry
+
+
+def test_projection_range_schema_change_rejects_old_downstream_artifacts(bro_factory,simple_role):
+    bro=bro_factory()
+    roles=[simple_role(("HP","MAtk","MDef"))]
+    cfg={"invest":0.8}
+    manifest=manifest_with_downstream(bro,roles,cfg)
+    entry=manifest["brothers"]["previous"]
+    entry["structural_paths"]["engine_version"]=STRUCTURAL_PATH_ENGINE_VERSION-1
+    entry["summary"]["engine_version"]=BROTHER_SUMMARY_ENGINE_VERSION-1
+    cache=IncrementalCache(manifest)
+
+    assert cache.get_structural_paths(bro,roles) is None
+    assert cache.get_summary(bro,roles,cfg) is None
+    assert cache.miss_reasons["structural_engine_changed"]==1
+    assert cache.miss_reasons["summary_engine_changed"]==1
+    assert cache.get_advisor(bro,roles)=={"Recommended":{"Stats":["HP","MAtk","MDef"]}}
