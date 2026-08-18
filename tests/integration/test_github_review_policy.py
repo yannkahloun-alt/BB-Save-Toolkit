@@ -45,7 +45,7 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "wait for agent b" in policy_lower
     assert "not a github-enforced status check" in policy_lower
     assert "no openai api key" in policy_lower
-    assert "never modify code, merge, or change repository settings" in policy_lower
+    assert "remain strictly read-only" in policy_lower
     assert "### Pull-request publishing handoff" in agent_instructions
     assert "Automatically create a fresh Codex task" in agent_instructions
     assert "Independent review — PR #<number>" in agent_instructions
