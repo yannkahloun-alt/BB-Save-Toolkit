@@ -29,8 +29,9 @@ optimized. Configure
 strict/up-to-date checks so success on an old head SHA cannot satisfy a changed
 pull request. Restrict bypass permission to an explicitly documented emergency
 owner path; routine automation identities must not bypass the rule. After the
-separate Codex Agent B task returns `APPROVE`, Agent A verifies the exact
-current head and required checks again, then automatically squash-merges.
+separate Codex Agent B task returns `APPROVE`, Agent A verifies the
+exact current head SHA and required checks again, then automatically
+squash-merges.
 GitHub cannot enforce the Agent B verdict without a distinct external identity
 or service.
 
