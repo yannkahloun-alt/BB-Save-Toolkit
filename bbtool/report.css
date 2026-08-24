@@ -2119,7 +2119,8 @@ td:has(>.classification-paths-cell) {
 }
 
 /* Fit score and threshold-probability help. */
-.fit-measure-help {
+.fit-measure-help,
+.optimized-allocation-help {
   margin-bottom: 12px;
   border-left: 3px solid #6f93b8;
   border-radius: 6px;
@@ -2127,22 +2128,30 @@ td:has(>.classification-paths-cell) {
   color: var(--muted);
   font-size: .78rem;
 }
-.fit-measure-help > summary {
+.fit-measure-help > summary,
+.optimized-allocation-help > summary {
   padding: 8px 10px;
   color: var(--text);
   cursor: pointer;
   font-weight: 750;
 }
-.fit-measure-help > div {
+.fit-measure-help > div,
+.optimized-allocation-help > div {
   padding: 0 10px 9px;
 }
-.fit-measure-help p {
+.fit-measure-help p,
+.optimized-allocation-help p {
   margin: 5px 0;
   line-height: 1.45;
 }
 .fit-measure-help strong,
 .fit-measure-current {
   color: var(--text);
+}
+.optimized-allocation-help {
+  margin: 8px 0 12px;
+  border-left-color: #c6a7ff;
+  background: rgba(130, 91, 176, .10);
 }
 
 /* Archetype target profile and level-11 projection scale. */

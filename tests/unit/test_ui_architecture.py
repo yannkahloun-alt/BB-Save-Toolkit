@@ -6,7 +6,7 @@ import pytest
 pytestmark=pytest.mark.unit
 import bbtool.projection.trajectory as trajectory
 from bbtool.models import STATS
-from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html
+from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html,optimized_allocation_help_html
 ROOT=Path(__file__).resolve().parents[2]
 
 def test_strategic_path_classes_consistent():
@@ -46,10 +46,37 @@ def test_fit_measure_help_does_not_cap_above_target_fit():
     html = fit_measure_help_html({"ProjectedFitPct": 102.4, "FitFeasibilityPct": 99.6})
     assert "Fit 102.4%" in html
     assert "displayed Fit is not capped" in html
+
+
+def test_optimized_allocation_help_explains_projection_policy():
+    html = optimized_allocation_help_html()
+    assert html.startswith('<details class="optimized-allocation-help">')
+    assert "How stat allocation is optimized" in html
+    assert "exactly three of the eight core stats" in html
+    assert "All eight are eligible" in html
+    assert "highest final Fit for this archetype" in html
+    for influence in (
+        "Talent stars",
+        "baselines",
+        "targets",
+        "weights",
+        "Fit-only ceilings",
+        "permanent trait",
+        "permanent-injury",
+    ):
+        assert influence in html
+    assert "not a guaranteed outcome" in html
+    assert "perks do not alter this natural-stat projection" in html
+    assert "structural perk paths are evaluated separately" in html
+    assert "Temporary injuries" in html
+    assert "FutureRolls do not drive normal projection choices" in html
+
+
 def test_current_brother_details_neutral(bro_factory): assert 'important' not in current_stat_chips(bro_factory(),important_stats=set())
 def test_archetype_detail_language(cfg,bro_factory):
     role=cfg.roles[0]; from bbtool.projection.planner import project_role; b=bro_factory(); row=project_role(b,role); html=archetype_detail_body_html(b,row,role)
     assert 'FIT DEVELOPMENT — LEVEL 11 <span>(optimized stat allocation)</span>' in html
+    assert '<details class="optimized-allocation-help">' in html
     assert 'TARGET PROFILE' in html and 'EFFECTIVE CURRENT STATS' in html
     assert 'Projected level 11 range' not in html and '>EV<' not in html and 'Weight' in html
     assert 'with optimal rolls' not in html and 'vs Target' not in html
