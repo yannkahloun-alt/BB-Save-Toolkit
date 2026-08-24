@@ -99,6 +99,18 @@ fit_value = min(effective_value, ceiling)
 
 The uncapped projected stat remains the actual displayed projection.
 
+Each Fit stat uses a continuous bounded signed utility curve:
+
+```text
+baseline - (target - baseline) -> -1
+baseline                       ->  0
+target and above               -> +1
+```
+
+After weighting, each stat therefore contributes within
+`[-weight, +weight]`. The weighted mean keeps baseline at 0% and all targets
+at 100%; negative aggregate Fit is clamped to the public minimum of 0%.
+
 ## Permanent effects
 
 Natural projected stats may include exact unconditional permanent transforms from:

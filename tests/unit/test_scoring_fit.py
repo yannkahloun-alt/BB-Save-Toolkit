@@ -1,6 +1,8 @@
 import pytest
-pytestmark=pytest.mark.unit
+from bbtool.app.config import _fit_curve
 from bbtool.projection.scoring import curve_value, weighted_role_score
+
+pytestmark=pytest.mark.unit
 
 PTS=[[0,0],[10,0.5],[20,1.0],[30,1.1]]
 @pytest.mark.parametrize('x,y',[(-5,0),(0,0),(10,.5),(20,1),(30,1.1),(40,1.1),(5,.25),(15,.75)])
@@ -9,6 +11,22 @@ def test_curve_empty(): assert curve_value(10,[])==0
 def test_curve_duplicate_x_segment(): assert curve_value(10,[[0,0],[10,.4],[10,.7],[20,1]])==pytest.approx(.4)
 def test_curve_continuity():
     assert curve_value(10-1e-9,PTS)==pytest.approx(.5,abs=1e-9); assert curve_value(10+1e-9,PTS)==pytest.approx(.5,abs=1e-9)
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [(42, -1.0), (72, -1.0), (74, -0.75), (78, -0.25),
+     (80, 0.0), (82, 0.25), (86, 0.75), (88, 1.0), (96, 1.0)],
+)
+def test_archetype_curve_has_bounded_signed_contribution(value, expected):
+    assert curve_value(value, _fit_curve(88, 80)) == pytest.approx(expected)
+
+def test_signed_components_reduce_fit_without_exposing_negative_total():
+    signed = _fit_curve(88, 80)
+    cfg = role({"RAtk": c(4, curve=signed), "MAtk": c(4, curve=signed)})
+    score, components, _, _ = weighted_role_score({"RAtk": 42, "MAtk": 88}, cfg)
+    assert components["RAtk"]["weighted"] == pytest.approx(-4.0)
+    assert components["MAtk"]["weighted"] == pytest.approx(4.0)
+    assert score == pytest.approx(0.0)
 
 def role(cfgs): return {'stats':cfgs}
 def c(weight=1,fit=True,curve=PTS): return {'weight':weight,'fit':fit,'projected_curve':curve}

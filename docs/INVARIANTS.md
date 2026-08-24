@@ -15,7 +15,10 @@ These are architectural contracts, not implementation suggestions.
 
 - Only stats marked as Fit stats contribute to role Fit.
 - `target`, `baseline`, `weight`, and optional `ceiling` are archetype-local inputs.
-- `ceiling` is a Fit-valuation saturation point only: `fit_value = min(effective_value, ceiling)`.
+- `baseline` is the neutral point of a bounded signed contribution; one
+  baseline-to-target interval below it reaches `-weight`.
+- `target` is the positive Fit saturation point at `+weight`.
+- `ceiling` remains a Fit-valuation-only cap: `fit_value = min(effective_value, ceiling)`.
 - The uncapped projected/effective stat remains the displayed/statistical value.
 - Changing one archetype must not invalidate unrelated archetypes in incremental reuse.
 

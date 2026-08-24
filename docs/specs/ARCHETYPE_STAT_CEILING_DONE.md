@@ -1,5 +1,12 @@
 # Specification --- Configurable Archetype Stat Ceiling
 
+> **Amended by issue #40:** Fit now saturates positively at `target` and uses
+> bounded signed contributions below `baseline`. The optional `ceiling`
+> remains accepted, remains valuation-only, and never caps displayed/projected
+> stats, but values between `target` and `ceiling` no longer earn surplus Fit.
+> Statements below describing uncapped above-target utility are retained as
+> historical context for the original completed feature.
+
 ## 1. Objective
 
 Add an optional **`ceiling`** property to individual archetype stat

@@ -4,8 +4,8 @@ import json
 from typing import Any
 from ..models import STATS
 
-ROLE_PROJECTION_ENGINE_VERSION = 5
-BROTHER_SUMMARY_ENGINE_VERSION = 4
+ROLE_PROJECTION_ENGINE_VERSION = 6
+BROTHER_SUMMARY_ENGINE_VERSION = 5
 
 def canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
@@ -44,7 +44,7 @@ def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:
 
 
 STRUCTURAL_PATH_ENGINE_VERSION = 3
-ADVISOR_ENGINE_VERSION = 2
+ADVISOR_ENGINE_VERSION = 3
 
 
 def structural_path_fingerprint(bro, roles) -> str:
