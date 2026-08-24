@@ -190,3 +190,17 @@ def test_print_projection_profile_default_contract(capsys):
     assert "full projections                0" in out
     assert "fast projections                0" in out
     assert "projection calls                0" in out
+
+
+def test_generated_file_observability_is_sorted_and_includes_exact_sizes(tmp_path, capsys):
+    (tmp_path / "z.json").write_bytes(b"z" * 1024)
+    (tmp_path / "a.html").write_bytes(b"abc")
+
+    console.print_generated_files(tmp_path)
+
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == f"File: {tmp_path / 'a.html'} — 3 B"
+    assert lines[1] == f"File: {tmp_path / 'z.json'} — 1.0 KiB (1024 B)"
+    assert console.sha256_file(tmp_path / "a.html") == (
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )

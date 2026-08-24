@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
+import json
 
 import bbtool.app.runner as runner
 
@@ -7,6 +8,10 @@ import bbtool.app.runner as runner
 def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     report = tmp_path / "report.html"
     report.write_text("<html></html>", encoding="utf-8")
+    validation = tmp_path / "validation.json"
+    validation.write_text(json.dumps({"summary": {"roll_range_violations": 0}}), encoding="utf-8")
+    archive = tmp_path / "archive.zip"
+    archive.write_bytes(b"archive")
     workspace = SimpleNamespace(root=tmp_path, source_save=tmp_path/"x.sav", base="x", generated_at="now")
     opts = SimpleNamespace(
         save=tmp_path/"x.sav", targets=Path("targets"), classification=Path("classification"),
@@ -28,9 +33,9 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: None)
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: Path("validation.json"))
+    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: Path("debug.json"))
-    monkeypatch.setattr(runner, "archive_workspace", lambda *a: tmp_path/"archive.zip")
+    monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
     opened = []
     monkeypatch.setattr(runner.webbrowser, "open", lambda uri: opened.append(uri) or True)
 

@@ -27,6 +27,11 @@ Open the generated report automatically:
 python .\bb_analyze.py "C:\path\to\quicksave.sav" --open-report
 ```
 
+At completion, the console lists the generated report and data files with
+their sizes, the projection-validation result and artifact path, the final ZIP
+size and SHA-256 checksum, and whether report opening was requested, attempted,
+and successful.
+
 Incremental diagnostics / safety controls:
 
 ```powershell
@@ -46,14 +51,14 @@ pre-merge gates are:
 
 ```powershell
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
-.\run_coverage.ps1
 .\run_lint.ps1 -Tests
 .\run_ruff.ps1 -Tests
 ```
 
-Pull requests targeting `main` run those same four gates in GitHub Actions.
-Branch protection should require the checks `tests`, `coverage`, `ruff`, and
-`pyflakes`; see `docs/GITHUB_BRANCH_PROTECTION.md`.
+Pull requests targeting `main` run those same three gates in GitHub Actions.
+Branch protection should require the checks `tests`, `ruff`, and `pyflakes`;
+see `docs/GITHUB_BRANCH_PROTECTION.md`. Coverage remains available as an
+explicit local validation and pre-release gate while its runtime is optimized.
 
 Pre-release validation additionally runs the complete suite (including
 `coverage_slow`) and targeted mutation testing:
