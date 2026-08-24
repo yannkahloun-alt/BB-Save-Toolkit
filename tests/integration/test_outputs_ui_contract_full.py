@@ -29,6 +29,7 @@ def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory)
     result=analyze_brothers([b],cfg.roles,cfg.classification)
     html=render_html_report(tmp_path/'x.sav',[b],result.fits,result.summaries,cfg.roles,cfg.classification,'2026-01-01T00:00:00',[])
     assert html.count('strategic-classification-tr')==1
+    assert '<th class="result-head">Result</th>' in html and '>Paths</th>' not in html
     assert 'rowspan=' not in html and 'P5–P95' in html and 'P10–P90' not in html
     assert 'strategy-result' in html and 'strategy-fit-range' in html
     assert 'heat1' not in ''.join(re.findall(r'<div class="classification-path-metric[^>]*>',html))

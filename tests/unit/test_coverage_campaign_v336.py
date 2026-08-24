@@ -201,6 +201,8 @@ def test_render_html_report_minimal_full_document():
     assert 'data-tab-panel="recruits"' in html
     assert "No level-ups are currently available." in html
     assert "Frontliner" in html
+    assert '<th class="result-head">Result</th>' in html
+    assert '>Paths</th>' not in html
 
 
 def test_render_html_report_levelup(monkeypatch):

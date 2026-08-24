@@ -877,7 +877,7 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
         + ' <span class="muted">F↑=Expected Fit · P↑=P(Fit≥100%)</span></div>'
         + '<h2>Strategic Classification</h2><div class="tw strategic-table-wrap"><table class="strategic-table">'
         + '<colgroup><col class="col-brother"><col class="col-background"><col class="col-paths"><col class="col-fit-range"><col class="col-prob"></colgroup>'
-        + '<thead><tr><th class="sticky">Brother</th><th>Background</th><th class="paths-head">Paths</th><th title="Expected Fit plus likely (P5–P95) and full simulated Fit ranges.">Fit / ranges</th><th title="Probability that simulated level-11 Fit reaches 100%.">P(Fit≥100)</th>'
+        + '<thead><tr><th class="sticky">Brother</th><th>Background</th><th class="result-head">Result</th><th title="Expected Fit plus likely (P5–P95) and full simulated Fit ranges.">Fit / ranges</th><th title="Probability that simulated level-11 Fit reaches 100%.">P(Fit≥100)</th>'
         + '</tr></thead><tbody>' + ''.join(class_rows) + '</tbody></table></div>'
         + '<h2>Brother Details</h2>' + ''.join(details)
         + '</section>'
