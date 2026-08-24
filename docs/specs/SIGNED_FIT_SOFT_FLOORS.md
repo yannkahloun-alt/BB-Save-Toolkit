@@ -25,3 +25,14 @@ The trajectory engine and Level Advisor consume the same compiled curves, so
 improvements below baseline have value without downstream special cases.
 Persisted role projection, advisor, and summary artifacts use bumped semantic
 engine versions.
+
+## Regression evidence
+
+`test_signed_fit_roster_regression.py` records deterministic old-versus-new
+rows containing brother/profile, archetype, Fit, Fit delta, classification,
+and rank. The matrix covers every configured archetype and includes the known
+melee-heavy Hybrid profile (`RAtk 42`, `MAtk 89`, `Fatigue 138`, `HP 103`), a
+ranged-heavy inverse, a genuine dual-attack candidate, and a slightly
+sub-baseline candidate. Both one-sided Hybrid profiles must lose at least 20
+Fit percentage points, while the comparison remains continuous and
+score-based rather than becoming an eligibility gate.
