@@ -114,6 +114,36 @@ def test_projection_markers_share_live_numeric_axis(bro_factory, expected, targe
         assert expected_top != target_top
 
 
+def test_collapsed_projection_range_is_explicit_and_keeps_coincident_markers_legible(bro_factory):
+    html = development_focus_html(
+        bro_factory(RAtk=52),
+        {
+            'ProjectedComponents': {'RAtk': {'weight': 4}},
+            'ProjectedRanges': {'RAtk': {
+                'min': 92, 'max': 92, 'ev': 92,
+                'baseline': 80, 'target': 92, 'weight': 4,
+            }},
+        },
+    )
+
+    assert '52 <em>→</em> 92' in html
+    assert 'projected-range projected-range-collapsed' in html
+    assert 'aria-label="Deterministic projected value: 92"' in html
+    assert (
+        'Deterministic projection: minimum, maximum, and expected all equal 92 '
+        'under these displayed assumptions.'
+    ) in html
+    expected_top = re.search(r'marker-expected" style="[^"]*--label-top:([0-9]+)px', html).group(1)
+    target_top = re.search(r'marker-target" style="[^"]*--label-top:([0-9]+)px', html).group(1)
+    assert expected_top != target_top
+
+
+def test_noncollapsed_projection_does_not_claim_deterministic_outcome(bro_factory):
+    html = development_focus_html(bro_factory(MDef=13), _projection_row(expected=26.5))
+    assert 'projected-range-collapsed' not in html
+    assert 'Deterministic projection:' not in html
+
+
 def test_target_profile_explanation_contract():
     html = target_profile_html(_projection_row(expected=26.5))
     assert html.startswith('<details class="target-profile-explainer">')
