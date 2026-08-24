@@ -2,6 +2,7 @@
 """Top-level application workflow."""
 from __future__ import annotations
 
+import json
 import time
 import webbrowser
 
@@ -13,7 +14,14 @@ from .analysis import analyze_brothers
 from ..incremental import IncrementalCache, find_previous_manifest, first_difference, prune_manifests, write_manifest
 from .cli import CliOptions
 from .config import load_config
-from .console import Step, print_projection_profile, print_reference_status
+from .console import (
+    Step,
+    format_bytes,
+    print_generated_files,
+    print_projection_profile,
+    print_reference_status,
+    sha256_file,
+)
 from .output import (
     archive_workspace,
     create_workspace,
@@ -58,6 +66,7 @@ def run(options: CliOptions) -> tuple:
     step.done()
 
     report_path = None
+    validation_path = None
 
     if not options.no_projection:
         step = Step("Load configuration")
@@ -165,7 +174,13 @@ def run(options: CliOptions) -> tuple:
             analysis.fits,
             config.roles,
         )
-        step.done(validation_path.name)
+        validation_payload = json.loads(validation_path.read_text(encoding="utf-8"))
+        validation_passed = not validation_payload.get("summary", {}).get(
+            "roll_range_violations", 0
+        )
+        step.done(
+            f"{'PASS' if validation_passed else 'FAIL'} — {validation_path}"
+        )
 
         step = Step("Write debug bundle")
         step.__enter__()
@@ -185,16 +200,40 @@ def run(options: CliOptions) -> tuple:
     step = Step("Create run archive")
     step.__enter__()
     archive_path = archive_workspace(workspace, options.out)
-    step.done()
+    archive_size = archive_path.stat().st_size
+    archive_sha256 = sha256_file(archive_path)
+    step.done(f"{format_bytes(archive_size)} — SHA-256 {archive_sha256}")
 
     total_elapsed = time.perf_counter() - total_started
     print(f"[DONE ] Total                          {total_elapsed:>7.3f}s")
     print(f"Output: {workspace.root}")
-    print(f"Archive: {archive_path}")
-
-    if options.open_report and report_path is not None:
-        opened = webbrowser.open(report_path.resolve().as_uri())
+    print_generated_files(workspace.root)
+    if report_path is not None:
         print(f"Report: {report_path}")
-        print(f"Opened: {'yes' if opened else 'no'}")
+    if validation_path is not None:
+        print(f"Validation: {'PASS' if validation_passed else 'FAIL'} — {validation_path}")
+    print(
+        f"Archive: {archive_path} — {format_bytes(archive_size)} — "
+        f"SHA-256 {archive_sha256}"
+    )
+
+    open_requested = bool(options.open_report)
+    open_attempted = False
+    open_succeeded = None
+    open_error = None
+    if options.open_report and report_path is not None:
+        open_attempted = True
+        try:
+            open_succeeded = bool(webbrowser.open(report_path.resolve().as_uri()))
+        except Exception as exc:  # Browser integration must not hide completed outputs.
+            open_succeeded = False
+            open_error = f"{type(exc).__name__}: {exc}"
+    success = "yes" if open_succeeded else "no" if open_succeeded is False else "unavailable"
+    print(
+        "Report opening: "
+        f"requested={'yes' if open_requested else 'no'} · "
+        f"attempted={'yes' if open_attempted else 'no'} · successful={success}"
+        + (f" · error={open_error}" if open_error else "")
+    )
 
     return workspace, archive_path

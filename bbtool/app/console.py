@@ -2,6 +2,8 @@
 """Console tracing and structured runtime diagnostics."""
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
 import time
 
 
@@ -25,6 +27,30 @@ class Step:
         if exc_type is None:
             self.done()
         return False
+
+
+def format_bytes(size: int) -> str:
+    """Format an exact byte count compactly while retaining the exact value."""
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KiB ({size} B)"
+    return f"{size / (1024 * 1024):.2f} MiB ({size} B)"
+
+
+def sha256_file(path: Path) -> str:
+    """Return the SHA-256 digest of a generated artifact without loading it all."""
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def print_generated_files(root: Path) -> None:
+    """Print deterministic paths and sizes for the completed run directory."""
+    for path in sorted((item for item in root.rglob("*") if item.is_file()), key=lambda item: item.as_posix()):
+        print(f"File: {path} — {format_bytes(path.stat().st_size)}")
 
 
 def print_reference_status(status: dict) -> None:

@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
+import json
 
 import bbtool.app.runner as runner
 
@@ -26,6 +27,14 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     report = tmp_path / "report.html"
     report.write_text("<html></html>", encoding="utf-8")
     archive = tmp_path / "archive.zip"
+    archive.write_bytes(b"archive")
+    validation = tmp_path / "validation.json"
+    validation.write_text(
+        json.dumps({"summary": {"roll_range_violations": 0}}),
+        encoding="utf-8",
+    )
+    debug = tmp_path / "debug.json"
+    debug.write_text("{}", encoding="utf-8")
     workspace = SimpleNamespace(
         root=tmp_path,
         source_save=tmp_path / "x.sav",
@@ -67,8 +76,8 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: calls["profile"].append(x))
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: Path("validation.json"))
-    monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: Path("debug.json"))
+    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: debug)
     monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
     monkeypatch.setattr(
         runner.webbrowser,
@@ -118,7 +127,10 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert "[DONE ] Total                            5.750s" in out
     assert f"Output: {workspace.root}" in out
     assert f"Archive: {archive}" in out
-    assert "Report:" not in out
+    assert f"Report: {report}" in out
+    assert f"Validation: PASS — {tmp_path / 'validation.json'}" in out
+    assert "SHA-256" in out
+    assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
 
 
 def test_runner_generated_background_and_perks_each_mark_generated(monkeypatch, tmp_path):
@@ -172,7 +184,7 @@ def test_runner_open_report_true_opens_and_reports_success(monkeypatch, tmp_path
     assert calls["opened"] == [report.resolve().as_uri()]
     out = capsys.readouterr().out
     assert f"Report: {report}" in out
-    assert "Opened: yes" in out
+    assert "Report opening: requested=yes · attempted=yes · successful=yes" in out
 
 
 def test_runner_open_report_false_does_not_open_generated_report(monkeypatch, tmp_path, capsys):
@@ -192,8 +204,8 @@ def test_runner_open_report_false_does_not_open_generated_report(monkeypatch, tm
 
     assert calls["opened"] == []
     out = capsys.readouterr().out
-    assert "Report:" not in out
-    assert "Opened:" not in out
+    assert f"Report: {report}" in out
+    assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
 
 
 def test_runner_open_report_requested_without_projection_has_no_report_to_open(monkeypatch, tmp_path, capsys):
@@ -214,7 +226,7 @@ def test_runner_open_report_requested_without_projection_has_no_report_to_open(m
     assert calls["opened"] == []
     out = capsys.readouterr().out
     assert "Report:" not in out
-    assert "Opened:" not in out
+    assert "Report opening: requested=yes · attempted=no · successful=unavailable" in out
 
 
 def test_runner_open_report_false_result_prints_no(monkeypatch, tmp_path, capsys):
@@ -234,7 +246,38 @@ def test_runner_open_report_false_result_prints_no(monkeypatch, tmp_path, capsys
     runner.run(_opts(tmp_path, open_report=True))
 
     assert calls["opened"] == [report.resolve().as_uri()]
-    assert "Opened: no" in capsys.readouterr().out
+    assert "Report opening: requested=yes · attempted=yes · successful=no" in capsys.readouterr().out
+
+
+def test_runner_reports_validation_failure_and_browser_exception(monkeypatch, tmp_path, capsys):
+    _, _, _, _ = _patch_runner(
+        monkeypatch,
+        tmp_path,
+        reference_status={
+            "generated_dictionary": False,
+            "generated_backgrounds": False,
+        },
+    )
+    validation = tmp_path / "validation.json"
+    validation.write_text(
+        json.dumps({"summary": {"roll_range_violations": 2}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(
+        runner.webbrowser,
+        "open",
+        lambda uri: (_ for _ in ()).throw(RuntimeError("browser unavailable")),
+    )
+    ticks = iter([1.0, 2.0])
+    monkeypatch.setattr(runner.time, "perf_counter", lambda: next(ticks))
+
+    runner.run(_opts(tmp_path, open_report=True))
+
+    out = capsys.readouterr().out
+    assert f"Validation: FAIL — {validation}" in out
+    assert "Report opening: requested=yes · attempted=yes · successful=no" in out
+    assert "error=RuntimeError: browser unavailable" in out
 
 
 def test_runner_missing_generated_perks_defaults_false(monkeypatch, tmp_path):

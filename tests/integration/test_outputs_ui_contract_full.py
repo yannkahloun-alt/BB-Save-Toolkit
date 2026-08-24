@@ -43,7 +43,9 @@ def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory)
     assert 'TARGET PROFILE' in html and html.count('target-profile-chevron') == rendered_archetypes
     assert 'Baseline (minimum useful)' in html and 'Target (desired)' in html and 'Expected (projection)' in html
     assert 'Projected level 11 range' not in html and '>EV<' not in html and 'Weight' in html
-    assert 'class-icon' in html and 'role-card retained-role' in html
+    assert 'class-icon' in html
+    class_sets = (set(value.split()) for value in re.findall(r'class="([^"]*)"', html))
+    assert any({'role-card', 'retained-role'} <= classes for classes in class_sets)
 
 
 def test_levelup_tab_visibility_and_summary_advice_is_rendered(tmp_path,cfg,bro_factory):
