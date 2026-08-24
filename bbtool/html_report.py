@@ -259,6 +259,26 @@ def fit_uncertainty_track(row):
             f'<span class="track-dot" style="left:{dot:.2f}%"></span></span></span>')
 
 
+def classification_ceiling_html(row: dict, category: str, class_cfg: dict) -> str:
+    """Explain the full-range ceiling that separates Fodder from Trash."""
+    if category not in {"Fodder", "Trash"}:
+        return ""
+    full_max = float(
+        row["ProjectedFitFullMaxPct"]
+        if row.get("ProjectedFitFullMaxPct") is not None
+        else row["ProjectedFitPct"]
+    )
+    use_threshold = 100.0 * float(
+        class_cfg["thresholds"]["Fodder"]["min_full_max_fit"]
+    )
+    outcome = "can reach Use" if category == "Fodder" else "below Use"
+    return (
+        '<small class="classification-ceiling">'
+        f'Full ceiling <b>{full_max:.1f}%</b> · {outcome} ({use_threshold:.1f}%)'
+        '</small>'
+    )
+
+
 def current_stat_chips(b, effective=None, important_stats=None):
     effective = effective or {}
     important_stats = set(important_stats or [])
@@ -654,7 +674,7 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
     )
 
 
-def structural_detail_html(b, alt: dict, roles: list[dict]) -> str:
+def structural_detail_html(b, alt: dict, roles: list[dict], class_cfg: dict) -> str:
     r=alt.get("BestRoleDetail")
     if not r: return ""
     role_cfg=next((role for role in roles if role["name"]==alt["Role"]),None)
@@ -664,7 +684,8 @@ def structural_detail_html(b, alt: dict, roles: list[dict]) -> str:
         f'<small class="role-path-label">{esc(alt["Label"].upper())}</small><span class="role-title-line"><span>{esc(alt["Role"])}</span><span class="class-badge {class_css(alt["Category"])}"><span class="class-icon">{class_icon(alt["Category"])}</span>{esc(alt["Category"])}</span></span></div>'
         '<div class="role-kpis">'
         f'<span class="kpi {heat(r["ProjectedFitPct"])} kpi-track">Fit <b>{r["ProjectedFitPct"]:.1f}%</b>{fit_uncertainty_track(r)}</span>'
-        f'<span class="kpi">P(Fit≥100) <b>{r["FitFeasibilityPct"]:.1f}%</b></span></div></summary>'
+        f'<span class="kpi">P(Fit≥100) <b>{r["FitFeasibilityPct"]:.1f}%</b></span>'
+        f'{classification_ceiling_html(r, alt["Category"], class_cfg)}</div></summary>'
         f'{archetype_detail_body_html(b, r, role_cfg, alt.get("EffectiveStats"))}'
         '</details>'
     )
@@ -777,15 +798,16 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
 
         for r in sorted_roles:
             open_attr = ""
+            role_category = classify_bro(r, class_cfg)[0]
             role_cards.append((
                 float(r["ProjectedFitPct"]),
                 f'<details class="role-card{" retained-role" if r["Role"] == x["BestRole"] else ""}"{open_attr}>'
                 '<summary>'
-                f'<div class="role-name"><span class="role-title-line"><span>{esc(r["Role"])}</span><span class="class-badge {class_css(classify_bro(r, class_cfg)[0])}"><span class="class-icon">{class_icon(classify_bro(r, class_cfg)[0])}</span>{esc(classify_bro(r, class_cfg)[0])}</span></span></div>'
+                f'<div class="role-name"><span class="role-title-line"><span>{esc(r["Role"])}</span><span class="class-badge {class_css(role_category)}"><span class="class-icon">{class_icon(role_category)}</span>{esc(role_category)}</span></span></div>'
                 f'<div class="role-kpis">'
                 f'<span class="kpi {heat(r["ProjectedFitPct"])} kpi-track">Fit <b>{r["ProjectedFitPct"]:.1f}%</b>{fit_uncertainty_track(r)}</span>'
                 f'<span class="kpi">P(Fit≥100) <b>{r["FitFeasibilityPct"]:.1f}%</b></span>'
-                + ''
+                f'{classification_ceiling_html(r, role_category, class_cfg)}'
                 '</div></summary>'
                 f'{archetype_detail_body_html(b, r, next((role for role in roles if role["name"] == r["Role"]), None), base_effective_stats)}'
                 '</details>'
@@ -796,7 +818,7 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
         for alt in x.get("StructuralPerkAlternatives", []):
             role_cards.append((
                 float(alt["ProjectedFitPct"]),
-                structural_detail_html(b, alt, roles),
+                structural_detail_html(b, alt, roles, class_cfg),
             ))
 
         role_cards.sort(key=lambda item: item[0], reverse=True)

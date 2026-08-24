@@ -156,11 +156,19 @@ def test_html_helpers_cover_edges():
         "ProjectedFitPct":-20,"ProjectedFitLikelyMinPct":150,"ProjectedFitLikelyMaxPct":-5
     })
     assert hr.public_value(None)=="—"
-    assert hr.structural_detail_html(make_bro(),{"BestRoleDetail":None},[base_role()])==""
+    assert hr.structural_detail_html(make_bro(),{"BestRoleDetail":None},[base_role()],{})==""
     assert "role-card" in hr.structural_detail_html(make_bro(),{
         "BestRoleDetail":base_fit(),"Role":"Frontliner","Label":"Colossus","Category":"Use",
         "EffectiveStats":{}
-    },[base_role()])
+    },[base_role()],{})
+
+    fodder_fit = base_fit()
+    fodder_fit.update(ProjectedFit=0.516, ProjectedFitPct=51.6, ProjectedFitFullMaxPct=68.0)
+    fodder_card = hr.structural_detail_html(make_bro(), {
+        "BestRoleDetail":fodder_fit,"Role":"Frontliner","Label":"Base","Category":"Fodder",
+        "EffectiveStats":{}
+    },[base_role()],{"thresholds":{"Fodder":{"min_full_max_fit":0.65}}})
+    assert 'Full ceiling <b>68.0%</b> · can reach Use (65.0%)' in fodder_card
 
 
 @pytest.mark.parametrize("value,expected",[
