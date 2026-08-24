@@ -6,7 +6,7 @@ import pytest
 pytestmark=pytest.mark.unit
 import bbtool.projection.trajectory as trajectory
 from bbtool.models import STATS
-from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html
+from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html
 ROOT=Path(__file__).resolve().parents[2]
 
 def test_strategic_path_classes_consistent():
@@ -21,6 +21,31 @@ def test_fodder_trash_ceiling_explains_non_monotonic_expected_fit(cfg):
     assert 'Full ceiling <b>68.0%</b> · can reach Use (65.0%)' in classification_ceiling_html(fodder, 'Fodder', cfg.classification)
     assert 'Full ceiling <b>63.0%</b> · below Use (65.0%)' in classification_ceiling_html(trash, 'Trash', cfg.classification)
     assert classification_ceiling_html(fodder, 'Use', cfg.classification) == ''
+
+
+@pytest.mark.parametrize(
+    ("fit", "relationship"),
+    [
+        (99.9, "below 100%"),
+        (100.0, "exactly 100%"),
+        (102.4, "above 100"),
+    ],
+)
+def test_fit_measure_help_distinguishes_score_from_probability(fit, relationship):
+    html = fit_measure_help_html({"ProjectedFitPct": fit, "FitFeasibilityPct": 99.6})
+    assert html.startswith('<details class="fit-measure-help">')
+    assert "How Fit and P(Fit≥100) differ" in html
+    assert "average level-11 archetype score" in html
+    assert "score, not a probability" in html
+    assert "percentage of those simulated outcomes" in html
+    assert relationship in html
+    assert f"Fit {fit:.1f}%" in html and "P(Fit≥100) 99.6%" in html
+
+
+def test_fit_measure_help_does_not_cap_above_target_fit():
+    html = fit_measure_help_html({"ProjectedFitPct": 102.4, "FitFeasibilityPct": 99.6})
+    assert "Fit 102.4%" in html
+    assert "displayed Fit is not capped" in html
 def test_current_brother_details_neutral(bro_factory): assert 'important' not in current_stat_chips(bro_factory(),important_stats=set())
 def test_archetype_detail_language(cfg,bro_factory):
     role=cfg.roles[0]; from bbtool.projection.planner import project_role; b=bro_factory(); row=project_role(b,role); html=archetype_detail_body_html(b,row,role)

@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Adds an accessible Archetype Details explanation distinguishing expected Fit
+  from `P(Fit≥100)`, including why displayed Fit may exceed 100% without being
+  capped.
 - Keeps archetype Fit and displayed level-11 projections based on natural stats,
   excluding owned or hypothetical perk modifiers such as Fortified Mind and
   Colossus while retaining separately reported effective combat stats.
