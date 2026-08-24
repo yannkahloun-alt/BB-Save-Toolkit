@@ -100,58 +100,6 @@ def _load_permanent_injury_effects() -> dict:
     return _PERMANENT_INJURY_EFFECTS_CACHE
 
 
-def structural_projection_perks() -> list[str]:
-    """Return the reviewed BestRole reveal-perk allow-list.
-
-    Exact/unconditional source effects are necessary but no longer sufficient:
-    a perk must also be explicitly classified under ``structural`` in
-    ``config/perk_model.json``. This prevents role-specific build perks such as
-    Fortified Mind from revealing the very archetype that makes them desirable.
-    """
-    model_path = Path(__file__).resolve().parents[2] / "config" / "perk_model.json"
-    try:
-        model = json.loads(model_path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise RuntimeError(
-            "config/perk_model.json is required to determine BestRole reveal perks."
-        ) from exc
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(
-            "config/perk_model.json is invalid and cannot determine BestRole reveal perks."
-        ) from exc
-
-    reviewed = tuple(model.get("structural", {}))
-    registry = _load_perk_effects()
-    out = []
-    for name in reviewed:
-        rec = registry.get(name)
-        if not rec:
-            continue
-        effects = rec.get("Effects", [])
-        if any(
-            effect.get("exact")
-            and not effect.get("conditional")
-            and effect.get("stat") in STATS
-            for effect in effects
-        ):
-            out.append(name)
-    return sorted(out)
-
-def structural_projection_perk_stats(perk_names) -> set[str]:
-    """Stats whose exact structural value can change for the given perks."""
-    registry = _load_perk_effects()
-    out: set[str] = set()
-    for perk_name in perk_names or ():
-        rec = registry.get(perk_name)
-        if not rec:
-            continue
-        for effect in rec.get("Effects", []):
-            stat = effect.get("stat")
-            if effect.get("exact") and not effect.get("conditional") and stat in STATS:
-                out.add(stat)
-    return out
-
-
 def _exact_perk_effects_for_bro(bro: Brother) -> list[dict]:
     registry = _load_perk_effects()
     effects = []
@@ -243,7 +191,7 @@ def effective_stat_value(
 
     Multipliers are applied after all raw future gains have been aggregated.
     Finalization mirrors the game's integer-facing stat behavior for the two
-    structural multipliers currently present in vanilla:
+    exact integer-facing multipliers currently present in vanilla:
       - HitpointsMult -> floor (Colossus)
       - BraveryMult   -> nearest integer (Fortified Mind)
     """

@@ -1227,16 +1227,13 @@ def build_perk_audit(
     effects = _read_json(perk_effects_path)
     model = _read_json(model_path)
 
-    structural = set(model.get("structural", {}))
     excluded = set(model.get("excluded", {}))
 
     rows = []
     unreviewed = []
     for rec in effects.get("perks", {}).values():
         name = rec.get("Name") or rec.get("Stem") or rec.get("ID") or "Unknown"
-        if name in structural:
-            status = "structural"
-        elif name in excluded:
+        if name in excluded:
             status = "excluded"
         else:
             status = "unreviewed"
@@ -1260,7 +1257,6 @@ def build_perk_audit(
         "_meta": {
             "format": "bbtool.perk_audit.v1",
             "source_perks": len(rows),
-            "structural": sum(row["Status"] == "structural" for row in rows),
             "excluded": sum(row["Status"] == "excluded" for row in rows),
             "unreviewed": len(unreviewed),
         },

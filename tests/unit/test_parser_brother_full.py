@@ -113,7 +113,7 @@ def test_parse_roster_no_pending_points_has_empty_current_rolls(tmp_path):
 
 
 
-def test_duplicate_brother_names_are_supported_with_structural_ids(monkeypatch,tmp_path):
+def test_duplicate_brother_names_are_supported_with_brother_ids(monkeypatch,tmp_path):
     import bbtool.save_parser as sp
     p=tmp_path/'x'; p.write_bytes(b'x')
     monkeypatch.setattr(sp,'find_company_brother_human_offsets',lambda b:([10,20],{'RosterCount':2,'CompanySignatureOffsets':[1,2]}))

@@ -100,7 +100,6 @@ def run(options: CliOptions) -> tuple:
             print(
                 "        incremental artifacts      "
                 f"roles {incremental_cache.stats.role_reused} reused/{incremental_cache.stats.role_computed} computed · "
-                f"structural {incremental_cache.stats.structural_reused}/{incremental_cache.stats.structural_computed} · "
                 f"advisor {incremental_cache.stats.advisor_reused}/{incremental_cache.stats.advisor_computed} · "
                 f"summary {incremental_cache.stats.summary_reused}/{incremental_cache.stats.summary_computed}"
             )

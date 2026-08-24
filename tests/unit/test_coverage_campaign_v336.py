@@ -58,8 +58,7 @@ def base_summary(name="Test Bro"):
         "ProjectedFit": 0.9, "ProjectedFitPct": 90.0,
         "ProjectedFitLikelyMinPct": 80.0, "ProjectedFitLikelyMaxPct": 100.0,
         "ProjectedFitFullMinPct": 70.0, "ProjectedFitFullMaxPct": 110.0,
-        "FitFeasibilityPct": 40.0, "ClassificationPaths": [],
-        "SelectedClassificationPath": {}, "StructuralPerkAlternatives": [],
+        "FitFeasibilityPct": 40.0,
         "EffectiveStats": {},
     }
 
@@ -156,19 +155,12 @@ def test_html_helpers_cover_edges():
         "ProjectedFitPct":-20,"ProjectedFitLikelyMinPct":150,"ProjectedFitLikelyMaxPct":-5
     })
     assert hr.public_value(None)=="—"
-    assert hr.structural_detail_html(make_bro(),{"BestRoleDetail":None},[base_role()],{})==""
-    assert "role-card" in hr.structural_detail_html(make_bro(),{
-        "BestRoleDetail":base_fit(),"Role":"Frontliner","Label":"Colossus","Category":"Use",
-        "EffectiveStats":{}
-    },[base_role()],{})
-
     fodder_fit = base_fit()
     fodder_fit.update(ProjectedFit=0.516, ProjectedFitPct=51.6, ProjectedFitFullMaxPct=68.0)
-    fodder_card = hr.structural_detail_html(make_bro(), {
-        "BestRoleDetail":fodder_fit,"Role":"Frontliner","Label":"Base","Category":"Fodder",
-        "EffectiveStats":{}
-    },[base_role()],{"thresholds":{"Fodder":{"min_full_max_fit":0.65}}})
-    assert 'Full ceiling <b>68.0%</b> · can reach Use (65.0%)' in fodder_card
+    ceiling = hr.classification_ceiling_html(
+        fodder_fit, "Fodder", {"thresholds":{"Fodder":{"min_full_max_fit":0.65}}}
+    )
+    assert 'Full ceiling <b>68.0%</b> · can reach Use (65.0%)' in ceiling
 
 
 @pytest.mark.parametrize("value,expected",[
@@ -211,25 +203,15 @@ def test_render_html_report_minimal_full_document():
     assert "Frontliner" in html
 
 
-def test_render_html_report_levelup_and_structural_path(monkeypatch):
+def test_render_html_report_levelup(monkeypatch):
     b=make_bro(level_points=1,current_rolls={"HP":3,"MAtk":3,"MDef":2})
     fit=base_fit()
     summary=base_summary()
-    summary["ClassificationPaths"]=[
-        {"Label":"Base","Role":"Frontliner","Category":"Use","ProjectedFitPct":90,
-         "ProjectedFitLikelyMinPct":80,"ProjectedFitLikelyMaxPct":100,
-         "ProjectedFitFullMinPct":70,"ProjectedFitFullMaxPct":110,"FitFeasibilityPct":40}
-    ]
-    summary["SelectedClassificationPath"]=summary["ClassificationPaths"][0].copy()
-    summary["StructuralPerkAlternatives"]=[{
-        "Label":"Colossus","Role":"Frontliner","Category":"Use",
-        "ProjectedFitPct":95,"FitFeasibilityPct":50,"BestRoleDetail":base_fit(),"EffectiveStats":{}
-    }]
     monkeypatch.setattr(hr,"levelup_bro_panel",lambda *a,**k:"<div>LEVELUP PANEL</div>")
     html=hr.render_html_report(Path("x.sav"),[b],[fit],[summary],[base_role()],class_cfg(),recruits=[
         {"Settlement":"Town","Name":"Hire","Title":"","Level":1,"Background":"Beggar","Traits":[],"TryoutDone":False,"HireCost":100,"DailyWage":5}
     ])
     assert "LEVELUP PANEL" in html
-    assert "COLOSSUS" in html
-    assert "selected-path-row" in html
+    assert "COLOSSUS" not in html
+    assert "strategic-classification-tr" in html
     assert "Hire" in html

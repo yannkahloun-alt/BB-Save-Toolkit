@@ -133,7 +133,7 @@ function ensureFirstRoleOpen(broPanel) {
   }
 
   // On brother entry, stale/server-rendered state must never override the
-  // highest-Fit card chosen after merging base + structural trajectories.
+  // highest-Fit archetype card chosen by the server-rendered projection order.
   if (!broPanel.dataset.roleInitialized) {
     panels.forEach((panel) => {
       panel.open = panel === preferred;

@@ -10,7 +10,6 @@ PROFILE = {
     "trajectory_cache_misses": 0,
     "trajectory_adaptive_refinements": 0,
     "base_matrix_s": 0.0,
-    "structural_paths_s": 0.0,
     "advisor_s": 0.0,
     "summary_s": 0.0,
 }

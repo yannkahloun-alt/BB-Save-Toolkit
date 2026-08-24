@@ -71,18 +71,12 @@ Très important, car ces effets alimentent toute la projection.
 * `effective_stat_profile()` retourne les bons multiplicateurs.
 * cache perks : reset puis résultat identique.
 
-### 4. Structural perks
+### 4. Perks et Fit naturel
 
-* `structural_projection_perks()` ne retourne que les perks :
-
-  * présents dans `perk_model.json`,
-  * exacts,
-  * non conditionnels,
-  * affectant une vraie stat.
-* Vérifier explicitement que **Fortified Mind n’est pas structural**.
-* Vérifier que Colossus l’est si c’est bien la config actuelle.
-* `structural_projection_perk_stats()` retourne seulement les stats réellement modifiées.
-* perk inconnu → aucune stat.
+* Aucun perk possédé ou hypothétique ne crée une branche BestRole.
+* Colossus et Fortified Mind peuvent modifier les stats de combat effectives.
+* Ces effets ne modifient ni la projection naturelle, ni le Fit, ni le Level-Up Advisor.
+* Un perk inconnu n'altère aucune stat effective.
 
 ### 5. Sampling déterministe
 
@@ -225,8 +219,6 @@ Très important.
 * stat saturée peut être ignorée même avec gros roll ;
 * stat sous baseline peut être recommandée si profitable à terme ;
 * rôle ancre choisi correctement ;
-* Advisor sur path structurel utilise le **même** `advise_levelup()`;
-* Colossus path et base peuvent donner des conseils différents si l’état effectif diffère ;
 * `_roll_quality()` :
 
   * low / average / high selon la vraie range et les stars ;
@@ -249,7 +241,6 @@ Très important.
   * Trash
 * rôle avec Fit très haut mais conflit perk ;
 * rôle compatible ;
-* rôle avec structural path meilleur que base ;
 * tri stable entre rôles à Fit égal.
 * `role_sort_key()` déterministe.
 * `perk_compatibility()` :
@@ -423,12 +414,10 @@ Ici il faut créer de petits buffers synthétiques.
 
 Même si ce ne sont pas des tests “métier”, ils évitent les régressions qu’on a justement eues.
 
-* une vraie ligne par path ;
-* rowspan Brother/Background correct ;
-* selected path unique ;
-* mêmes classes sémantiques Path / Fit-range / P(Fit) ;
+* une vraie ligne naturelle par frère ;
+* aucune branche ou duplication hypothétique ;
+* mêmes classes sémantiques Résultat / Fit-range / P(Fit) ;
 * aucune classe heat sur P(Fit) ;
-* Base/Colossus présents ;
 * P5–P95 dans tooltip ;
 * aucune mention P10–P90.
 * catégories Invest/Use/Fodder/Trash avec icône correcte.
@@ -459,7 +448,7 @@ Même si ce ne sont pas des tests “métier”, ils évitent les régressions q
 * Alternative correctement affichée ;
 * stats et rolls affichés correctement ;
 * anchor role affiché ;
-* structural path affiché si pertinent.
+* une seule trajectoire naturelle affichée.
 * test de branchement : mock `advise_levelup()` → sa sortie apparaît telle quelle dans le HTML.
 
 ### 29. CSS / JS smoke tests

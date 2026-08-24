@@ -178,7 +178,6 @@ def print_reference_status(status: dict) -> None:
 
 def print_projection_profile(profile: dict) -> None:
     print(f"        base role matrix          {profile.get('base_matrix_s', 0.0):>7.3f}s")
-    print(f"        structural paths          {profile.get('structural_paths_s', 0.0):>7.3f}s")
     print(f"        Level-Up Advisor          {profile.get('advisor_s', 0.0):>7.3f}s")
     print(f"        summary assembly          {profile.get('summary_s', 0.0):>7.3f}s")
     print(f"        Fit trajectories*         {profile.get('trajectory_s', 0.0):>7.3f}s")
@@ -191,4 +190,4 @@ def print_projection_profile(profile: dict) -> None:
     print(f"        full projections          {profile.get('full_projection_calls', 0):>7}")
     print(f"        fast projections          {profile.get('fast_projection_calls', 0):>7}")
     print(f"        projection calls          {profile['project_role_calls']:>7}")
-    print("        * internal subcomponent; included in base/structural path wall time")
+    print("        * internal subcomponent; included in base role matrix and advisor wall time")

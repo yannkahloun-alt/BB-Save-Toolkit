@@ -27,13 +27,6 @@ Perk transforms therefore remain downstream of archetype discovery.
 
 ## Classification
 
-### Structural BestRole perk
-
-A permanent, sufficiently deterministic modification of projected core stats.
-
-These perks may create alternate build/effective-stat paths, but do not change
-the natural-stat trajectory or Fit used to discover BestRole.
-
 ### Archetype-enhancing perk
 
 The archetype must already be chosen before the perk can be evaluated
@@ -52,7 +45,7 @@ treated as a stable projected core stat for BestRole.
 
 ### Colossus
 
-**Classification:** Structural BestRole perk  
+**Classification:** Effective-stat-only perk
 **BestRole impact:** No
 **Current implementation:** Yes
 
@@ -60,10 +53,9 @@ Colossus permanently multiplies HP and affects both current HP and aggregated
 future HP gains. Its value exists regardless of the eventual archetype, gear or
 combat behavior.
 
-The analyzer may expose a hypothetical Colossus build path and its effective HP,
-but the natural HP trajectory and stat-derived Fit remain identical to the base
-brother. Level-Up Advisor evaluates natural development rather than treating
-Colossus as underlying talent.
+An owned Colossus perk changes the separately displayed effective HP. It never
+creates a hypothetical classification alternative. The natural HP trajectory,
+stat-derived Fit, BestRole, and Level-Up Advisor remain independent of it.
 
 The separately reported current effective HP continues to apply the game's
 Colossus multiplier and integer rounding.
@@ -181,8 +173,7 @@ Duelist. Lone Wolf may improve those builds but must not create them.
 The shipped `references/dictionary_core.json` contains **50 standard/save-visible
 vanilla perks**. All 50 are now classified in this model:
 
-- **1 structural effective-stat build path:** Colossus
-- **49 excluded from structural build-path simulation**
+- **50 excluded from BestRole branching**
 - **0 standard perks remaining to review**
 
 This does **not** assume that the vanilla source tree contains only those 50
@@ -201,28 +192,14 @@ Therefore the persistent rule is:
 
 ---
 
-## Combinatorics
-
-Structural perk combinations are currently manageable because only a very small
-number of perks qualify.
-
-If the number of structural perks grows materially, revisit the branching
-strategy before accepting exponential combinations.
-
-Do not weaken the classification rule merely to simplify the implementation:
-the modeling decision comes first; optimization comes after.
-
-
----
-
 ## BestRole exclusion list
 
 The following perks have been reviewed and are explicitly excluded from
-structural build-path simulation. This list is also the working checklist for the
+BestRole branching. This list is also the working checklist for the
 remaining audit: do not revisit an excluded perk unless its vanilla mechanics
 change or the modeling rule itself changes.
 
-### Stat/resource effects that remain non-structural
+### Stat/resource effects excluded from natural Fit
 
 - **Fortified Mind** — an owned Fortified Mind changes effective combat Resolve,
   but never the natural Resolve projection or Banner Fit.
@@ -237,9 +214,9 @@ change or the modeling rule itself changes.
 - **Relentless** — preserves Initiative under accumulated Fatigue; its value is
   downstream of the role/playstyle and commonly synergizes with Dodge.
 - **Recover** — manages accumulated Fatigue during combat; it does not increase
-  the brother's structural Fatigue pool.
+  the brother's natural Fatigue pool.
 - **Pathfinder** — improves movement AP/Fatigue economy; terrain and role
-  dependent, not structural Fatigue.
+  dependent, not natural Fatigue.
 - **Bags and Belts** — inventory/gear-dependent Fatigue economy; the loadout must
   already be known.
 
@@ -253,7 +230,7 @@ change or the modeling rule itself changes.
 - **Bullseye** — mitigates situational ranged obstruction penalties; not
   intrinsic RAtk.
 - **Fearsome** — offensive morale mechanic using the already-existing Resolve;
-  it does not add structural Resolve.
+  it does not add natural Resolve.
 - **Crippling Strikes** — injury-enabling offensive mechanic.
 - **Executioner** — damage bonus against already-injured targets.
 - **Head Hunter** — conditional head-hit/damage sequencing mechanic.
@@ -264,7 +241,7 @@ change or the modeling rule itself changes.
 ### Defensive / survival conditional effects
 
 - **Nine Lives** — survival trigger at lethal damage; does not increase the
-  structural HP pool. Treat as survival/flavor for BestRole purposes.
+  natural HP pool. Treat as survival/flavor for BestRole purposes.
 - **Steel Brow** — changes head-hit damage handling; does not add HP or defense.
 - **Resilient** — mitigates negative status duration/effects; situational.
 - **Underdog** — mitigates surround pressure; does not add intrinsic MDef.
@@ -277,7 +254,7 @@ change or the modeling rule itself changes.
 
 - **Rotation** — tactical repositioning.
 - **Taunt** — tactical enemy-control ability.
-- **Adrenaline** — initiative/turn-order tempo ability, not structural Initiative.
+- **Adrenaline** — initiative/turn-order tempo ability, not natural Initiative.
 - **Footwork** — tactical disengagement/repositioning.
 - **Quick Hands** — loadout-switching utility; equipment/build dependent.
 - **Rally the Troops** — tactical Banner/Rally function. A brother is selected
@@ -291,17 +268,9 @@ change or the modeling rule itself changes.
 - **Duelist** — one-handed/free-offhand weapon-build dependency.
 - **Shield Expert** — shield-build dependency (also listed under defensive perks).
 
-### Explicit structural allow-list so far
-
-Only this reviewed perk currently qualifies for a structural effective-stat
-build path:
-
-1. **Colossus**
-
-Fortified Mind is explicitly archetype-enhancing: it belongs to Banner
-development, not Banner discovery. Colossus likewise does not alter natural Fit;
-its path communicates an effective HP build outcome. Everything else above is
-excluded from BestRole and may be reconsidered later for the Perk Advisor.
+Colossus and Fortified Mind can change owned-perk effective combat stats, but
+neither creates a Fit or BestRole branch. Everything above may be reconsidered
+later for a dedicated Perk Advisor without changing natural-stat classification.
 
 ## Audit rule going forward
 

@@ -32,13 +32,12 @@ Implemented independent reuse for:
 
 ``` text
 role projections
-structural paths
 level-up advisor
 final summary
 ```
 
-This allows, for example, a classification-only change to reuse
-structural paths and advisor results.
+This allows, for example, a classification-only change to reuse advisor
+results.
 
 ## 1.3 Cache safety controls
 
@@ -342,22 +341,10 @@ stars
 level / remaining rounds
 traits
 permanent injuries
-structural perks
 archetype
 projection engine
 trajectory engine
 scoring engine
-```
-
-### Structural paths
-
-Likely dependencies:
-
-``` text
-perks
-perk points / level
-archetype structural requirements
-structural-path engine
 ```
 
 ### Level-up advisor
@@ -502,7 +489,6 @@ with explicit builders such as:
 
 ``` python
 RoleProjectionInputs
-StructuralPathInputs
 AdvisorInputs
 ClassificationInputs
 SummaryInputs
@@ -518,7 +504,6 @@ Centralize semantic engine versions for:
 projection
 trajectory
 scoring
-structural paths
 advisor
 classification
 summary
@@ -706,7 +691,6 @@ Track:
 
 ``` text
 role reused/computed
-structural reused/computed
 advisor reused/computed
 summary reused/computed
 fingerprint/manifest overhead

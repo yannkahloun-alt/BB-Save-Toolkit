@@ -5,7 +5,6 @@ from .perks import (
     effective_stat_profile,
     effective_stat_value,
     effective_values,
-    structural_projection_perks,
 )
 from .progression import (
     average_gain,
@@ -52,6 +51,5 @@ __all__ = [
     "project_role_fast",
     "project_seeded_fit_trajectory",
     "reset_profile",
-    "structural_projection_perks",
 ]
 

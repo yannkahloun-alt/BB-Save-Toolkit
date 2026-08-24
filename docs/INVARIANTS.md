@@ -43,8 +43,9 @@ These are architectural contracts, not implementation suggestions.
 
 - Archetype Fit and displayed level-11 projections measure natural brother
   potential and must not consume owned or hypothetical perk stat modifiers.
-- Perk-modified effective combat stats may be exposed separately, but they must
-  not rewrite the natural stat input used to discover or compare archetypes.
+- Owned-perk effective combat stats may be exposed separately, but hypothetical
+  perk paths are not classification alternatives and must not rewrite the
+  natural stat input used to discover or compare archetypes.
 
 ## Incremental analysis
 

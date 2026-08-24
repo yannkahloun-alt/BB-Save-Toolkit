@@ -1,19 +1,17 @@
 {
   "_meta": {
     "format": "bbtool.perk_model.v1",
-    "purpose": "Machine-readable BestRole perk classification.",
-    "core_rule": "A perk may influence BestRole only when its core-stat impact is intrinsic and predictable without first assuming the role, equipment, or tactical behavior that the perk would then be used to justify."
-  },
-  "structural": {
-    "Colossus": {
-      "classification": "structural_bestrole",
-      "reason": "Permanent intrinsic HP multiplier; independent of role, gear, and combat behavior."
-    }
+    "purpose": "Machine-readable BestRole perk exclusion audit.",
+    "core_rule": "Perks do not influence natural-stat archetype Fit or BestRole discovery."
   },
   "excluded": {
+    "Colossus": {
+      "classification": "effective_stat_only",
+      "reason": "Owned Colossus modifies effective combat HP but not natural-stat Fit or BestRole discovery."
+    },
     "Adrenaline": {
       "classification": "excluded_bestrole",
-      "reason": "Turn-order tempo ability; not structural Initiative."
+      "reason": "Turn-order tempo ability; not natural Initiative."
     },
     "Anticipation": {
       "classification": "excluded_bestrole",
@@ -57,7 +55,7 @@
     },
     "Crippling Strikes": {
       "classification": "excluded_bestrole",
-      "reason": "Injury-enabling offensive mechanic; no structural core stat."
+      "reason": "Injury-enabling offensive mechanic; no natural core stat."
     },
     "Crossbow Mastery": {
       "classification": "excluded_bestrole",
@@ -85,7 +83,7 @@
     },
     "Fearsome": {
       "classification": "excluded_bestrole",
-      "reason": "Morale mechanic using existing Resolve; does not add structural Resolve."
+      "reason": "Morale mechanic using existing Resolve; does not add natural Resolve."
     },
     "Flail Mastery": {
       "classification": "excluded_bestrole",
@@ -125,7 +123,7 @@
     },
     "Nine Lives": {
       "classification": "excluded_bestrole",
-      "reason": "Lethal-damage survival trigger; does not increase structural HP."
+      "reason": "Lethal-damage survival trigger; does not increase natural HP."
     },
     "Overwhelm": {
       "classification": "excluded_bestrole",
@@ -153,7 +151,7 @@
     },
     "Recover": {
       "classification": "excluded_bestrole",
-      "reason": "Manages accumulated Fatigue; does not enlarge structural Fatigue pool."
+      "reason": "Manages accumulated Fatigue; does not enlarge the natural Fatigue pool."
     },
     "Relentless": {
       "classification": "excluded_bestrole",
@@ -177,11 +175,11 @@
     },
     "Steel Brow": {
       "classification": "excluded_bestrole",
-      "reason": "Changes head-hit damage handling; no structural stat."
+      "reason": "Changes head-hit damage handling; no natural stat."
     },
     "Student": {
       "classification": "excluded_bestrole",
-      "reason": "XP/progression perk; no final structural stat."
+      "reason": "XP/progression perk; no final natural stat."
     },
     "Sword Mastery": {
       "classification": "excluded_bestrole",

@@ -1,3 +1,11 @@
+## Unreleased
+
+- Removes the obsolete hypothetical Base/Colossus classification branches now
+  that archetype Fit, BestRole, and Level-Up Advisor are natural-stat-only.
+- Keeps owned Colossus effective HP in current combat-stat displays without
+  emitting duplicate classification rows, archetype cards, advisor trajectories,
+  JSON fields, incremental artifacts, or profiling counters.
+
 ## v3.86 — Signed archetype Fit contributions and clearer projections
 
 - Identifies collapsed level-11 stat ranges as deterministic under the displayed

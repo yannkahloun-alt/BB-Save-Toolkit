@@ -20,9 +20,9 @@ Generated caches are intentionally NOT part of release ZIPs. On the first run,
 bb_analyze.py -> ensure_references() downloads the vanilla script archive once
 and builds every missing cache. Subsequent runs reuse them.
 
-perk_effects.json IS REQUIRED for structural-perk projection. It is generated,
-not optional. The projection layer now fails loudly if called directly without
-this cache instead of silently pretending there are no structural perks.
+perk_effects.json IS REQUIRED for owned-perk effective combat stats. It is
+generated, not optional. The effective-stat layer fails loudly if called
+directly without this cache instead of silently ignoring owned perk effects.
 
 perk_audit.json reconciles every perk script found in the downloaded vanilla
 source with config/perk_model.json. Any source perk not yet classified appears

@@ -11,7 +11,7 @@ def test_levelup_html_renders_recommendation_and_p5p95():
 def test_levelup_panel_hidden_without_pending(bro_factory):
     b=bro_factory(); assert levelup_bro_panel(b,{'LevelUpAdvice':None})==''
 def test_levelup_panel_uses_summary_advice(bro_factory):
-    b=bro_factory(Level=2,LevelPoints=1,CurrentRolls={'HP':2,'MAtk':2,'MDef':2}); s={'LevelUpAdvice':advice(),'BestRole':'Test','ProjectedFitPct':70,'FitFeasibilityPct':10,'StructuralPerkAlternatives':[]}; h=levelup_bro_panel(b,s); assert 'Recommended line' in h and 'Test' in h
+    b=bro_factory(Level=2,LevelPoints=1,CurrentRolls={'HP':2,'MAtk':2,'MDef':2}); s={'LevelUpAdvice':advice(),'BestRole':'Test','ProjectedFitPct':70,'FitFeasibilityPct':10}; h=levelup_bro_panel(b,s); assert 'Recommended line' in h and 'Test' in h
 
 def test_levelup_html_renders_runner_up_rolls_and_anchor():
     a=advice(); alt=dict(a['Recommended']); alt['Stats']=['Fatigue','Resolve','RAtk']; alt['Rolls']={'Fatigue':2,'Resolve':2,'RAtk':2}; alt['AnchorFitAfterPct']=74; alt['Gamble']={'IsGamble':False,'ChanceToBeatPrimaryPct':0,'TiePct':0,'PrimaryWinsPct':0,'MeanDeltaPct':-1,'AvgUpsideWhenWinsPct':0,'MaxUpsidePct':0,'AvgDownsideWhenLosesPct':0,'MaxDownsidePct':0,'Samples':0}; a['Alternative']=alt

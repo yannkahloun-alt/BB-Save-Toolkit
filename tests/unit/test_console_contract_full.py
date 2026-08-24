@@ -147,7 +147,6 @@ def test_print_reference_status_omits_empty_unresolved_sample(capsys):
 def test_print_projection_profile_full_contract(capsys):
     profile = {
         "base_matrix_s": 1.111,
-        "structural_paths_s": 2.222,
         "advisor_s": 3.333,
         "summary_s": 4.444,
         "trajectory_s": 5.555,
@@ -164,7 +163,6 @@ def test_print_projection_profile_full_contract(capsys):
 
     expected_fragments = [
         "1.111s",
-        "2.222s",
         "3.333s",
         "4.444s",
         "5.555s",
@@ -175,7 +173,7 @@ def test_print_projection_profile_full_contract(capsys):
         "10",
         "projection calls",
         "19",
-        "* internal subcomponent; included in base/structural path wall time",
+        "* internal subcomponent; included in base role matrix and advisor wall time",
     ]
     for fragment in expected_fragments:
         assert fragment in out
@@ -185,7 +183,7 @@ def test_print_projection_profile_default_contract(capsys):
     console.print_projection_profile({"project_role_calls": 0})
     out = capsys.readouterr().out
 
-    assert out.count("0.000s") == 5
+    assert out.count("0.000s") == 4
     assert "0 hits · 0 misses · 0 refined" in out
     assert "full projections                0" in out
     assert "fast projections                0" in out

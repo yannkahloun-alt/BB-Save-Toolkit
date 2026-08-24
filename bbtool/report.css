@@ -923,12 +923,6 @@ th {
     white-space: normal;
   }
 }
-.lu-structural-note {
-  display: block;
-  margin-top: 3px;
-  color: #e5c47a;
-  font-size: .72rem;
-}
 .detail-section-label {
   margin: 14px 0 7px;
   color: var(--muted);
@@ -938,49 +932,6 @@ th {
 }
 .baseline-detail-block>.detail-section-label {
   margin-top: 0;
-}
-.structural-detail-card {
-  margin: 8px 0;
-  border: 1px solid rgba(184,138,59,.34);
-  border-radius: 9px;
-  overflow: hidden;
-}
-.structural-detail-card>summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 12px;
-  list-style: none;
-  cursor: pointer;
-}
-.structural-detail-card>summary::-webkit-details-marker {
-  display: none;
-}
-.structural-detail-card>summary>div:first-child small, .structural-detail-card>summary>div:first-child strong {
-  display: block;
-}
-.structural-detail-card>summary>div:first-child small {
-  color: #e5c47a;
-  font-size: .62rem;
-  font-weight: 800;
-  letter-spacing: .06em;
-}
-.structural-detail-card>summary>div:first-child strong {
-  margin-top: 2px;
-}
-.structural-detail-body {
-  padding: 12px;
-  border-top: 1px solid var(--line);
-}
-.structural-stats {
-  margin-top: 7px;
-}
-@media (max-width:720px) {
-  .structural-detail-card>summary {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
 }
 .bro-head .best-box {
   text-align: right;
@@ -997,23 +948,10 @@ th {
   padding-top: 2px;
   padding-bottom: 2px;
 }
-.bro-role-option.alternate {
-  border: 1px solid rgba(221,166,47,.72);
-  background: rgba(221,166,47,.07);
-  box-shadow: inset 0 0 0 1px rgba(221,166,47,.06);
-}
 .bro-role-option>strong {
   font-size: 15px;
   line-height: 1.15;
   text-align: right;
-}
-.bro-role-path {
-  margin-bottom: 22px;
-}
-.bro-role-option.alternate>strong {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: end;
 }
 .bro-role-metrics {
   display: flex;
@@ -1055,12 +993,9 @@ th {
     grid-template-columns: 1fr;
     gap: 7px;
   }
-  .bro-role-option>strong, .bro-role-path {
+  .bro-role-option>strong {
     text-align: left;
     justify-self: start;
-  }
-  .bro-role-path {
-    margin-bottom: 22px;
   }
   .bro-role-metrics {
     grid-column: 1;
@@ -1070,10 +1005,6 @@ th {
   .bro-role-metrics span {
     text-align: left;
   }
-}
-.bro-role-path {
-  top: 6px;
-  right: 10px;
 }
 @media (max-width:1250px) {
   .bro-head {
@@ -1086,7 +1017,7 @@ th {
     justify-content: flex-start;
     padding-bottom: 3px;
   }
-  .bro-role-option, .bro-role-option.current, .bro-role-option.alternate {
+  .bro-role-option, .bro-role-option.current {
     flex: 0 0 auto;
   }
 }
@@ -1105,7 +1036,7 @@ th {
   min-width: 0;
   overflow: visible;
 }
-.bro-role-option, .bro-role-option.current, .bro-role-option.alternate {
+.bro-role-option, .bro-role-option.current {
   position: static;
   border: 1px solid rgba(221,166,47,.72);
   border-radius: 10px;
@@ -1115,14 +1046,7 @@ th {
 .bro-role-option.current {
   background: rgba(221,166,47,.07);
 }
-.bro-role-path {
-  color: #e3b744 !important;
-  font-size: .58rem !important;
-  font-weight: 850;
-  line-height: 1;
-  letter-spacing: .08em !important;
-}
-.bro-role-option>strong, .bro-role-option.alternate>strong {
+.bro-role-option>strong {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -1188,16 +1112,6 @@ th {
   color: #a9d6a9;
   background: rgba(169,214,169,.06);
 }
-.role-card.structural-detail-card {
-  margin: 8px 0;
-}
-.role-card.structural-detail-card>summary {
-  padding: 10px 12px;
-  background: rgba(221,166,47,.045);
-}
-.role-card.structural-detail-card>summary>div:first-child small {
-  color: #e3b744;
-}
 /* Brother summary trajectories: equal fixed-size cards, right aligned, never stretched. */
 .bro-head .best-box {
   display: flex;
@@ -1210,7 +1124,7 @@ th {
   max-width: 1120px;
   margin-left: auto;
 }
-.bro-role-option, .bro-role-option.current, .bro-role-option.alternate {
+.bro-role-option, .bro-role-option.current {
   flex: 0 0 330px;
   width: 330px;
   min-width: 330px;
@@ -1222,15 +1136,7 @@ th {
   gap: 5px 14px;
   padding: 9px 11px;
 }
-.bro-role-path {
-  position: static;
-  grid-column: 1 / -1;
-  grid-row: 1;
-  justify-self: start;
-  text-align: left;
-  margin: 0;
-}
-.bro-role-option>strong, .bro-role-option.alternate>strong {
+.bro-role-option>strong {
   grid-column: 1;
   grid-row: 2;
   justify-self: start;
@@ -1248,7 +1154,7 @@ th {
     justify-content: flex-start;
     width: 100%;
   }
-  .bro-role-option, .bro-role-option.current, .bro-role-option.alternate {
+  .bro-role-option, .bro-role-option.current {
     flex: 1 1 100%;
     width: 100%;
     min-width: 0;
@@ -1276,14 +1182,6 @@ th {
   box-sizing: border-box;
   text-align: center;
 }
-.role-path-label {
-  display: block;
-  margin-bottom: 3px;
-  color: #e3b744;
-  font-size: .58rem;
-  font-weight: 850;
-  letter-spacing: .07em;
-}
 /* Tooltip affordance for source descriptions. */
 .hover-info {
   cursor: help;
@@ -1293,13 +1191,6 @@ th {
 #tab-management {
   width: 100%;
   max-width: none;
-}
-/* Structural cards use the exact same header layout/components as normal role cards. */
-.role-card.structural-detail-card>summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
 }
 .classification-paths-cell {
   display: flex;
@@ -1550,15 +1441,6 @@ td:has(>.classification-paths-cell) {
   line-height: 1 !important;
   white-space: nowrap;
 }
-.strategic-table .classification-path-enabler {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 9px !important;
-  line-height: 1.1 !important;
-  opacity: .72;
-}
 .lu-roll-band {
   display: inline-flex;
   align-items: center;
@@ -1658,10 +1540,6 @@ td:has(>.classification-paths-cell) {
   overflow: hidden;
   background: #10171d;
 }
-.lu-trajectory.colossus {
-  border-color: rgba(221,166,47,.72);
-  box-shadow: 0 0 0 1px rgba(221,166,47,.06);
-}
 .lu-trajectory-banner {
   display: flex;
   align-items: center;
@@ -1670,10 +1548,6 @@ td:has(>.classification-paths-cell) {
   padding: 13px 15px;
   border-bottom: 1px solid #33404a;
   background: rgba(255,255,255,.025);
-}
-.lu-trajectory.colossus .lu-trajectory-banner {
-  background: rgba(221,166,47,.07);
-  border-bottom-color: rgba(221,166,47,.42);
 }
 .lu-trajectory-banner>div {
   display: flex;
@@ -1685,9 +1559,6 @@ td:has(>.classification-paths-cell) {
   letter-spacing: .08em;
   color: #9fb1c0;
 }
-.lu-trajectory.colossus .lu-trajectory-banner small {
-  color: #e3b744;
-}
 .lu-trajectory-banner strong {
   font-size: 1rem;
 }
@@ -1697,10 +1568,6 @@ td:has(>.classification-paths-cell) {
   border-radius: 999px;
   font-size: .72rem;
   color: #b9c7d2;
-}
-.lu-trajectory.colossus .lu-trajectory-banner>span {
-  border-color: rgba(221,166,47,.5);
-  color: #f0c95e;
 }
 .lu-candidate {
   padding: 14px;
@@ -1827,11 +1694,11 @@ td:has(>.classification-paths-cell) {
   width: 12% !important;
 }
 
-.strategic-table .strategic-path-tr > td {
+.strategic-table .strategic-classification-tr > td {
   vertical-align: middle;
 }
-.strategic-table .strategic-path-tr > td.strategy-paths,
-.strategic-table .strategic-path-tr > td.strategy-metric {
+.strategic-table .strategic-classification-tr > td.strategy-result,
+.strategic-table .strategic-classification-tr > td.strategy-metric {
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -1860,16 +1727,6 @@ td:has(>.classification-paths-cell) {
 .strategic-table .path-metric-row {
   align-items: center;
 }
-.strategic-table .path-metric-label,
-.strategic-table .path-fit-range-row .path-metric-label,
-.strategic-table .classification-path-enabler {
-  font-family: inherit;
-  font-size: 9px !important;
-  font-weight: 700;
-  line-height: 1.1 !important;
-  color: var(--text);
-  opacity: .86;
-}
 .strategic-table .path-fit-range-values,
 .strategic-table .path-fit-range-values > strong,
 .strategic-table .path-fit-range-values small {
@@ -1881,25 +1738,6 @@ td:has(>.classification-paths-cell) {
 }
 .strategic-table .path-fit-full {
   opacity: .68;
-}
-/* Selection belongs to the logical table row, not to three independent boxes. */
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-paths,
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-metric {
-  background: rgba(216,166,74,.055);
-  box-shadow: inset 0 2px 0 rgba(216,166,74,.88), inset 0 -2px 0 rgba(216,166,74,.88);
-}
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-paths {
-  box-shadow: inset 2px 0 0 rgba(216,166,74,.88), inset 0 2px 0 rgba(216,166,74,.88), inset 0 -2px 0 rgba(216,166,74,.88);
-}
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-metric:last-child {
-  box-shadow: inset -2px 0 0 rgba(216,166,74,.88), inset 0 2px 0 rgba(216,166,74,.88), inset 0 -2px 0 rgba(216,166,74,.88);
-}
-.strategic-table .strategic-path-tr.selected-path-row .classification-path-row,
-.strategic-table .strategic-path-tr.selected-path-row .path-fit-range-row,
-.strategic-table .strategic-path-tr.selected-path-row .path-metric-row {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: var(--line) !important;
 }
 
 .role-card {
@@ -1934,9 +1772,6 @@ td:has(>.classification-paths-cell) {
 .role-card.retained-role .development-focus-block h4 {
   color: #f0d28a;
 }
-.role-card.structural-detail-card.retained-role > summary > div:first-child small {
-  color: #e3b744;
-}
 
 /* Development chips are neutral on comparison archetypes; retained paths carry gold. */
 .development-focus-block h4 {
@@ -1957,8 +1792,8 @@ td:has(>.classification-paths-cell) {
   color: #e3b744;
 }
 
-.strategic-table .strategic-path-tr > td.strategy-paths,
-.strategic-table .strategic-path-tr > td.strategy-metric {
+.strategic-table .strategic-classification-tr > td.strategy-result,
+.strategic-table .strategic-classification-tr > td.strategy-metric {
   position: relative;
 }
 .strategic-table .classification-path-row,
@@ -1968,7 +1803,7 @@ td:has(>.classification-paths-cell) {
   height: 64px;
   border-radius: 8px;
 }
-/* Paths, Fit/ranges and P(Fit) share one semantic class palette. */
+/* Result, Fit/ranges and P(Fit) share one semantic class palette. */
 .strategic-table .classification-path-row.class-invest,
 .strategic-table .path-fit-range-row.class-invest,
 .strategic-table .path-metric-row.class-invest {
@@ -1997,9 +1832,7 @@ td:has(>.classification-paths-cell) {
   border-color: rgba(194,86,105,.56);
   color: #ffd9df;
 }
-/* Base/Colossus labels and all Fit/range values use the same readable policy as the role label. */
-.strategic-table .path-fit-range-row .path-metric-label,
-.strategic-table .path-metric-row .path-metric-label,
+/* Classification Fit/range values use the same readable policy as the role label. */
 .strategic-table .path-metric-row > strong,
 .strategic-table .path-fit-range-values,
 .strategic-table .path-fit-range-values > strong,
@@ -2010,11 +1843,6 @@ td:has(>.classification-paths-cell) {
   line-height: 1.18 !important;
   color: inherit !important;
   opacity: .95;
-}
-.strategic-table .path-fit-range-row .path-metric-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .strategic-table .path-fit-range-values {
   display: grid;
@@ -2029,24 +1857,10 @@ td:has(>.classification-paths-cell) {
 }
 .strategic-table .path-fit-full { opacity: .82; }
 .strategic-table .path-fit-range-row {
-  grid-template-columns: 72px minmax(0,1fr);
+  grid-template-columns: minmax(0,1fr);
   padding: 7px 9px;
 }
-/* Selected path: one rounded outline spanning the logical row. */
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-paths,
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-metric {
-  background: rgba(216,166,74,.045);
-  box-shadow: inset 0 2px 0 rgba(216,166,74,.92), inset 0 -2px 0 rgba(216,166,74,.92);
-}
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-paths {
-  border-radius: 10px 0 0 10px;
-  box-shadow: inset 2px 0 0 rgba(216,166,74,.92), inset 0 2px 0 rgba(216,166,74,.92), inset 0 -2px 0 rgba(216,166,74,.92);
-}
-.strategic-table .strategic-path-tr.selected-path-row > td.strategy-metric:last-child {
-  border-radius: 0 10px 10px 0;
-  box-shadow: inset -2px 0 0 rgba(216,166,74,.92), inset 0 2px 0 rgba(216,166,74,.92), inset 0 -2px 0 rgba(216,166,74,.92);
-}
-/* Rich archetype details are shared by every role, not only structural paths. */
+/* Rich archetype details are shared by every role. */
 .role-detail-body {
   padding: 12px;
   border-top: 1px solid var(--line);
@@ -2373,7 +2187,6 @@ td:has(>.classification-paths-cell) {
   padding: 7px 9px;
   font-variant-numeric: tabular-nums;
 }
-.strategic-table .path-metric-row .path-metric-label,
 .strategic-table .path-metric-row > strong {
   font-family: inherit;
   font-size: 11px !important;

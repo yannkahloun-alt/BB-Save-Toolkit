@@ -6,12 +6,10 @@ from .fingerprint import (
     ADVISOR_ENGINE_VERSION,
     BROTHER_SUMMARY_ENGINE_VERSION,
     ROLE_PROJECTION_ENGINE_VERSION,
-    STRUCTURAL_PATH_ENGINE_VERSION,
     advisor_fingerprint,
     brother_projection_fingerprint,
     brother_summary_fingerprint,
     role_fingerprint,
-    structural_path_fingerprint,
 )
 
 
@@ -23,8 +21,6 @@ class IncrementalStats:
     ambiguous_states: int = 0
     summary_reused: int = 0
     summary_computed: int = 0
-    structural_reused: int = 0
-    structural_computed: int = 0
     advisor_reused: int = 0
     advisor_computed: int = 0
     previous_manifest: str | None = None
@@ -114,39 +110,6 @@ class IncrementalCache:
     def mark_computed(self):
         self.stats.role_computed += 1
 
-    def get_structural_paths(self, bro, roles):
-        entry = self._entry_for_bro(bro)
-        if entry is None:
-            return None
-        prior = entry.get("structural_paths")
-        if not isinstance(prior, dict):
-            self.miss_reasons["structural_artifact_missing"] += 1
-            return None
-        if prior.get("engine_version") != STRUCTURAL_PATH_ENGINE_VERSION:
-            self.miss_reasons["structural_engine_changed"] += 1
-            return None
-        if prior.get("input_hash") != structural_path_fingerprint(bro, roles):
-            self.miss_reasons["structural_inputs_changed"] += 1
-            return None
-        result = prior.get("result")
-        if not isinstance(result, list):
-            self.miss_reasons["structural_artifact_invalid"] += 1
-            return None
-        self.stats.structural_reused += 1
-        self._current_entry(bro)["structural_paths"] = dict(prior)
-        return list(result)
-
-    def store_structural_paths(self, bro, roles, result):
-        entry = self._current_entry(bro)
-        entry["structural_paths"] = {
-            "input_hash": structural_path_fingerprint(bro, roles),
-            "engine_version": STRUCTURAL_PATH_ENGINE_VERSION,
-            "result": list(result),
-        }
-
-    def mark_structural_computed(self):
-        self.stats.structural_computed += 1
-
     def get_advisor(self, bro, roles):
         entry = self._entry_for_bro(bro)
         if entry is None:
@@ -200,12 +163,11 @@ class IncrementalCache:
         current = self._current_entry(bro)
         current["summary"] = dict(prior)
         # A valid summary implies the same brother-state and role inputs as its
-        # structural/advisor dependencies. Carry them forward so the newest
+        # advisor dependency. Carry it forward so the newest
         # manifest remains a complete cache source.
-        for key in ("structural_paths", "advisor"):
-            artifact = entry.get(key)
-            if isinstance(artifact, dict):
-                current[key] = dict(artifact)
+        artifact = entry.get("advisor")
+        if isinstance(artifact, dict):
+            current["advisor"] = dict(artifact)
         summary = dict(result)
         summary["BrotherID"] = bro.BrotherID
         summary["Name"] = bro.Name
@@ -236,7 +198,6 @@ class IncrementalCache:
             "source_save_path": source_save_path,
             "engine": {
                 "role_projection": ROLE_PROJECTION_ENGINE_VERSION,
-                "structural_paths": STRUCTURAL_PATH_ENGINE_VERSION,
                 "advisor": ADVISOR_ENGINE_VERSION,
                 "summary": BROTHER_SUMMARY_ENGINE_VERSION,
             },
@@ -245,8 +206,6 @@ class IncrementalCache:
                 "previous_found": self.stats.previous_found,
                 "role_reused": self.stats.role_reused,
                 "role_computed": self.stats.role_computed,
-                "structural_reused": self.stats.structural_reused,
-                "structural_computed": self.stats.structural_computed,
                 "advisor_reused": self.stats.advisor_reused,
                 "advisor_computed": self.stats.advisor_computed,
                 "summary_reused": self.stats.summary_reused,
