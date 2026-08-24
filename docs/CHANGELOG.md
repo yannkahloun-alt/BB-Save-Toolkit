@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Explains the level-11 optimized stat-allocation policy in Archetype Details,
+  including archetype Fit-stat eligibility, three-stat choices, Fit objectives,
+  roll/effect inputs, and the exclusion of temporary injuries and hidden FutureRolls.
 - Adds an accessible Archetype Details explanation distinguishing expected Fit
   from `P(Fit≥100)`, including why displayed Fit may exceed 100% without being
   capped.

@@ -109,6 +109,28 @@ def fit_measure_help_html(row: dict) -> str:
         '</div></details>'
     )
 
+def optimized_allocation_help_html() -> str:
+    """Explain the normal level-11 allocation policy without engine jargon."""
+    return (
+        '<details class="optimized-allocation-help">'
+        '<summary>How stat allocation is optimized</summary>'
+        '<div>'
+        '<p>Only the archetype\'s Fit stats shown in Target Profile are eligible. At every '
+        'future level-up through level 11, the projection develops all eligible stats when '
+        'there are three or fewer; otherwise it chooses the three expected to produce the '
+        'highest final Fit for this archetype.</p>'
+        '<p>Talent stars shape each stat\'s possible roll range. Archetype baselines, '
+        'targets, weights, and any Fit-only ceilings determine how valuable each gain is. '
+        'Exact permanent trait and permanent-injury effects are included in the projected profile. '
+        'Owned or hypothetical perks do not alter this natural-stat projection; supported structural '
+        'perk paths are evaluated separately.</p>'
+        '<p>This is an optimized development policy, not a guaranteed outcome or a claim that '
+        'every roll will be maximal. Temporary injuries and quarantined FutureRolls do not '
+        'drive normal projection choices.</p>'
+        '</div></details>'
+    )
+
+
 def bro_anchor(brother_id):
     import hashlib
     return "bro-" + hashlib.sha1(str(brother_id).encode("utf-8")).hexdigest()[:12]
@@ -693,6 +715,7 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
         '<div class="detail-block"><h4>EFFECTIVE CURRENT STATS</h4>'
         f'<div class="stat-grid structural-stats">{current_stat_chips(b,effective,role_important_stats(role_cfg))}</div></div>'
         '<div class="detail-block development-focus-block"><h4>FIT DEVELOPMENT — LEVEL 11 <span>(optimized stat allocation)</span></h4>'
+        f'{optimized_allocation_help_html()}'
         f'{development_focus_html(b,row,effective)}</div>'
         '<div class="projection-legend">'
         '<span class="legend-baseline">Baseline (minimum useful)</span>'
