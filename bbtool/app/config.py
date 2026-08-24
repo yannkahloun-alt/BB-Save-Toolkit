@@ -15,19 +15,18 @@ class AnalyzerConfig:
 
 
 def _fit_curve(target: float, baseline: float | None) -> list[list[float]]:
-    """Compile target/baseline into the engine Fit utility curve."""
+    """Compile a bounded signed Fit curve with baseline as its neutral point."""
     target = float(target)
     if baseline is None:
         baseline = target * 0.85
     minimum = min(float(baseline), target)
     gap = max(1.0, target - minimum)
-    # Fit remains continuous; baseline maps to utility 0.55 and target to 1.0.
-    low = minimum - gap * (0.55 / 0.45)
+    low = minimum - gap
     return [
-        [round(low, 4), 0.0],
-        [round(minimum, 4), 0.55],
+        [round(low, 4), -1.0],
+        [round(minimum, 4), 0.0],
         [round(target, 4), 1.0],
-        [round(target + gap, 4), 1.05],
+        [round(target + gap, 4), 1.0],
     ]
 
 

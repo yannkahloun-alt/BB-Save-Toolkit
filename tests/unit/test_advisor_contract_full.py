@@ -1,7 +1,8 @@
 import pytest
-pytestmark=[pytest.mark.unit, pytest.mark.coverage_slow]
 from bbtool.levelup_advisor import advise_levelup,_roll_band,_skipped_important_notes
 from bbtool.projection.planner import project_role
+
+pytestmark=[pytest.mark.unit, pytest.mark.coverage_slow]
 
 
 def _rows(b,roles): return [project_role(b,r) for r in roles]
@@ -55,3 +56,17 @@ def test_advisor_can_invest_in_stat_still_below_baseline_for_level11_payoff(bro_
     base={'Role':role['name'],'ProjectedFit':.5,'ProjectedFitPct':50,'FitFeasibilityPct':0,'ProjectedFitLikelyMinPct':40}
     a=advise_levelup(b,[role],[base])
     assert 'MDef' in a['Recommended']['Stats']
+
+def test_advisor_values_recovery_while_stat_remains_below_baseline(bro_factory,simple_role):
+    role=simple_role(
+        ('HP','Fatigue','MAtk','MDef'),
+        weights={'HP':1,'Fatigue':1,'MAtk':1,'MDef':8},
+        baselines={'HP':40,'Fatigue':60,'MAtk':50,'MDef':25},
+        targets={'HP':100,'Fatigue':130,'MAtk':90,'MDef':35},
+    )
+    b=bro_factory(
+        Level=10,LevelPoints=1,HP=100,Fatigue=130,MAtk=90,MDef=20,
+        CurrentRolls={'HP':4,'Fatigue':4,'MAtk':3,'MDef':3},
+    )
+    advice=advise_levelup(b,[role],_rows(b,[role]))
+    assert 'MDef' in advice['Recommended']['Stats']

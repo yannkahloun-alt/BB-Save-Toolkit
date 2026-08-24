@@ -39,7 +39,7 @@ def test_fit_curve_default_baseline_and_explicit_baseline():
     a=_fit_curve(100,None)
     b=_fit_curve(100,80)
     assert a[2]==[100.0,1.0]
-    assert b[1]==[80.0,0.55]
+    assert b==[[60.0,-1.0],[80.0,0.0],[100.0,1.0],[120.0,1.0]]
 
 
 def test_normalize_role_handles_target_and_non_fit_stat():
