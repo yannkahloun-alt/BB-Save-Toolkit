@@ -52,8 +52,9 @@ def test_optimized_allocation_help_explains_projection_policy():
     html = optimized_allocation_help_html()
     assert html.startswith('<details class="optimized-allocation-help">')
     assert "How stat allocation is optimized" in html
-    assert "exactly three of the eight core stats" in html
-    assert "All eight are eligible" in html
+    assert "Only the archetype's Fit stats shown in Target Profile are eligible" in html
+    assert "all eligible stats when there are three or fewer" in html
+    assert "otherwise it chooses the three" in html
     assert "highest final Fit for this archetype" in html
     for influence in (
         "Talent stars",
