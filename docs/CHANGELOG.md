@@ -1,4 +1,4 @@
-## Unreleased
+## v3.86 — Signed archetype Fit contributions and clearer projections
 
 - Identifies collapsed level-11 stat ranges as deterministic under the displayed
   assumptions and keeps their zero-width range visible on the numeric axis.
