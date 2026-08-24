@@ -2118,6 +2118,33 @@ td:has(>.classification-paths-cell) {
   letter-spacing: .01em;
 }
 
+/* Fit score and threshold-probability help. */
+.fit-measure-help {
+  margin-bottom: 12px;
+  border-left: 3px solid #6f93b8;
+  border-radius: 6px;
+  background: rgba(70, 104, 139, .12);
+  color: var(--muted);
+  font-size: .78rem;
+}
+.fit-measure-help > summary {
+  padding: 8px 10px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 750;
+}
+.fit-measure-help > div {
+  padding: 0 10px 9px;
+}
+.fit-measure-help p {
+  margin: 5px 0;
+  line-height: 1.45;
+}
+.fit-measure-help strong,
+.fit-measure-current {
+  color: var(--text);
+}
+
 /* Archetype target profile and level-11 projection scale. */
 .target-profile-explainer {
   margin-bottom: 14px;

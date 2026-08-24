@@ -82,6 +82,33 @@ def classification_path_fit_range_html(path: dict) -> str:
         '</div>'
     )
 
+
+def fit_measure_help_html(row: dict) -> str:
+    """Explain the point Fit estimate and its distinct threshold probability."""
+    fit = float(row["ProjectedFitPct"])
+    probability = float(row["FitFeasibilityPct"])
+    if fit < 100.0:
+        relationship = "The expected Fit is below 100%."
+    elif fit > 100.0:
+        relationship = (
+            "The expected Fit is above 100%; displayed Fit is not capped when "
+            "the projected stat profile exceeds the archetype targets."
+        )
+    else:
+        relationship = "The expected Fit is exactly 100%."
+    return (
+        '<details class="fit-measure-help">'
+        '<summary>How Fit and P(Fit≥100) differ</summary>'
+        '<div>'
+        '<p><strong>Fit</strong> is the average level-11 archetype score across simulated development outcomes. '
+        'It is a score, not a probability, and may exceed 100%.</p>'
+        '<p><strong>P(Fit≥100)</strong> is the percentage of those simulated outcomes whose final Fit reaches '
+        'or exceeds 100%. It can differ from the average because outcomes vary around that average.</p>'
+        f'<p class="fit-measure-current">{esc(relationship)} Current values: Fit {fit:.1f}%; '
+        f'P(Fit≥100) {probability:.1f}%.</p>'
+        '</div></details>'
+    )
+
 def bro_anchor(brother_id):
     import hashlib
     return "bro-" + hashlib.sha1(str(brother_id).encode("utf-8")).hexdigest()[:12]
@@ -661,6 +688,7 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
     effective = effective or {}
     return (
         '<div class="role-detail-body">'
+        f'{fit_measure_help_html(row)}'
         f'{target_profile_html(row)}'
         '<div class="detail-block"><h4>EFFECTIVE CURRENT STATS</h4>'
         f'<div class="stat-grid structural-stats">{current_stat_chips(b,effective,role_important_stats(role_cfg))}</div></div>'
