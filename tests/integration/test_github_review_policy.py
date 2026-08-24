@@ -127,6 +127,22 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "owner confirmation" in policy
 
 
+def test_selected_ticket_deferral_requires_traceable_comment_without_closure():
+    agent_instructions = _read("AGENTS.md")
+    workflow = _read("docs/DEVELOPMENT_WORKFLOW.md")
+    start_here = _read("docs/CODEX_START_HERE.md")
+
+    assert "selects, claims, or meaningfully investigates" in agent_instructions
+    assert "must comment on that ticket" in agent_instructions
+    assert "Deferral alone does not close" in agent_instructions
+    assert "## Ticket selection and deferral" in workflow
+    assert "before switching to another ticket or ending the task" in workflow
+    assert "the ticket remains open" in workflow
+    assert "Do not post a" in workflow and "duplicate deferral comment" in workflow
+    assert "requirements\nfor resuming" in start_here
+    assert "Leave a deferred ticket open" in start_here
+
+
 def test_branch_protection_requires_all_checks_without_native_approval():
     protection = _read("docs/GITHUB_BRANCH_PROTECTION.md")
 
