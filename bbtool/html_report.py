@@ -204,6 +204,10 @@ def development_focus_html(b, row: dict, effective=None) -> str:
     for stat, rng in _fit_stat_rows(row):
         comp=row.get("ProjectedComponents",{}).get(stat, {})
         current=float(effective.get(stat,getattr(b,stat)))
+        collapsed = all(
+            abs(float(rng[key]) - float(rng["min"])) < 1e-9
+            for key in ("max", "ev")
+        )
         values = [float(rng[key]) for key in ("min", "max", "ev", "baseline", "target")]
         data_min, data_max = min(values), max(values)
         span = data_max - data_min
@@ -243,6 +247,19 @@ def development_focus_html(b, row: dict, effective=None) -> str:
                 )
                 + '</small>'
             )
+        deterministic_note = ""
+        if collapsed:
+            value = float(rng["ev"])
+            deterministic_note = (
+                '<small class="focus-deterministic" role="note">'
+                f'Deterministic projection: minimum, maximum, and expected all equal {value:g} '
+                'under these displayed assumptions.'
+                '</small>'
+            )
+        range_title = "Deterministic projected value" if collapsed else "Projected minimum to maximum"
+        range_label = f'{float(rng["min"]):g}'
+        if not collapsed:
+            range_label += f' to {float(rng["max"]):g}'
         chips.append(
             '<div class="development-focus-chip">'
             '<div class="development-card-head">'
@@ -250,9 +267,11 @@ def development_focus_html(b, row: dict, effective=None) -> str:
             f'<small>Weight <b>{float(rng["weight"]):g}</b></small></div>'
             f'<div class="development-values">{current:g} <em>→</em> {esc(range_text(rng))}</div>'
             '<div class="projection-axis">'
-            f'<span class="projected-range" style="left:{range_left:.4f}%;width:{range_right-range_left:.4f}%"></span>'
+            f'<span class="projected-range{" projected-range-collapsed" if collapsed else ""}" '
+            f'style="left:{range_left:.4f}%;width:{range_right-range_left:.4f}%" '
+            f'title="{range_title}" aria-label="{range_title}: {range_label}"></span>'
             f'{markers}</div>'
-            f'{cap_note}</div>'
+            f'{deterministic_note}{cap_note}</div>'
         )
     return '<div class="development-focus-grid">'+''.join(chips)+'</div>' if chips else '<span class="muted">No Fit stat configured.</span>'
 

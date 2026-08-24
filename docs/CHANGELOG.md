@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Identifies collapsed level-11 stat ranges as deterministic under the displayed
+  assumptions and keeps their zero-width range visible on the numeric axis.
 - Explains the level-11 optimized stat-allocation policy in Archetype Details,
   including archetype Fit-stat eligibility, three-stat choices, Fit objectives,
   roll/effect inputs, and the exclusion of temporary injuries and hidden FutureRolls.

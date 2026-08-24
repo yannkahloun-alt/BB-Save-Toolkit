@@ -2294,6 +2294,11 @@ td:has(>.classification-paths-cell) {
   background: #d8dee5;
   box-shadow: 0 0 7px rgba(216, 222, 229, .25);
 }
+.projected-range-collapsed {
+  width: 9px !important;
+  margin-left: -4px;
+  border-radius: 50%;
+}
 .projection-marker {
   position: absolute;
   top: 3px;
@@ -2323,6 +2328,13 @@ td:has(>.classification-paths-cell) {
 .marker-target { color: #e3a735; }
 .marker-expected { color: #58c98b; }
 .focus-ceiling { display: block; margin-top: 2px; color: var(--muted); font-size: .62rem; }
+.focus-deterministic {
+  display: block;
+  margin-top: 2px;
+  color: #cbd5df;
+  font-size: .62rem;
+  line-height: 1.35;
+}
 .projection-legend {
   display: flex;
   justify-content: center;
