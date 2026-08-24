@@ -6,7 +6,7 @@
     "weight": "Relative importance of this stat in Fit.",
     "baseline": "Optional lower Fit reference point used to shape the continuous Fit curve.",
     "stat_absent": "The archetype does not evaluate this stat for Fit.",
-    "perks.required": "Structural perks without which the build is not really this archetype.",
+    "perks.required": "Required perks without which the build is not really this archetype.",
     "perks.recommended": "Strongly characteristic perks; informative only for now.",
     "ceiling": "Optional archetype/stat Fit-valuation saturation point. Projected values remain unchanged; only utility is evaluated at min(projected/effective value, ceiling). Must be finite and >= target."
   },

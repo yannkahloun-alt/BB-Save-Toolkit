@@ -28,18 +28,16 @@ def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory)
     b=bro_factory(Name='UIBro',Level=2,LevelPoints=1,CurrentRolls={'HP':4,'Fatigue':3,'Resolve':3,'Initiative':4,'MAtk':2,'RAtk':3,'MDef':3,'RDef':3})
     result=analyze_brothers([b],cfg.roles,cfg.classification)
     html=render_html_report(tmp_path/'x.sav',[b],result.fits,result.summaries,cfg.roles,cfg.classification,'2026-01-01T00:00:00',[])
-    assert html.count('selected-path-row')==1
-    assert 'rowspan=' in html and 'P5–P95' in html and 'P10–P90' not in html
-    assert 'strategy-paths' in html and 'strategy-fit-range' in html
+    assert html.count('strategic-classification-tr')==1
+    assert '<th class="result-head">Result</th>' in html and '>Paths</th>' not in html
+    assert 'rowspan=' not in html and 'P5–P95' in html and 'P10–P90' not in html
+    assert 'strategy-result' in html and 'strategy-fit-range' in html
     assert 'heat1' not in ''.join(re.findall(r'<div class="classification-path-metric[^>]*>',html))
     assert 'CURRENT BROTHER DETAILS' in html
     current=html.split('CURRENT BROTHER DETAILS',1)[1].split('ARCHETYPE DETAILS',1)[0]
     assert ' important' not in current
     assert 'EFFECTIVE CURRENT STATS' in html and 'FIT DEVELOPMENT — LEVEL 11' in html and 'optimized stat allocation' in html
-    rendered_archetypes = len(result.fits) + sum(
-        len(summary.get('StructuralPerkAlternatives', []))
-        for summary in result.summaries
-    )
+    rendered_archetypes = len(result.fits)
     assert 'TARGET PROFILE' in html and html.count('target-profile-chevron') == rendered_archetypes
     assert 'Baseline (minimum useful)' in html and 'Target (desired)' in html and 'Expected (projection)' in html
     assert 'Projected level 11 range' not in html and '>EV<' not in html and 'Weight' in html

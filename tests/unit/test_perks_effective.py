@@ -20,9 +20,7 @@ def test_effective_values_matches_individual(bro_factory):
 def test_profile_multiplier_with_real_colossus(bro_factory):
     b=bro_factory(Perks=['Colossus']); vals,mult=perks.effective_stat_profile(b); assert mult['HP']==pytest.approx(1.25); assert vals['HP']==75
 
-def test_cache_reset_same_result():
-    a=perks.structural_projection_perks(); perks.reset_perk_cache(); b=perks.structural_projection_perks(); assert a==b
-def test_structural_rules():
-    names=perks.structural_projection_perks(); assert 'Colossus' in names; assert 'Fortified Mind' not in names
-def test_structural_stats(): assert 'HP' in perks.structural_projection_perk_stats(['Colossus'])
-def test_unknown_structural_stats_empty(): assert perks.structural_projection_perk_stats(['Not A Perk'])==set()
+def test_cache_reset_clears_loaded_effects(monkeypatch):
+    monkeypatch.setattr(perks,'_PERK_EFFECTS_CACHE',{'x':{}})
+    perks.reset_perk_cache()
+    assert perks._PERK_EFFECTS_CACHE is None

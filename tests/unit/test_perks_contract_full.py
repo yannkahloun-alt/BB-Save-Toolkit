@@ -14,23 +14,8 @@ def test_unknown_perk_is_ignored(bro_factory):
     b=bro_factory(Perks=['Definitely Missing'])
     assert perks.effective_stat_value(b,'HP',60)==60
 
-
 def test_conditional_and_non_exact_effects_are_ignored(monkeypatch,bro_factory):
     reg={'X':{'Name':'X','Effects':[{'stat':'HP','op':'+=','value':9,'exact':True,'conditional':True},{'stat':'HP','op':'+=','value':11,'exact':False,'conditional':False}]}}
     monkeypatch.setattr(perks,'_load_perk_effects',lambda:reg)
     b=bro_factory(Perks=['X'])
     assert perks.effective_stat_value(b,'HP',60)==60
-
-
-def test_structural_allowlist_entries_are_exact_unconditional_real_stats():
-    names=perks.structural_projection_perks(); reg=perks._load_perk_effects()
-    assert names
-    for name in names:
-        assert name in reg
-        assert any(e.get('exact') and not e.get('conditional') and e.get('stat') in STATS for e in reg[name].get('Effects',[]))
-
-
-def test_fortified_mind_not_structural_colossus_is_structural():
-    names=set(perks.structural_projection_perks())
-    assert 'Fortified Mind' not in names
-    assert 'Colossus' in names

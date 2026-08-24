@@ -27,41 +27,37 @@ def class_css(category):
 
 
 
-def classification_path_html(path: dict) -> str:
-    """Render one strategic-classification path cell."""
-    label = path.get("Label", "Base")
-    role = path.get("Role", "")
-    category = path.get("Category", "")
-    enabler = "Natural" if label == "Base" else f"via {label}"
+def classification_summary_html(summary: dict) -> str:
+    """Render one strategic-classification result cell."""
+    role = summary.get("BestRole", "")
+    category = summary.get("Category", "")
     return (
-        f'<div class="classification-path-row {class_css(category)}" title="{esc(role)} · {esc(category)} · {esc(enabler)}">'
+        f'<div class="classification-path-row {class_css(category)}" title="{esc(role)} · {esc(category)}">'
         f'<div class="classification-path-primary">'
         f'<strong class="classification-path-role">{esc(role)}</strong>'
         f'<span class="classification-path-class"><span class="class-icon">{class_icon(category)}</span><strong>{esc(category)}</strong></span>'
         f'</div>'
-        f'<span class="classification-path-enabler">{esc(enabler)}</span>'
         f'</div>'
     )
 
 
-def classification_path_metric_html(path: dict, metric: str) -> str:
-    """Render one strategic-classification metric cell with the path category style."""
-    value = float(path.get(metric, 0.0))
+def classification_metric_html(summary: dict, metric: str) -> str:
+    """Render one strategic-classification metric cell."""
+    value = float(summary.get(metric, 0.0))
     return (
-        f'<div class="path-metric-row {class_css(path.get("Category", ""))}">'
-        f'<span class="path-metric-label">{esc(path.get("Label", "Base"))}</span>'
+        f'<div class="path-metric-row {class_css(summary.get("Category", ""))}">'
         f'<strong>{value:.1f}%</strong>'
         f'</div>'
     )
 
 
-def classification_path_fit_range_html(path: dict) -> str:
-    """Render Expected + likely/full Fit ranges for one classification path."""
-    exp = path.get("ProjectedFitPct")
-    lmin = path.get("ProjectedFitLikelyMinPct")
-    lmax = path.get("ProjectedFitLikelyMaxPct")
-    fmin = path.get("ProjectedFitFullMinPct")
-    fmax = path.get("ProjectedFitFullMaxPct")
+def classification_fit_range_html(summary: dict) -> str:
+    """Render Expected + likely/full Fit ranges for one classification result."""
+    exp = summary.get("ProjectedFitPct")
+    lmin = summary.get("ProjectedFitLikelyMinPct")
+    lmax = summary.get("ProjectedFitLikelyMaxPct")
+    fmin = summary.get("ProjectedFitFullMinPct")
+    fmax = summary.get("ProjectedFitFullMaxPct")
     title = (
         "Expected Fit: average final Fit across simulated development paths. "
         "Likely range: 5th–95th percentile (about 90% of simulated outcomes). "
@@ -76,8 +72,7 @@ def classification_path_fit_range_html(path: dict) -> str:
             f'<small class="path-fit-full">Full {float(fmin):.1f}–{float(fmax):.1f}</small>'
         )
     return (
-        f'<div class="path-fit-range-row {class_css(path.get("Category", ""))}" title="{esc(title)}">'
-        f'<span class="path-metric-label">{esc(path.get("Label", "Base"))}</span>'
+        f'<div class="path-fit-range-row {class_css(summary.get("Category", ""))}" title="{esc(title)}">'
         f'<span class="path-fit-range-values">{body}</span>'
         '</div>'
     )
@@ -122,8 +117,8 @@ def optimized_allocation_help_html() -> str:
         '<p>Talent stars shape each stat\'s possible roll range. Archetype baselines, '
         'targets, weights, and any Fit-only ceilings determine how valuable each gain is. '
         'Exact permanent trait and permanent-injury effects are included in the projected profile. '
-        'Owned or hypothetical perks do not alter this natural-stat projection; supported structural '
-        'perk paths are evaluated separately.</p>'
+        'Owned perks do not alter this natural-stat projection; their supported exact effects are '
+        'shown only in effective current stats.</p>'
         '<p>This is an optimized development policy, not a guaranteed outcome or a claim that '
         'every roll will be maximal. Temporary injuries and quarantined FutureRolls do not '
         'drive normal projection choices.</p>'
@@ -530,7 +525,6 @@ def levelup_advice_html(
     *,
     label: str = "RECOMMENDATION",
     trajectory_label: str | None = None,
-    colossus: bool = False,
 ) -> str:
     if not advice:
         return ""
@@ -617,8 +611,6 @@ def levelup_advice_html(
         )
 
     trajectory = trajectory_label or advice["AnchorRole"]
-    variant = " colossus" if colossus else ""
-    path_name = "Colossus path" if colossus else "Base path"
 
     runner_html = ""
     if alt:
@@ -647,11 +639,11 @@ def levelup_advice_html(
         )
 
     return (
-        f'<section class="lu-trajectory{variant}">'
+        '<section class="lu-trajectory">'
         '<div class="lu-trajectory-banner">'
         '<div>'
         f'<small>{esc(label)}</small>'
-        f'<strong>{esc(path_name)}</strong>'
+        '<strong>Natural development</strong>'
         '</div>'
         f'<span>Optimized for <b>{esc(trajectory)}</b></span>'
         '</div>'
@@ -678,14 +670,6 @@ def levelup_bro_panel(b, summary: dict, *, open_panel: bool = False) -> str:
 
     open_attr = " open" if open_panel else ""
     points = int(b.LevelPoints)
-    structural_alts = summary.get("StructuralPerkAlternatives", [])
-    structural_html = ''.join(
-        '<span class="lu-structural-note">'
-        f'{esc(alt["Label"])} → {esc(alt["Role"])}'
-        '</span>'
-        for alt in structural_alts
-    )
-
     return (
         f'<details class="levelup-bro-panel"{open_attr}>'
         '<summary class="levelup-bro-head">'
@@ -699,7 +683,6 @@ def levelup_bro_panel(b, summary: dict, *, open_panel: bool = False) -> str:
         '<div class="lu-role-chip">'
         '<small>BEST ROLE</small>'
         f'<strong>{esc(summary["BestRole"])}</strong>'
-        f'{structural_html}'
         '</div>'
         '<div class="lu-head-metrics">'
         f'<span><small>Fit</small><b>{summary["ProjectedFitPct"]:.1f}%</b></span>'
@@ -709,30 +692,20 @@ def levelup_bro_panel(b, summary: dict, *, open_panel: bool = False) -> str:
         '</summary>'
         '<div class="levelup-bro-body">'
         + levelup_advice_html(advice)
-        + ''.join(
-            levelup_advice_html(
-                alt.get("LevelUpAdvice"),
-                label=f'{alt["Label"].upper()} PATH',
-                trajectory_label=alt["Role"],
-                colossus=("Colossus" in alt["Perks"]),
-            )
-            for alt in structural_alts
-            if alt.get("LevelUpAdvice")
-        )
         + '</div>'
         '</details>'
     )
 
 
 def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=None) -> str:
-    """Shared rich archetype body for base and structural trajectories."""
+    """Render the detailed natural projection for one archetype."""
     effective = effective or {}
     return (
         '<div class="role-detail-body">'
         f'{fit_measure_help_html(row)}'
         f'{target_profile_html(row)}'
         '<div class="detail-block"><h4>EFFECTIVE CURRENT STATS</h4>'
-        f'<div class="stat-grid structural-stats">{current_stat_chips(b,effective,role_important_stats(role_cfg))}</div></div>'
+        f'<div class="stat-grid">{current_stat_chips(b,effective,role_important_stats(role_cfg))}</div></div>'
         '<div class="detail-block development-focus-block"><h4>FIT DEVELOPMENT — LEVEL 11 <span>(optimized stat allocation)</span></h4>'
         f'{optimized_allocation_help_html()}'
         f'{development_focus_html(b,row,effective)}</div>'
@@ -744,21 +717,6 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
     )
 
 
-def structural_detail_html(b, alt: dict, roles: list[dict], class_cfg: dict) -> str:
-    r=alt.get("BestRoleDetail")
-    if not r: return ""
-    role_cfg=next((role for role in roles if role["name"]==alt["Role"]),None)
-    return (
-        '<details class="role-card structural-detail-card retained-role"><summary>'
-        '<div class="role-name">'
-        f'<small class="role-path-label">{esc(alt["Label"].upper())}</small><span class="role-title-line"><span>{esc(alt["Role"])}</span><span class="class-badge {class_css(alt["Category"])}"><span class="class-icon">{class_icon(alt["Category"])}</span>{esc(alt["Category"])}</span></span></div>'
-        '<div class="role-kpis">'
-        f'<span class="kpi {heat(r["ProjectedFitPct"])} kpi-track">Fit <b>{r["ProjectedFitPct"]:.1f}%</b>{fit_uncertainty_track(r)}</span>'
-        f'<span class="kpi">P(Fit≥100) <b>{r["FitFeasibilityPct"]:.1f}%</b></span>'
-        f'{classification_ceiling_html(r, alt["Category"], class_cfg)}</div></summary>'
-        f'{archetype_detail_body_html(b, r, role_cfg, alt.get("EffectiveStats"))}'
-        '</details>'
-    )
 def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg, generated_at="", recruits=None):
     recruits = recruits or []
 
@@ -802,41 +760,15 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
     for b in bros:
         x = sm[b.BrotherID]
 
-        paths = x.get("ClassificationPaths") or []
-        selected = x.get("SelectedClassificationPath") or {}
-        if not paths:
-            paths = [{
-                "Label": "Base",
-                "Role": x.get("BestRole", ""),
-                "Category": x.get("Category", ""),
-                "ProjectedFitPct": x.get("ProjectedFitPct", 0.0),
-                "ProjectedFitLikelyMinPct": x.get("ProjectedFitLikelyMinPct"),
-                "ProjectedFitLikelyMaxPct": x.get("ProjectedFitLikelyMaxPct"),
-                "ProjectedFitFullMinPct": x.get("ProjectedFitFullMinPct"),
-                "ProjectedFitFullMaxPct": x.get("ProjectedFitFullMaxPct"),
-                "FitFeasibilityPct": x.get("FitFeasibilityPct", 0.0),
-            }]
-        rowspan = len(paths)
-        for path_index, path in enumerate(paths):
-            is_selected = (
-                path.get("Label", "Base") == selected.get("Label", "Base")
-                and path.get("Role") == selected.get("Role")
-                and path.get("Category") == selected.get("Category")
-            )
-            lead_cells = ""
-            if path_index == 0:
-                lead_cells = (
-                    f'<td class="sticky strategic-brother" rowspan="{rowspan}"><a class="bro-link" href="#{bro_anchor(b.BrotherID)}">{esc(b.Name)}</a></td>'
-                    f'<td class="strategy-bg" rowspan="{rowspan}">{esc(b.Background)}</td>'
-                )
-            class_rows.append(
-                f'<tr class="strategic-path-tr{" selected-path-row" if is_selected else ""}" data-category="{esc(x["Category"])}">'
-                f'{lead_cells}'
-                f'<td class="strategy-paths">{classification_path_html(path)}</td>'
-                f'<td class="strategy-metric strategy-fit-range">{classification_path_fit_range_html(path)}</td>'
-                f'<td class="strategy-metric">{classification_path_metric_html(path, "FitFeasibilityPct")}</td>'
-                '</tr>'
-            )
+        class_rows.append(
+            f'<tr class="strategic-classification-tr" data-category="{esc(x["Category"])}">'
+            f'<td class="sticky strategic-brother"><a class="bro-link" href="#{bro_anchor(b.BrotherID)}">{esc(b.Name)}</a></td>'
+            f'<td class="strategy-bg">{esc(b.Background)}</td>'
+            f'<td class="strategy-result">{classification_summary_html(x)}</td>'
+            f'<td class="strategy-metric strategy-fit-range">{classification_fit_range_html(x)}</td>'
+            f'<td class="strategy-metric">{classification_metric_html(x, "FitFeasibilityPct")}</td>'
+            '</tr>'
+        )
 
         role_map = {r["Role"]: r for r in by_id[b.BrotherID]}
         cells = []
@@ -883,14 +815,6 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
                 '</details>'
             ))
 
-        # Alternate structural trajectories are archetype projections too. Put
-        # them in the same list and sort the whole set by Fit, regardless of path.
-        for alt in x.get("StructuralPerkAlternatives", []):
-            role_cards.append((
-                float(alt["ProjectedFitPct"]),
-                structural_detail_html(b, alt, roles, class_cfg),
-            ))
-
         role_cards.sort(key=lambda item: item[0], reverse=True)
         rendered_cards = []
         for index, (_, card) in enumerate(role_cards):
@@ -903,21 +827,6 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
             rendered_cards.append(card)
         rendered_role_cards = ''.join(rendered_cards)
 
-        header_trajectories = [{
-            "Label": "DEFAULT",
-            "Role": x["BestRole"],
-            "ProjectedFitPct": x["ProjectedFitPct"],
-            "FitFeasibilityPct": x["FitFeasibilityPct"],
-            "Current": True,
-        }] + [
-            {**alt, "Current": False}
-            for alt in x.get("StructuralPerkAlternatives", [])
-        ]
-        header_trajectories.sort(
-            key=lambda row: row["ProjectedFitPct"],
-            reverse=True,
-        )
-
         details.append(
             f'<details id="{bro_anchor(b.BrotherID)}" class="bro-card bro-panel" data-category="{esc(x["Category"])}">'
             '<summary class="bro-head">'
@@ -926,17 +835,13 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
             f'<div class="muted">{esc(b.Background)} · Level {b.Level}</div>'
             '</div>'
             '<div class="best-box">'
-            + ''.join(
-                f'<div class="bro-role-option {"current" if traj["Current"] else "alternate"}">'
-                f'<small class="bro-role-path">{esc(traj["Label"].upper())}</small>'
-                f'<strong>{esc(traj["Role"])}</strong>'
+            f'<div class="bro-role-option current">'
+                f'<strong>{esc(x["BestRole"])}</strong>'
                 '<div class="bro-role-metrics">'
-                f'<span><small>FIT</small><b>{traj["ProjectedFitPct"]:.1f}%</b></span>'
-                f'<span><small>P≥100</small><b>{traj["FitFeasibilityPct"]:.1f}%</b></span>'
+                f'<span><small>FIT</small><b>{x["ProjectedFitPct"]:.1f}%</b></span>'
+                f'<span><small>P≥100</small><b>{x["FitFeasibilityPct"]:.1f}%</b></span>'
                 '</div>'
                 '</div>'
-                for traj in header_trajectories
-            )
             + '</div>' 
             '</summary>'
             '<div class="bro-panel-body">'
@@ -972,7 +877,7 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
         + ' <span class="muted">F↑=Expected Fit · P↑=P(Fit≥100%)</span></div>'
         + '<h2>Strategic Classification</h2><div class="tw strategic-table-wrap"><table class="strategic-table">'
         + '<colgroup><col class="col-brother"><col class="col-background"><col class="col-paths"><col class="col-fit-range"><col class="col-prob"></colgroup>'
-        + '<thead><tr><th class="sticky">Brother</th><th>Background</th><th class="paths-head">Paths</th><th title="Expected Fit plus likely (P5–P95) and full simulated Fit ranges.">Fit / ranges</th><th title="Probability that simulated level-11 Fit reaches 100%.">P(Fit≥100)</th>'
+        + '<thead><tr><th class="sticky">Brother</th><th>Background</th><th class="result-head">Result</th><th title="Expected Fit plus likely (P5–P95) and full simulated Fit ranges.">Fit / ranges</th><th title="Probability that simulated level-11 Fit reaches 100%.">P(Fit≥100)</th>'
         + '</tr></thead><tbody>' + ''.join(class_rows) + '</tbody></table></div>'
         + '<h2>Brother Details</h2>' + ''.join(details)
         + '</section>'

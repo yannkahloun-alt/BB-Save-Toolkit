@@ -152,50 +152,6 @@ def test_profile_dynamic_operator_strings_use_value_equality(monkeypatch, bro_fa
     assert mult["HP"] == pytest.approx(1.5)
 
 
-def _patch_model(monkeypatch, model):
-    original = Path.read_text
-    def read_text(path, *args, **kwargs):
-        if Path(path).name == "perk_model.json":
-            return json.dumps(model)
-        return original(path, *args, **kwargs)
-    monkeypatch.setattr(Path, "read_text", read_text)
-
-
-def test_structural_perks_require_exact_unconditional_real_stat(monkeypatch):
-    model = {"structural": {"missing": {}, "good": {}, "not_exact": {}, "conditional": {}, "bad_stat": {}}}
-    registry = {
-        "good": {"Effects": [{"exact": True, "conditional": False, "stat": "HP"}]},
-        "not_exact": {"Effects": [{"exact": False, "conditional": False, "stat": "HP"}]},
-        "conditional": {"Effects": [{"exact": True, "conditional": True, "stat": "HP"}]},
-        "bad_stat": {"Effects": [{"exact": True, "conditional": False, "stat": "NotAStat"}]},
-    }
-    _patch_model(monkeypatch, model)
-    monkeypatch.setattr(perks, "_load_perk_effects", lambda: registry)
-    assert perks.structural_projection_perks() == ["good"]
-
-
-def test_structural_perks_continue_past_missing_reviewed_entry(monkeypatch):
-    model = {"structural": {"missing": {}, "good": {}}}
-    registry = {"good": {"Effects": [{"exact": True, "conditional": False, "stat": "HP"}]}}
-    _patch_model(monkeypatch, model)
-    monkeypatch.setattr(perks, "_load_perk_effects", lambda: registry)
-    assert perks.structural_projection_perks() == ["good"]
-
-
-def test_structural_stats_require_all_three_predicates_and_continue(monkeypatch):
-    registry = {
-        "missing_first": None,
-        "mixed": {"Effects": [
-            {"exact": False, "conditional": False, "stat": "HP"},
-            {"exact": True, "conditional": True, "stat": "MAtk"},
-            {"exact": True, "conditional": False, "stat": "NotAStat"},
-            {"exact": True, "conditional": False, "stat": "MDef"},
-        ]},
-    }
-    monkeypatch.setattr(perks, "_load_perk_effects", lambda: registry)
-    assert perks.structural_projection_perk_stats(["missing", "mixed"]) == {"MDef"}
-
-
 def test_exact_perk_effects_continue_after_unknown_perk(monkeypatch, bro_factory):
     registry = {
         "Known": {"Effects": [
@@ -224,20 +180,4 @@ def test_load_perk_effects_invalid_json_has_controlled_error(monkeypatch):
     monkeypatch.setattr(Path, "read_text", lambda *_args, **_kwargs: "{")
     with pytest.raises(RuntimeError, match="is invalid") as exc:
         perks._load_perk_effects()
-    assert isinstance(exc.value.__cause__, json.JSONDecodeError)
-
-
-def test_structural_model_missing_file_has_controlled_error(monkeypatch):
-    def boom(*_args, **_kwargs):
-        raise FileNotFoundError("missing")
-    monkeypatch.setattr(Path, "read_text", boom)
-    with pytest.raises(RuntimeError, match="required to determine BestRole") as exc:
-        perks.structural_projection_perks()
-    assert isinstance(exc.value.__cause__, FileNotFoundError)
-
-
-def test_structural_model_invalid_json_has_controlled_error(monkeypatch):
-    monkeypatch.setattr(Path, "read_text", lambda *_args, **_kwargs: "{")
-    with pytest.raises(RuntimeError, match="invalid and cannot determine BestRole") as exc:
-        perks.structural_projection_perks()
     assert isinstance(exc.value.__cause__, json.JSONDecodeError)

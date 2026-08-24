@@ -56,5 +56,5 @@ def test_natural_projection_ignores_owned_stat_modifying_perks(
 def test_config_perk_model_categories_are_known():
     root=Path(__file__).resolve().parents[2]
     model=json.loads((root/'config/perk_model.json').read_text(encoding="utf-8"))
-    allowed={'_meta','structural','excluded'}
+    allowed={'_meta','excluded'}
     assert set(model).issubset(allowed), set(model)-allowed

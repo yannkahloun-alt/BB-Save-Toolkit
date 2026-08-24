@@ -13,7 +13,7 @@ save bytes
   -> effective stats / permanent transforms
   -> trajectory projection per archetype
   -> Fit / ranges / feasibility
-  -> classification + structural paths + Level-Up Advisor
+  -> classification + Level-Up Advisor
   -> JSON / HTML outputs
 ```
 
@@ -50,7 +50,7 @@ Evaluates legal current 3-stat choices using the same trajectory/Fit model. Know
 
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`
 
-Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, structural paths, advisor output, and summaries.
+Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, advisor output, and summaries.
 
 ### `bbtool/incremental/`
 
@@ -60,7 +60,6 @@ Current artifacts can be cached independently where dependencies permit:
 
 ```text
 role projection
-structural paths
 advisor
 summary
 ```

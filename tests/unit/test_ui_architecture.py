@@ -6,12 +6,12 @@ import pytest
 pytestmark=pytest.mark.unit
 import bbtool.projection.trajectory as trajectory
 from bbtool.models import STATS
-from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html,optimized_allocation_help_html
+from bbtool.html_report import classification_ceiling_html,classification_summary_html,classification_metric_html,classification_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html,optimized_allocation_help_html
 ROOT=Path(__file__).resolve().parents[2]
 
-def test_strategic_path_classes_consistent():
-    p={'Label':'Base','Category':'Invest','Role':'Nimble Tank','ProjectedFitPct':88.1,'ProjectedFitLikelyMinPct':80,'ProjectedFitLikelyMaxPct':95,'ProjectedFitFullMinPct':70,'ProjectedFitFullMaxPct':105,'FitFeasibilityPct':12.3}
-    assert 'class-invest' in classification_path_html(p); assert 'class-invest' in classification_path_metric_html(p,'FitFeasibilityPct'); assert 'class-invest' in classification_path_fit_range_html(p); assert 'heat' not in classification_path_metric_html(p,'FitFeasibilityPct')
+def test_strategic_result_classes_consistent():
+    p={'Category':'Invest','BestRole':'Nimble Tank','ProjectedFitPct':88.1,'ProjectedFitLikelyMinPct':80,'ProjectedFitLikelyMaxPct':95,'ProjectedFitFullMinPct':70,'ProjectedFitFullMaxPct':105,'FitFeasibilityPct':12.3}
+    assert 'class-invest' in classification_summary_html(p); assert 'class-invest' in classification_metric_html(p,'FitFeasibilityPct'); assert 'class-invest' in classification_fit_range_html(p); assert 'heat' not in classification_metric_html(p,'FitFeasibilityPct')
 
 
 def test_fodder_trash_ceiling_explains_non_monotonic_expected_fit(cfg):
@@ -68,7 +68,7 @@ def test_optimized_allocation_help_explains_projection_policy():
         assert influence in html
     assert "not a guaranteed outcome" in html
     assert "perks do not alter this natural-stat projection" in html
-    assert "structural perk paths are evaluated separately" in html
+    assert "shown only in effective current stats" in html
     assert "Temporary injuries" in html
     assert "FutureRolls do not drive normal projection choices" in html
 

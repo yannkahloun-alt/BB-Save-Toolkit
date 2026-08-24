@@ -2,13 +2,18 @@
 
 ## Status
 
-**Proposed specification**
+**Completed specification, amended 2026-08-24**
+
+The 2026-08-24 amendment retires the former hypothetical structural/perk-path
+artifact. Role Fit, classification, and the Level-Up Advisor now follow one
+natural-stat trajectory. Owned perks may still affect displayed current combat
+stats, but they do not create an alternate projection path or reusable artifact.
 
 This document defines an incremental computation and projection-reuse
 mechanism for the Battle Brothers Save Toolkit.
 
 The objective is to avoid systematically recomputing every projection,
-trajectory, classification, structural path, and level-up recommendation
+trajectory, classification, and level-up recommendation
 when a newly analyzed save is sufficiently similar to a previously
 analyzed save.
 
@@ -129,7 +134,6 @@ A reusable derived result such as:
 -   a role projection;
 -   a trajectory result;
 -   a classification result;
--   a structural/perk path result;
 -   a level-up advisor result.
 
 ### 4.6 Invalidation
@@ -370,7 +374,6 @@ its results, including when applicable:
 -   weights;
 -   ceilings;
 -   perk requirements;
--   burden/structural configuration;
 -   selection/tie-breaking configuration;
 -   any future archetype-specific projection option.
 
@@ -433,7 +436,6 @@ stars
 level / remaining development rounds
 relevant traits
 relevant injuries/effects
-relevant structural perks
 archetype fingerprint
 projection engine version
 trajectory engine version
@@ -472,22 +474,7 @@ trajectory engine version
 A change in current rolls MUST invalidate the advisor without
 necessarily invalidating unrelated base role projections.
 
-### 11.4 Structural/perk path
-
-Structural/perk-path artifacts SHOULD depend on:
-
-``` text
-current perks
-available perk points / level
-archetype perk specification
-perk engine version
-```
-
-If natural stats change but structural path inputs do not, the
-structural path MAY be reused if its implementation genuinely does not
-depend on those stats.
-
-### 11.5 Report rendering
+### 11.4 Report rendering
 
 Report rendering SHOULD normally consume current and reused numerical
 artifacts identically.
@@ -513,9 +500,9 @@ Save
      ├─ Traits / injuries
      └─ Current rolls
           │
-          ├─────────────┐
-          ▼             ▼
-    Role projection   Structural path
+          │
+          ▼
+    Role projection
           │
           ▼
     Classification
@@ -525,7 +512,6 @@ Save
                  Level-up advisor
 
 Archetype definition ─────► affected role projection
-                           ► affected structural path
 
 Engine versions ──────────► dependent artifact stages
 ```
@@ -727,8 +713,6 @@ Suggested normal output:
         ambiguous                  0
         role projections reused    60 / 70
         role projections computed  10 / 70
-        structural paths reused    6 / 7
-        structural paths computed  1 / 7
         advisors reused            6 / 7
         advisors computed          1 / 7
 [DONE ] Incremental analysis        1.82s
@@ -888,7 +872,6 @@ Expected behavior:
 ``` text
 ~60/70 role projections reusable
 only changed-brother role projections recomputed
-unaffected structural paths reused
 unaffected advisors reused when their dependencies are unchanged
 report regenerated from mixed reused/computed data
 ```
@@ -1101,7 +1084,6 @@ Add full-vs-incremental equivalence tests.
 Extend reuse/invalidation to:
 
 -   classification;
--   structural/perk paths;
 -   level-up advisor.
 
 ### Phase 4 - validation and tuning

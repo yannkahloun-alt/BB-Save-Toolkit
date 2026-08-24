@@ -18,7 +18,7 @@ def make_bro(name, offset):
     )
 
 
-def test_duplicate_names_have_distinct_structural_ids():
+def test_duplicate_names_have_distinct_brother_ids():
     a = make_bro("Same", 100)
     b = make_bro("Same", 200)
     assert a.Name == b.Name

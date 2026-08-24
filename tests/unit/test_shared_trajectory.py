@@ -175,12 +175,12 @@ def test_levelup_advisor_ignores_hidden_future_rolls():
     assert advice_a["Alternative"]["Stats"] == advice_b["Alternative"]["Stats"]
 
 
-def test_strategic_probability_cell_uses_path_category_not_heat_class():
-    """P(Fit) must share the same semantic class palette as Path and Fit/ranges."""
-    from bbtool.html_report import classification_path_metric_html
+def test_strategic_probability_cell_uses_category_not_heat_class():
+    """P(Fit) must share the same semantic class palette as the classification."""
+    from bbtool.html_report import classification_metric_html
 
-    html = classification_path_metric_html(
-        {"Label": "Base", "Category": "Invest", "FitFeasibilityPct": 91.2},
+    html = classification_metric_html(
+        {"Category": "Invest", "FitFeasibilityPct": 91.2},
         "FitFeasibilityPct",
     )
     assert 'path-metric-row class-invest' in html

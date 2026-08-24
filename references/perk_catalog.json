@@ -54,7 +54,7 @@
     },
     {
       "Name": "Colossus",
-      "BestRoleStatus": "structural"
+      "BestRoleStatus": "excluded"
     },
     {
       "Name": "Crippling Strikes",
