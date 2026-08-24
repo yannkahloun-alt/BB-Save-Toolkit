@@ -213,6 +213,25 @@ def _effects_by_stat(bro: Brother) -> dict[str, list[dict]]:
             out[stat].append(effect)
     return out
 
+
+def natural_projection_effects_by_stat(bro: Brother) -> dict[str, list[dict]]:
+    """Exact intrinsic effects used to evaluate natural archetype potential.
+
+    Owned perks describe a chosen build and must not improve the underlying
+    stat potential that is used to decide whether that build fits. Permanent
+    traits and permanent injuries remain intrinsic brother state and therefore
+    continue to participate in projection.
+    """
+    out = {stat: [] for stat in STATS}
+    for effect in (
+        _exact_trait_effects_for_bro(bro)
+        + _exact_permanent_injury_effects_for_bro(bro)
+    ):
+        stat = effect.get("stat")
+        if stat in out:
+            out[stat].append(effect)
+    return out
+
 def effective_stat_value(
     bro: Brother,
     stat: str,

@@ -1,3 +1,11 @@
+## Unreleased
+
+- Keeps archetype Fit and displayed level-11 projections based on natural stats,
+  excluding owned or hypothetical perk modifiers such as Fortified Mind and
+  Colossus while retaining separately reported effective combat stats.
+- Preserves exact permanent trait and permanent-injury transforms in natural
+  projections and invalidates all dependent incremental artifacts.
+
 ## v3.85 — Archetype projection details and verified PR workflow
 
 - Redesigns Archetype Details with a compact Target Profile, expandable five-part explanation strip, emphasized effective-current stats, and responsive level-11 development cards.

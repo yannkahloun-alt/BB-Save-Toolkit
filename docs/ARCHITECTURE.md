@@ -36,7 +36,8 @@ Important generated caches include enriched dictionaries, backgrounds, trait eff
 Pure computation layer where practical.
 
 - `context.py` compiles reusable brother projection context.
-- `perks.py` applies exact permanent structural perk, trait, and permanent-injury effects to effective stats.
+- `perks.py` keeps natural projection effects (traits and permanent injuries)
+  separate from perk-modified effective combat stats.
 - `trajectory.py` simulates legal future 3-stat level-up decisions and is the source of truth for development trajectories.
 - `scoring.py` evaluates continuous archetype Fit, including optional Fit-only ceilings.
 - `planner.py` assembles role projection outputs.
@@ -100,13 +101,16 @@ The uncapped projected stat remains the actual displayed projection.
 
 ## Permanent effects
 
-Effective projected stats may include exact unconditional permanent transforms from:
+Natural projected stats may include exact unconditional permanent transforms from:
 
 ```text
-structural perks
 traits
 permanent injuries
 ```
+
+Owned or hypothetical perk stat transforms are excluded from archetype Fit and
+the displayed level-11 natural projection. They may still appear in separately
+labelled effective-combat-stat contexts.
 
 Temporary injuries are intentionally excluded from long-term build evaluation.
 
