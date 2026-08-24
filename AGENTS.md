@@ -34,6 +34,12 @@ If the task changes a documented contract, update the relevant doc/spec in the s
 ## Development workflow
 
 - Work on one coherent task per branch/worktree.
+- If an agent selects, claims, or meaningfully investigates a GitHub ticket and
+  then decides not to proceed, it must comment on that ticket before switching
+  work or ending the task. The comment must state the reason, any blocker or
+  missing evidence, and what is needed to resume. Deferral alone does not close
+  the ticket; do not add a duplicate comment when equivalent context is already
+  present.
 - Inspect existing tests before changing implementation.
 - Add regression tests for every bug fix.
 - Run the smallest relevant tests during iteration.

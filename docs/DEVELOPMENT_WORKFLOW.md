@@ -16,6 +16,26 @@ BattleBrothers/
 
 Codex may work in a task branch/worktree while the main checkout remains stable.
 
+## Ticket selection and deferral
+
+Briefly considering a ticket does not claim it. Once an agent selects, claims,
+or meaningfully investigates a GitHub ticket with the intent to implement it,
+the ticket becomes part of that agent's visible work history.
+
+If the agent later decides not to proceed, it must leave a concise GitHub
+comment before switching to another ticket or ending the task. The comment
+must record:
+
+- why work is being deferred or forgone;
+- the concrete blocker, uncertainty, or missing evidence;
+- any useful investigation result that avoids duplicated work; and
+- the evidence, decision, or action needed to resume safely.
+
+Deferral does not mean the request is complete, so the ticket remains open
+unless it independently meets the repository's closure rules. Do not post a
+duplicate deferral comment when equivalent current context is already present.
+Do not imply that implementation or validation was completed when it was not.
+
 ## Task lifecycle
 
 ### 1. Start from a clean main branch
