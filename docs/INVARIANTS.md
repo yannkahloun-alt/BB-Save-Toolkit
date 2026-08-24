@@ -36,6 +36,13 @@ These are architectural contracts, not implementation suggestions.
 - Exact permanent-injury effects participate in effective projection stats and relevant fingerprints.
 - Conditional/complex effects must not be silently treated as unconditional permanent stat changes.
 
+## Perks and natural potential
+
+- Archetype Fit and displayed level-11 projections measure natural brother
+  potential and must not consume owned or hypothetical perk stat modifiers.
+- Perk-modified effective combat stats may be exposed separately, but they must
+  not rewrite the natural stat input used to discover or compare archetypes.
+
 ## Incremental analysis
 
 - Cache reuse is never a source of truth for current game state.

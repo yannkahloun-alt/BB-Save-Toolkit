@@ -1,13 +1,14 @@
 """Cached immutable projection inputs shared across archetypes (v3.18).
 
-The brother's raw/current state, exact perk transforms, development horizon and
-vanilla roll ranges are independent of the archetype. Building them once per
-unique brother state avoids repeating identical setup work for every role.
+The brother's raw/current state, intrinsic permanent transforms, development
+horizon and vanilla roll ranges are independent of the archetype. Building
+them once per unique brother state avoids repeating identical setup work for
+every role.
 """
 from __future__ import annotations
 
 from ..models import STATS, Brother
-from .perks import _effects_by_stat, effective_values
+from .perks import effective_values, natural_projection_effects_by_stat
 from .progression import average_gain, development_rounds_to_11, gain_range
 
 _BRO_CONTEXT_CACHE: dict[tuple, tuple] = {}
@@ -42,7 +43,7 @@ def bro_projection_context(bro: Brother) -> tuple:
         return cached
 
     raw_start = {stat: float(getattr(bro, stat)) for stat in STATS}
-    effects = _effects_by_stat(bro)
+    effects = natural_projection_effects_by_stat(bro)
     current = effective_values(bro, raw_start, effects)
     levels = development_rounds_to_11(bro)
     gains = {

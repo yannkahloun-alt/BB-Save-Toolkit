@@ -1,7 +1,8 @@
 # Perk Model
 
 This document is the source of truth for how Battle Brothers perks interact with
-BestRole projection and, later, the Perk Advisor.
+BestRole projection, separately displayed effective combat stats and, later,
+the Perk Advisor.
 
 The purpose is not merely to record the final classification. We keep the
 reasoning here so future changes do not accidentally reverse decisions after
@@ -9,9 +10,10 @@ the conversation context is gone.
 
 ## Core rule
 
-A perk may influence **BestRole** only when its stat impact is intrinsic and
-predictable enough to project **without first assuming the role, equipment or
-tactical behavior that the perk would then be used to justify**.
+**BestRole and archetype Fit measure natural brother potential.** Owned and
+hypothetical perk stat modifiers do not change the projected stats used for
+that evaluation. Perks may still supply build-compatibility signals and
+separately labelled effective combat stats.
 
 This prevents circular reasoning such as:
 
@@ -21,8 +23,7 @@ The intended direction is:
 
 `brother -> plausible archetype -> build/playstyle -> perk synergy`
 
-except for genuinely structural perks whose permanent stat effect exists
-independently of the final build.
+Perk transforms therefore remain downstream of archetype discovery.
 
 ## Classification
 
@@ -30,8 +31,8 @@ independently of the final build.
 
 A permanent, sufficiently deterministic modification of projected core stats.
 
-These perks may create alternate BestRole trajectories. If a structural perk
-does not change BestRole, no alternate trajectory needs to be shown.
+These perks may create alternate build/effective-stat paths, but do not change
+the natural-stat trajectory or Fit used to discover BestRole.
 
 ### Archetype-enhancing perk
 
@@ -52,18 +53,20 @@ treated as a stable projected core stat for BestRole.
 ### Colossus
 
 **Classification:** Structural BestRole perk  
-**BestRole impact:** Yes  
+**BestRole impact:** No
 **Current implementation:** Yes
 
 Colossus permanently multiplies HP and affects both current HP and aggregated
 future HP gains. Its value exists regardless of the eventual archetype, gear or
 combat behavior.
 
-The projection therefore evaluates a hypothetical Colossus trajectory and may
-produce a different BestRole. Level-Up Advisor may also provide advice for that
-trajectory.
+The analyzer may expose a hypothetical Colossus build path and its effective HP,
+but the natural HP trajectory and stat-derived Fit remain identical to the base
+brother. Level-Up Advisor evaluates natural development rather than treating
+Colossus as underlying talent.
 
-Future HP rolls are aggregated before the multiplier is applied.
+The separately reported current effective HP continues to apply the game's
+Colossus multiplier and integer rounding.
 
 ---
 
@@ -71,7 +74,7 @@ Future HP rolls are aggregated before the multiplier is applied.
 
 **Classification:** Archetype-enhancing perk  
 **BestRole impact:** No  
-**Future/role projection impact:** Yes — Banner
+**Future/role projection impact:** No
 
 Fortified Mind permanently multiplies Resolve, but unlike Colossus it is not a
 role-agnostic development assumption. It is a normal/required part of a Banner
@@ -85,9 +88,9 @@ The intended direction is instead:
 
 `brother qualities -> Banner is plausible -> Banner build includes Fortified Mind`
 
-Fortified Mind therefore remains a real stat transform when the brother actually
-has the perk, and should later be accounted for inside Banner-specific build
-projection/advice, but it must not create a BestRole branch by itself.
+Fortified Mind remains a real effective-combat-stat transform when the brother
+actually has the perk, but it is not applied to natural Banner projection, Fit,
+or BestRole discovery.
 
 ---
 
@@ -178,8 +181,8 @@ Duelist. Lone Wolf may improve those builds but must not create them.
 The shipped `references/dictionary_core.json` contains **50 standard/save-visible
 vanilla perks**. All 50 are now classified in this model:
 
-- **1 structural BestRole reveal perk:** Colossus
-- **49 excluded from structural BestRole reveal**
+- **1 structural effective-stat build path:** Colossus
+- **49 excluded from structural build-path simulation**
 - **0 standard perks remaining to review**
 
 This does **not** assume that the vanilla source tree contains only those 50
@@ -215,13 +218,14 @@ the modeling decision comes first; optimization comes after.
 ## BestRole exclusion list
 
 The following perks have been reviewed and are explicitly excluded from
-structural BestRole branching. This list is also the working checklist for the
+structural build-path simulation. This list is also the working checklist for the
 remaining audit: do not revisit an excluded perk unless its vanilla mechanics
 change or the modeling rule itself changes.
 
 ### Stat/resource effects that remain non-structural
 
-  create BestRole branches.
+- **Fortified Mind** — an owned Fortified Mind changes effective combat Resolve,
+  but never the natural Resolve projection or Banner Fit.
 - **Dodge** — derived MDef/RDef depends on Initiative, gear, accumulated Fatigue,
   combat behavior and possible Relentless synergy.
 - **Brawny** — usable-Fatigue benefit depends on the heavy gear selected for an
@@ -289,13 +293,15 @@ change or the modeling rule itself changes.
 
 ### Explicit structural allow-list so far
 
-Only this reviewed perk currently qualifies for BestRole branching:
+Only this reviewed perk currently qualifies for a structural effective-stat
+build path:
 
 1. **Colossus**
 
 Fortified Mind is explicitly archetype-enhancing: it belongs to Banner
-development, not Banner discovery. Everything else above is excluded from
-BestRole and may be reconsidered later for the Perk Advisor.
+development, not Banner discovery. Colossus likewise does not alter natural Fit;
+its path communicates an effective HP build outcome. Everything else above is
+excluded from BestRole and may be reconsidered later for the Perk Advisor.
 
 ## Audit rule going forward
 
