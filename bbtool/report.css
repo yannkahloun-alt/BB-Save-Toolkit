@@ -2089,6 +2089,16 @@ td:has(>.classification-paths-cell) {
   min-width: 132px;
   text-align: right;
 }
+.classification-ceiling {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: right;
+}
+.classification-ceiling b {
+  color: var(--text);
+}
 .development-focus-chip {
   padding-bottom: 25px;
 }

@@ -6,12 +6,21 @@ import pytest
 pytestmark=pytest.mark.unit
 import bbtool.projection.trajectory as trajectory
 from bbtool.models import STATS
-from bbtool.html_report import classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html
+from bbtool.html_report import classification_ceiling_html,classification_path_html,classification_path_metric_html,classification_path_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html
 ROOT=Path(__file__).resolve().parents[2]
 
 def test_strategic_path_classes_consistent():
     p={'Label':'Base','Category':'Invest','Role':'Nimble Tank','ProjectedFitPct':88.1,'ProjectedFitLikelyMinPct':80,'ProjectedFitLikelyMaxPct':95,'ProjectedFitFullMinPct':70,'ProjectedFitFullMaxPct':105,'FitFeasibilityPct':12.3}
     assert 'class-invest' in classification_path_html(p); assert 'class-invest' in classification_path_metric_html(p,'FitFeasibilityPct'); assert 'class-invest' in classification_path_fit_range_html(p); assert 'heat' not in classification_path_metric_html(p,'FitFeasibilityPct')
+
+
+def test_fodder_trash_ceiling_explains_non_monotonic_expected_fit(cfg):
+    fodder = {'ProjectedFitPct': 51.6, 'ProjectedFitFullMaxPct': 68.0}
+    trash = {'ProjectedFitPct': 52.8, 'ProjectedFitFullMaxPct': 63.0}
+
+    assert 'Full ceiling <b>68.0%</b> · can reach Use (65.0%)' in classification_ceiling_html(fodder, 'Fodder', cfg.classification)
+    assert 'Full ceiling <b>63.0%</b> · below Use (65.0%)' in classification_ceiling_html(trash, 'Trash', cfg.classification)
+    assert classification_ceiling_html(fodder, 'Use', cfg.classification) == ''
 def test_current_brother_details_neutral(bro_factory): assert 'important' not in current_stat_chips(bro_factory(),important_stats=set())
 def test_archetype_detail_language(cfg,bro_factory):
     role=cfg.roles[0]; from bbtool.projection.planner import project_role; b=bro_factory(); row=project_role(b,role); html=archetype_detail_body_html(b,row,role)
