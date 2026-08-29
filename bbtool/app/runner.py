@@ -14,6 +14,7 @@ from .analysis import analyze_brothers
 from ..incremental import IncrementalCache, find_previous_manifest, first_difference, prune_manifests, write_manifest
 from .cli import CliOptions
 from .config import load_config
+from .health import build_run_health, print_run_health
 from .console import (
     Step,
     format_bytes,
@@ -67,6 +68,10 @@ def run(options: CliOptions) -> tuple:
 
     report_path = None
     validation_path = None
+    validation_payload = None
+    incremental_cache = None
+    projection_profile = {}
+    debug_path = None
 
     if not options.no_projection:
         step = Step("Load configuration")
@@ -181,6 +186,14 @@ def run(options: CliOptions) -> tuple:
             f"{'PASS' if validation_passed else 'FAIL'} — {validation_path}"
         )
 
+        run_health = build_run_health(
+            bros,
+            recruits,
+            reference_status,
+            incremental_cache=incremental_cache,
+            validation_payload=validation_payload,
+        )
+
         step = Step("Write debug bundle")
         step.__enter__()
         debug_path = write_debug_bundle(
@@ -193,8 +206,12 @@ def run(options: CliOptions) -> tuple:
             config.classification,
             reference_status,
             projection_profile,
+            run_health,
         )
         step.done(debug_path.name)
+
+    if options.no_projection:
+        run_health = build_run_health(bros, recruits, reference_status)
 
     step = Step("Create run archive")
     step.__enter__()
@@ -234,5 +251,6 @@ def run(options: CliOptions) -> tuple:
         f"attempted={'yes' if open_attempted else 'no'} · successful={success}"
         + (f" · error={open_error}" if open_error else "")
     )
+    print_run_health(run_health, debug_path.name if debug_path else None)
 
     return workspace, archive_path
