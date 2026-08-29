@@ -123,10 +123,15 @@ def test_duplicate_brother_names_are_supported_with_brother_ids(monkeypatch,tmp_
     monkeypatch.setattr(sp,'parse_levelup_roll_sequence',lambda *a:{s:[] for s in ('HP','Resolve','Fatigue','Initiative','MAtk','RAtk','MDef','RDef')})
     monkeypatch.setattr(sp,'find_circle_metadata',lambda *a:None)
 
-    bros=sp.parse_roster(p)
+    diagnostics = {"recoverable_failures": []}
+    bros=sp.parse_roster(p, diagnostics=diagnostics)
 
     assert [b.Name for b in bros]==['Same','Same']
     assert [b.BrotherID for b in bros]==['human:10','human:20']
+    assert diagnostics["recoverable_failures"] == [
+        {"scope":"roster","kind":"circle_metadata_unresolved","human_offset":10,"name":"Same"},
+        {"scope":"roster","kind":"circle_metadata_unresolved","human_offset":20,"name":"Same"},
+    ]
 
 def test_truncated_save_fails_with_controlled_runtime_error(tmp_path):
     p=tmp_path/'bad.sav'; p.write_bytes(BROTHER_SIGNATURE[:10])

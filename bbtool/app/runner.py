@@ -50,9 +50,11 @@ def run(options: CliOptions) -> tuple:
     )
     step.done("generated" if generated else "cached")
 
+    parse_diagnostics = {"recoverable_failures": []}
+
     step = Step("Parse roster")
     step.__enter__()
-    bros = parse_roster(options.save)
+    bros = parse_roster(options.save, diagnostics=parse_diagnostics)
     step.done(f"{len(bros)} brothers")
 
     step = Step("Parse recruits")
@@ -190,6 +192,7 @@ def run(options: CliOptions) -> tuple:
             bros,
             recruits,
             reference_status,
+            parse_diagnostics=parse_diagnostics,
             incremental_cache=incremental_cache,
             validation_payload=validation_payload,
         )
@@ -211,7 +214,12 @@ def run(options: CliOptions) -> tuple:
         step.done(debug_path.name)
 
     if options.no_projection:
-        run_health = build_run_health(bros, recruits, reference_status)
+        run_health = build_run_health(
+            bros,
+            recruits,
+            reference_status,
+            parse_diagnostics=parse_diagnostics,
+        )
 
     step = Step("Create run archive")
     step.__enter__()

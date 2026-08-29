@@ -21,7 +21,7 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
         "generated_dictionary": False, "generated_backgrounds": False, "generated_perks": False
     })
     monkeypatch.setattr(runner, "print_reference_status", lambda x: None)
-    monkeypatch.setattr(runner, "parse_roster", lambda p: [])
+    monkeypatch.setattr(runner, "parse_roster", lambda p, **kwargs: [])
     monkeypatch.setattr(runner, "parse_recruits", lambda p: [])
     monkeypatch.setattr(runner, "create_workspace", lambda *a: workspace)
     monkeypatch.setattr(runner, "write_raw_inputs", lambda *a: None)

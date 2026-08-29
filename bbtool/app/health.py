@@ -37,6 +37,7 @@ def build_run_health(
     recruits,
     reference_status: dict,
     *,
+    parse_diagnostics: dict | None = None,
     incremental_cache=None,
     validation_payload: dict | None = None,
 ) -> dict:
@@ -63,7 +64,10 @@ def build_run_health(
         for key, value in reference_status.items()
         if key.startswith("generated_") and value
     )
-    recoverable_parsing_failures = 0
+    parsing_failures = list(
+        (parse_diagnostics or {}).get("recoverable_failures", [])
+    )
+    recoverable_parsing_failures = len(parsing_failures)
     result_affecting_warnings = (
         recoverable_parsing_failures + len(unresolved) + roll_violations
     )
@@ -77,6 +81,7 @@ def build_run_health(
         "result_affecting_warnings": result_affecting_warnings,
         "informational_notices": informational_notices,
         "recoverable_parsing_failures": recoverable_parsing_failures,
+        "recoverable_parsing_failure_sample": parsing_failures[:10],
         "unresolved_references_relevant_to_save": len(unresolved),
         "unresolved_reference_sample": unresolved[:10],
         "validation_roll_range_violations": roll_violations,
@@ -86,6 +91,7 @@ def build_run_health(
         "generated_reference_caches": generated,
         "evidence": {
             "unknown_references": "$.roster / $.recruits",
+            "parsing_recoveries": "$.runtime.run_health.recoverable_parsing_failure_sample",
             "reference_runtime": "$.runtime.references",
             "cache": "$.runtime.run_health.cache_fallback_reasons",
             "projection_validation": "sibling *-projection-validation.json $.summary",

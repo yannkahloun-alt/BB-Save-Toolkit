@@ -25,11 +25,17 @@ def test_run_health_aggregates_result_warnings_and_fallbacks(capsys):
         [bro],
         [],
         {"generated_dictionary": True, "generated_traits": False},
+        parse_diagnostics={
+            "recoverable_failures": [
+                {"scope": "roster", "kind": "circle_metadata_unresolved"}
+            ]
+        },
         incremental_cache=cache,
         validation_payload={"summary": {"roll_range_violations": 1}},
     )
 
-    assert health["result_affecting_warnings"] == 3
+    assert health["result_affecting_warnings"] == 4
+    assert health["recoverable_parsing_failures"] == 1
     assert health["unresolved_references_relevant_to_save"] == 2
     assert health["validation_roll_range_violations"] == 1
     assert health["cache_fallbacks"] == 3
@@ -42,7 +48,7 @@ def test_run_health_aggregates_result_warnings_and_fallbacks(capsys):
 
     print_run_health(health, "run-debug.json")
     output = capsys.readouterr().out
-    assert "result-affecting warnings: 3" in output
+    assert "result-affecting warnings: 4" in output
     assert "No result-affecting warnings." not in output
     assert "run-debug.json $.runtime.run_health" in output
 
