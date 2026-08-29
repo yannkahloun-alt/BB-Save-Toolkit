@@ -26,6 +26,8 @@ for HiringCost and DailyCost: local, inherited, or unresolved. Each field's
 three categories total the decoded scripts that completed inheritance
 resolution. Script scan counters separately report decode and inheritance
 resolution failures, so those totals reconcile with all scanned scripts.
+Scripts with a missing parent or an inheritance cycle are counted as resolution
+failures and excluded from generated entries and economy-field origin totals.
 Explicit and inferred background IDs are a separate dimension and may overlap
 the economy-field categories; they total the scripts that completed resolution.
 An entry is usable in backgrounds.json only when both economy fields resolve.

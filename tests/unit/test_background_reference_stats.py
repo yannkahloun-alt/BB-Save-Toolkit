@@ -30,6 +30,17 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
                 b'this.m.ID = "background.partial";\n'
                 b"this.m.HiringCost = 50;\n"
             ),
+            "missing_parent": (
+                b'this.inherit("scripts/skills/backgrounds/absent_background");\n'
+                b"this.m.HiringCost = 25;\n"
+                b"this.m.DailyCost = 2;\n"
+            ),
+            "cycle_a": (
+                b'this.inherit("scripts/skills/backgrounds/cycle_b_background");\n'
+            ),
+            "cycle_b": (
+                b'this.inherit("scripts/skills/backgrounds/cycle_a_background");\n'
+            ),
             "broken": b"\xff",
         }
     )
@@ -40,10 +51,10 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
     )
 
     assert stats["scripts"] == {
-        "scanned": 4,
-        "decoded": 3,
+        "scanned": 7,
+        "decoded": 6,
         "decode_failed": 1,
-        "resolution_failed": 0,
+        "resolution_failed": 3,
     }
     assert stats["backgrounds"] == 2
     assert stats["usable_background_scripts"] == 2
@@ -55,7 +66,7 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
     assert stats["identifiers"] == {"explicit": 2, "inferred": 1}
 
     for field in stats["economy_fields"].values():
-        assert sum(field.values()) + stats["scripts"]["resolution_failed"] == 3
+        assert sum(field.values()) + stats["scripts"]["resolution_failed"] == 6
     assert (
         stats["scripts"]["decoded"] + stats["scripts"]["decode_failed"]
         == stats["scripts"]["scanned"]

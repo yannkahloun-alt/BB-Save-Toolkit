@@ -1106,6 +1106,29 @@ def build_background_dictionary(
             }
 
     parse_seconds = time.perf_counter() - t
+    inheritance_memo = {}
+    checking_inheritance = set()
+
+    def inheritance_resolves(path: str) -> bool:
+        if path in inheritance_memo:
+            return inheritance_memo[path]
+        if path in checking_inheritance:
+            return False
+
+        rec = scripts.get(path)
+        if rec is None:
+            return False
+        parent_path = rec["Parent"]
+        if parent_path is None:
+            inheritance_memo[path] = True
+            return True
+
+        checking_inheritance.add(path)
+        valid = inheritance_resolves(parent_path)
+        checking_inheritance.discard(path)
+        inheritance_memo[path] = valid
+        return valid
+
     memo = {}
     resolving = set()
 
@@ -1153,6 +1176,9 @@ def build_background_dictionary(
     usable_background_scripts = 0
 
     for path in scripts:
+        if not inheritance_resolves(path):
+            resolution_failures += 1
+            continue
         rec = resolve(path)
         if rec is None:
             resolution_failures += 1
