@@ -9,7 +9,6 @@ _REFERENCE_FIELDS = (
     "Perks",
     "Traits",
     "Injuries",
-    "PermanentInjuries",
 )
 
 

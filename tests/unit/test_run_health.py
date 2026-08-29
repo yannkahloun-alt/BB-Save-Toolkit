@@ -75,3 +75,19 @@ def test_run_health_counts_plain_unknown_parser_fallback():
 
     assert health["unresolved_references_relevant_to_save"] == 1
     assert health["result_affecting_warnings"] == 1
+
+
+def test_run_health_does_not_double_count_permanent_injury_alias():
+    injury = "Unknown [DEADBEEF]"
+    bro = SimpleNamespace(
+        Background="Known",
+        Perks=[],
+        Traits=[],
+        Injuries=[injury],
+        PermanentInjuries=[injury],
+    )
+
+    health = build_run_health([bro], [], {})
+
+    assert health["unresolved_references_relevant_to_save"] == 1
+    assert health["unresolved_reference_sample"] == [injury]
