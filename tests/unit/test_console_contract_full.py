@@ -154,6 +154,49 @@ def test_print_reference_status_omits_empty_unresolved_sample(capsys):
     assert "unresolved item sample" not in out
 
 
+def test_print_reference_status_reports_provenance_and_persistence(capsys):
+    status = _full_status()
+    status.update(
+        schema="bbtool.reference_status.v1",
+        cache_directory="C:/cache/references",
+        reference_schemas={"dictionary": "bbtool.enriched_dictionary.v1"},
+        fallback_used=False,
+        download_sources={
+            "bbedit_dictionary": {
+                "selected_revision": "master",
+                "size_bytes": 3,
+                "sha256": "abc123",
+                "url": "https://example.invalid/dictionary.json",
+            }
+        },
+        final_cache={
+            "dictionary": {
+                "source": "network-generated",
+                "valid": True,
+                "size": 1024,
+                "path": "C:/cache/references/dictionary.json",
+            }
+        },
+    )
+    status["scripts_download_stats"].update(
+        source="network",
+        selected_revision="main",
+        sha256="def456",
+        url="https://example.invalid/scripts.zip",
+    )
+
+    console.print_reference_status(status)
+    out = capsys.readouterr().out
+
+    assert "bbtool.reference_status.v1 · cache C:/cache/references" in out
+    assert "dictionary=bbtool.enriched_dictionary.v1" in out
+    assert "reference fallback          none" in out
+    assert "network · ref master · 3 B · SHA-256 abc123" in out
+    assert "network · ref main" in out
+    assert "scripts.zip · SHA-256 def456" in out
+    assert "dictionary: network-generated · valid · 1.0 KiB" in out
+
+
 def test_print_projection_profile_full_contract(capsys):
     profile = {
         "base_matrix_s": 1.111,
