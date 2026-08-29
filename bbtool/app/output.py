@@ -372,6 +372,16 @@ def write_debug_bundle(
     return path
 
 
+def finalize_debug_bundle_metadata(path: Path, run_metadata: dict) -> None:
+    """Persist the final resource snapshot after the monitored run is complete."""
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.setdefault("runtime", {})["run_metadata"] = run_metadata
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
+        encoding="utf-8",
+    )
+
+
 
 def write_html(
     workspace: RunWorkspace,

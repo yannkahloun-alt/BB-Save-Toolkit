@@ -124,6 +124,9 @@ def resource_snapshot() -> dict:
 
 def refresh_resources(metadata: dict) -> None:
     metadata["resources"] = resource_snapshot()
+    metadata["resources"]["measurement_scope"] = (
+        "run start through initial archive creation"
+    )
 
 
 def print_run_header(metadata: dict) -> None:

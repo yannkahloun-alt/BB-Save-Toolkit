@@ -34,6 +34,7 @@ from .console import (
 from .output import (
     archive_workspace,
     create_workspace,
+    finalize_debug_bundle_metadata,
     write_analysis_json,
     write_debug_bundle,
     write_projection_validation,
@@ -44,6 +45,13 @@ from .output import (
 
 def run(options: CliOptions) -> tuple:
     resource_monitor_started = start_resource_monitoring()
+    try:
+        return _run(options, resource_monitor_started)
+    finally:
+        stop_resource_monitoring(resource_monitor_started)
+
+
+def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
     total_started = time.perf_counter()
     run_metadata = build_run_metadata(options)
     print_run_header(run_metadata)
@@ -237,6 +245,12 @@ def run(options: CliOptions) -> tuple:
     step = Step("Create run archive")
     step.__enter__()
     archive_path = archive_workspace(workspace, options.out)
+    refresh_resources(run_metadata)
+    stop_resource_monitoring(resource_monitor_started)
+    if debug_path is not None:
+        finalize_debug_bundle_metadata(debug_path, run_metadata)
+        # Rebuild so the archive contains the final, post-archive measurement.
+        archive_path = archive_workspace(workspace, options.out)
     archive_size = archive_path.stat().st_size
     archive_sha256 = sha256_file(archive_path)
     step.done(f"{format_bytes(archive_size)} — SHA-256 {archive_sha256}")
@@ -273,8 +287,6 @@ def run(options: CliOptions) -> tuple:
         + (f" · error={open_error}" if open_error else "")
     )
     print_run_health(run_health, debug_path.name if debug_path else None)
-    refresh_resources(run_metadata)
     print_resource_summary(run_metadata)
-    stop_resource_monitoring(resource_monitor_started)
 
     return workspace, archive_path

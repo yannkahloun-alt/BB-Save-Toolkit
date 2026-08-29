@@ -79,6 +79,13 @@ def test_write_debug_bundle(tmp_path):
     assert payload["runtime"]["projection_profile"]=={"calls":1}
     assert payload["runtime"]["run_metadata"]=={"format":"bbtool.run_metadata.v1"}
 
+    out.finalize_debug_bundle_metadata(
+        path,
+        {"format":"bbtool.run_metadata.v1","resources":{"python_heap_peak_bytes":123}},
+    )
+    finalized=json.loads(path.read_text(encoding="utf-8"))
+    assert finalized["runtime"]["run_metadata"]["resources"]["python_heap_peak_bytes"]==123
+
 
 def test_write_html_copies_assets_and_writes_report(monkeypatch,tmp_path):
     ws=workspace(tmp_path)
