@@ -46,7 +46,13 @@ def test_equipment_value_resolved_unknown_and_exact_circle_boundary():
     meta={'AABBCCDD':{'SerializedLength':5,'Value':100}}
     b=bytearray(b'\0'*20); b[6]=0; b[7]=1; b[8]=0; b[9:13]=bytes.fromhex('AABBCCDD')
     assert sp._parse_recruit_equipment_value(bytes(b),header,13,meta)==100
-    assert sp._parse_recruit_equipment_value(bytes(b),header,13,{}) is None
+    diagnostics=[]
+    assert sp._parse_recruit_equipment_value(bytes(b),header,13,{},diagnostics) is None
+    assert diagnostics == [{
+        'scope':'recruits',
+        'kind':'unresolved_recruit_equipment',
+        'reference_hash':'AABBCCDD',
+    }]
     assert sp._parse_recruit_equipment_value(bytes(b),header,14,meta) is None
 
 
