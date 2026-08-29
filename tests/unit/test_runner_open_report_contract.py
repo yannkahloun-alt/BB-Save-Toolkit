@@ -35,6 +35,7 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
     monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: Path("debug.json"))
+    monkeypatch.setattr(runner, "finalize_debug_bundle_metadata", lambda *a: None)
     monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
     opened = []
     monkeypatch.setattr(runner.webbrowser, "open", lambda uri: opened.append(uri) or True)

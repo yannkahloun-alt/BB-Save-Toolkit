@@ -47,6 +47,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "opened": [],
         "reference_status": [],
         "profile": [],
+        "archive_calls": 0,
     }
 
     monkeypatch.setattr(runner, "Step", FakeStep)
@@ -78,7 +79,11 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
     monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: debug)
-    monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
+    def archive_workspace(*args):
+        calls["archive_calls"] += 1
+        return archive
+
+    monkeypatch.setattr(runner, "archive_workspace", archive_workspace)
     monkeypatch.setattr(
         runner.webbrowser,
         "open",
@@ -131,6 +136,32 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert f"Validation: PASS — {tmp_path / 'validation.json'}" in out
     assert "SHA-256" in out
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
+    assert calls["archive_calls"] == 2
+
+
+def test_runner_stops_resource_monitor_after_failure(monkeypatch, tmp_path):
+    options = _opts(tmp_path, no_projection=True)
+    stopped = []
+    monkeypatch.setattr(runner, "start_resource_monitoring", lambda: True)
+    monkeypatch.setattr(
+        runner, "stop_resource_monitoring", lambda started: stopped.append(started)
+    )
+    monkeypatch.setattr(runner, "build_run_metadata", lambda options: {})
+    monkeypatch.setattr(runner, "print_run_header", lambda metadata: None)
+    monkeypatch.setattr(
+        runner,
+        "ensure_references",
+        lambda verbose=False: (_ for _ in ()).throw(RuntimeError("reference failure")),
+    )
+
+    try:
+        runner.run(options)
+    except RuntimeError as exc:
+        assert str(exc) == "reference failure"
+    else:
+        raise AssertionError("expected run failure")
+
+    assert stopped == [True]
 
 
 def test_runner_generated_background_and_perks_each_mark_generated(monkeypatch, tmp_path):

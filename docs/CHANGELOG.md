@@ -1,5 +1,10 @@
 ## Unreleased
 
+- Add a compact run header and structured debug-bundle metadata covering the
+  toolkit, schemas and engines, Python/OS environment, privacy-safe input and
+  configuration fingerprints, execution mode, cache locations, and peak
+  Python memory usage.
+
 ## v3.87 — Natural-stat-only classification cleanup
 
 - Removes the obsolete hypothetical Base/Colossus classification branches now

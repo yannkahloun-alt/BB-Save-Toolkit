@@ -334,6 +334,7 @@ def write_debug_bundle(
     reference_status: dict,
     projection_profile: dict,
     run_health: dict | None = None,
+    run_metadata: dict | None = None,
 ) -> Path:
     """
     Single-file support bundle intended to be dropped into ChatGPT instead of
@@ -356,6 +357,7 @@ def write_debug_bundle(
             "classification": classification_cfg,
         },
         "runtime": {
+            "run_metadata": run_metadata or {},
             "references": reference_status,
             "projection_profile": projection_profile,
             "run_health": run_health or {},
@@ -368,6 +370,16 @@ def write_debug_bundle(
         encoding="utf-8",
     )
     return path
+
+
+def finalize_debug_bundle_metadata(path: Path, run_metadata: dict) -> None:
+    """Persist the final resource snapshot after the monitored run is complete."""
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.setdefault("runtime", {})["run_metadata"] = run_metadata
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
+        encoding="utf-8",
+    )
 
 
 
