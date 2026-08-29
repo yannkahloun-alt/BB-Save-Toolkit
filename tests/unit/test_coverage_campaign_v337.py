@@ -70,12 +70,14 @@ def test_write_debug_bundle(tmp_path):
     ws=workspace(tmp_path)
     path=out.write_debug_bundle(
         ws,[make_bro()],[],[{"Role":"x"}],[{"Name":"A"}],[{"name":"x"}],
-        {"thresholds":{}},{"dictionary":True},{"calls":1}
+        {"thresholds":{}},{"dictionary":True},{"calls":1},
+        run_metadata={"format":"bbtool.run_metadata.v1"},
     )
     payload=json.loads(path.read_text(encoding="utf-8"))
     assert payload["_meta"]["format"]=="bbtool.debug_bundle.v1"
     assert payload["roster"][0]["Name"]=="A"
     assert payload["runtime"]["projection_profile"]=={"calls":1}
+    assert payload["runtime"]["run_metadata"]=={"format":"bbtool.run_metadata.v1"}
 
 
 def test_write_html_copies_assets_and_writes_report(monkeypatch,tmp_path):
