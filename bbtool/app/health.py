@@ -31,6 +31,21 @@ def _unknown_reference_values(records: Iterable[object]) -> list[str]:
     return sorted(unknown)
 
 
+def _unknown_background_values(records: Iterable[object]) -> list[str]:
+    unknown = []
+    for record in records:
+        value = (
+            record.get("Background")
+            if isinstance(record, dict)
+            else getattr(record, "Background", None)
+        )
+        if isinstance(value, str) and (
+            value == "Unknown" or value.startswith("Unknown [")
+        ):
+            unknown.append(value)
+    return sorted(unknown)
+
+
 def build_run_health(
     bros,
     recruits,
@@ -41,7 +56,9 @@ def build_run_health(
     validation_payload: dict | None = None,
 ) -> dict:
     """Build a deterministic summary without changing analysis behavior."""
-    unresolved = _unknown_reference_values([*bros, *recruits])
+    records = [*bros, *recruits]
+    unresolved = _unknown_reference_values(records)
+    unresolved_backgrounds = _unknown_background_values(records)
     validation_summary = (validation_payload or {}).get("summary", {})
     roll_violations = int(validation_summary.get("roll_range_violations", 0) or 0)
 
@@ -83,6 +100,8 @@ def build_run_health(
         "recoverable_parsing_failure_sample": parsing_failures[:10],
         "unresolved_references_relevant_to_save": len(unresolved),
         "unresolved_reference_sample": unresolved[:10],
+        "unresolved_backgrounds_relevant_to_save": len(unresolved_backgrounds),
+        "unresolved_background_sample": unresolved_backgrounds[:10],
         "validation_roll_range_violations": roll_violations,
         "cache_fallbacks": cache_fallbacks,
         "cache_fallback_reasons": miss_reasons,
@@ -111,6 +130,10 @@ def print_run_health(health: dict, debug_name: str | None) -> None:
         f"{health['recoverable_parsing_failures']} · "
         "unresolved references relevant to save: "
         f"{health['unresolved_references_relevant_to_save']}"
+    )
+    print(
+        "  unresolved backgrounds relevant to save: "
+        f"{health['unresolved_backgrounds_relevant_to_save']}"
     )
     print(
         f"  cache fallbacks: {health['cache_fallbacks']} · "
