@@ -254,7 +254,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         archive_path = archive_workspace(workspace, options.out)
     archive_size = archive_path.stat().st_size
     archive_sha256 = sha256_file(archive_path)
-    prune_outputs(options.out, workspace.source_save.stem)
+    prune_outputs(options.out, workspace.source_save.stem, archive_path)
     step.done(f"{format_bytes(archive_size)} — SHA-256 {archive_sha256}")
 
     total_elapsed = time.perf_counter() - total_started

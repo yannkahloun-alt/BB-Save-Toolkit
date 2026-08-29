@@ -428,6 +428,7 @@ def archive_workspace(workspace: RunWorkspace, out_root: Path) -> Path:
 def prune_outputs(
     output_directory: Path,
     source_stem: str,
+    current_output: Path,
     *,
     max_outputs: int = MAX_RETAINED_OUTPUTS,
 ) -> list[Path]:
@@ -436,6 +437,7 @@ def prune_outputs(
         raise ValueError("max_outputs must be at least 1")
 
     output_directory = output_directory.resolve()
+    current_output = current_output.resolve()
     pattern = re.compile(
         rf"^{re.escape(source_stem)}-(\d{{8}})-(\d{{6}})\.zip$"
     )
@@ -455,8 +457,16 @@ def prune_outputs(
         candidates.append((stamp, path.name, path))
 
     candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    retained = {current_output}
+    for _, _, path in candidates:
+        if len(retained) >= max_outputs:
+            break
+        if path != current_output:
+            retained.add(path)
     deleted = []
-    for _, _, path in candidates[max_outputs:]:
+    for _, _, path in candidates:
+        if path in retained:
+            continue
         try:
             path.unlink()
         except OSError as exc:

@@ -145,7 +145,7 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert "SHA-256" in out
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
     assert calls["archive_calls"] == 2
-    assert calls["prune_calls"] == [(tmp_path, "x")]
+    assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
 
 
 def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_path):

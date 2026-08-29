@@ -18,7 +18,7 @@ def test_prune_outputs_keeps_all_when_limit_is_not_exceeded(tmp_path, previous_c
         _archive(tmp_path, f"20260828-{index:06d}")
     current = _archive(tmp_path, "20260829-105043")
 
-    assert prune_outputs(tmp_path, "quicksave") == []
+    assert prune_outputs(tmp_path, "quicksave", current) == []
     assert current.exists()
     assert len(list(tmp_path.glob("*.zip"))) == previous_count + 1
 
@@ -30,7 +30,7 @@ def test_prune_outputs_removes_every_excess_archive_and_retains_current(tmp_path
     ]
     current = _archive(tmp_path, "20260829-105043")
 
-    deleted = prune_outputs(tmp_path, "quicksave")
+    deleted = prune_outputs(tmp_path, "quicksave", current)
 
     remaining = sorted(tmp_path.glob("quicksave-*.zip"))
     assert len(remaining) == MAX_RETAINED_OUTPUTS
@@ -46,7 +46,7 @@ def test_prune_outputs_with_ten_previous_removes_only_the_oldest(tmp_path):
     ]
     current = _archive(tmp_path, "20260829-105043")
 
-    assert prune_outputs(tmp_path, "quicksave") == [archives[0]]
+    assert prune_outputs(tmp_path, "quicksave", current) == [archives[0]]
     assert current.exists()
     assert len(list(tmp_path.glob("quicksave-*.zip"))) == 10
 
@@ -60,7 +60,9 @@ def test_prune_outputs_ignores_other_families_unrelated_files_and_directories(tm
     directory = tmp_path / "quicksave-20200101-000000.zip"
     directory.mkdir()
 
-    prune_outputs(tmp_path, "quicksave")
+    current = _archive(tmp_path, "20260829-105043")
+
+    prune_outputs(tmp_path, "quicksave", current)
 
     assert other_archive.exists()
     assert unrelated.exists()
@@ -72,7 +74,7 @@ def test_prune_outputs_uses_mtime_for_invalid_encoded_timestamp(tmp_path):
     valid = _archive(tmp_path, "20260829-105043")
     os.utime(invalid, (1, 1))
 
-    deleted = prune_outputs(tmp_path, "quicksave", max_outputs=1)
+    deleted = prune_outputs(tmp_path, "quicksave", valid, max_outputs=1)
 
     assert deleted == [invalid]
     assert valid.exists()
@@ -84,7 +86,7 @@ def test_prune_outputs_orders_same_timestamp_by_filename_deterministically(tmp_p
     os.utime(first, (1, 1))
     os.utime(second, (1, 1))
 
-    assert prune_outputs(tmp_path, "quicksave", max_outputs=1) == [first]
+    assert prune_outputs(tmp_path, "quicksave", second, max_outputs=1) == [first]
     assert not first.exists()
     assert second.exists()
 
@@ -103,7 +105,7 @@ def test_prune_outputs_warns_and_preserves_new_output_when_deletion_fails(
 
     monkeypatch.setattr(Path, "unlink", fail_old)
 
-    assert prune_outputs(tmp_path, "quicksave", max_outputs=1) == []
+    assert prune_outputs(tmp_path, "quicksave", current, max_outputs=1) == []
     assert current.exists()
     assert old.exists()
     assert f"Warning: unable to delete obsolete output {old}" in capsys.readouterr().out
@@ -111,4 +113,18 @@ def test_prune_outputs_warns_and_preserves_new_output_when_deletion_fails(
 
 def test_prune_outputs_rejects_non_positive_limit(tmp_path):
     with pytest.raises(ValueError, match="at least 1"):
-        prune_outputs(tmp_path, "quicksave", max_outputs=0)
+        prune_outputs(tmp_path, "quicksave", tmp_path / "current.zip", max_outputs=0)
+
+
+def test_prune_outputs_always_retains_current_output_despite_future_archives(tmp_path):
+    current = _archive(tmp_path, "20260829-105043")
+    future = [
+        _archive(tmp_path, f"20990101-{index:06d}")
+        for index in range(MAX_RETAINED_OUTPUTS)
+    ]
+
+    deleted = prune_outputs(tmp_path, "quicksave", current)
+
+    assert current.exists()
+    assert deleted == [future[0]]
+    assert len(list(tmp_path.glob("quicksave-*.zip"))) == MAX_RETAINED_OUTPUTS
