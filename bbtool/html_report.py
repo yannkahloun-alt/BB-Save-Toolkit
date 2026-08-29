@@ -228,8 +228,12 @@ def development_focus_html(b, row: dict, effective=None) -> str:
         markers = ''.join(
             f'<span class="projection-marker marker-{kind}" style="left:{position:.4f}%;--label-top:{27 + 13 * label_rows[kind]}px" '
             f'title="{label} {float(rng[key]):g}" aria-label="{label} {float(rng[key]):g}">'
-            f'<i></i><b>{float(rng[key]):g}</b></span>'
+            f'<i></i><b><span>{label}</span>{float(rng[key]):g}</b></span>'
             for kind, key, label, position in marker_data
+        )
+        compact_labels = ''.join(
+            f'<span class="marker-{kind}"><small>{label}</small><b>{float(rng[key]):g}</b></span>'
+            for kind, key, label, _position in marker_data
         )
         cap_note = ""
         if comp.get("ceiling") is not None:
@@ -259,13 +263,14 @@ def development_focus_html(b, row: dict, effective=None) -> str:
             '<div class="development-focus-chip">'
             '<div class="development-card-head">'
             f'<span class="stat-icon" aria-hidden="true">{STAT_SHORT[stat]}</span><strong>{esc(stat)}</strong>'
-            f'<small>Weight <b>{float(rng["weight"]):g}</b></small></div>'
+            f'<small class="fit-weight" title="Importance of this stat in the Fit calculation">Fit Weight <b>{float(rng["weight"]):g}</b></small></div>'
             f'<div class="development-values">{current:g} <em>→</em> {esc(range_text(rng))}</div>'
             '<div class="projection-axis">'
             f'<span class="projected-range{" projected-range-collapsed" if collapsed else ""}" '
             f'style="left:{range_left:.4f}%;width:{range_right-range_left:.4f}%" '
             f'title="{range_title}" aria-label="{range_title}: {range_label}"></span>'
             f'{markers}</div>'
+            f'<div class="projection-compact-labels" aria-hidden="true">{compact_labels}</div>'
             f'{deterministic_note}{cap_note}</div>'
         )
     return '<div class="development-focus-grid">'+''.join(chips)+'</div>' if chips else '<span class="muted">No Fit stat configured.</span>'

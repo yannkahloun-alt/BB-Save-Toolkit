@@ -108,6 +108,9 @@ def test_projection_markers_share_live_numeric_axis(bro_factory, expected, targe
     assert sorted(positions, key=positions.get) == sorted(values, key=values.get)
     assert 'projected-range' in html
     assert '<small class="focus-level">' not in html
+    assert '<div class="projection-compact-labels" aria-hidden="true">' in html
+    for label in ('Baseline', 'Target', 'Expected'):
+        assert f'<small>{label}</small>' in html
     if abs(expected - target) < 0.01:
         expected_top = re.search(r'marker-expected\" style=\"[^\"]*--label-top:([0-9]+)px', html).group(1)
         target_top = re.search(r'marker-target\" style=\"[^\"]*--label-top:([0-9]+)px', html).group(1)
@@ -151,6 +154,13 @@ def test_target_profile_explanation_contract():
     for heading in ('EXPECTED', 'TARGET', 'BASELINE', 'RANGE', 'WEIGHT'):
         assert f'<strong>{heading}</strong>' in html
     assert 'RANGE (WHISKER)' not in html and 'ⓘ' not in html and 'WELCOME TOUR' not in html
+
+
+def test_fit_weight_is_visually_and_semantically_connected_to_fit(bro_factory):
+    html = development_focus_html(bro_factory(MDef=13), _projection_row(expected=26.5))
+    assert 'class="fit-weight"' in html
+    assert 'Fit Weight <b>4</b>' in html
+    assert 'Importance of this stat in the Fit calculation' in html
 
 def test_single_advisor_definition():
     tree=ast.parse((ROOT/'bbtool/levelup_advisor.py').read_text(encoding="utf-8")); assert sum(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name=='advise_levelup' for n in ast.walk(tree))==1

@@ -2077,8 +2077,16 @@ td:has(>.classification-paths-cell) {
   gap: 8px;
 }
 .development-card-head > strong { font-size: .82rem; }
-.development-card-head > small { color: #c6a7ff; font-size: .66rem; }
-.development-card-head > small b { color: #dbc7ff; }
+.development-card-head > .fit-weight {
+  padding: 3px 6px;
+  border: 1px solid #7d8b9a;
+  border-radius: 4px;
+  background: #29323c;
+  color: #f0f4f8;
+  font-size: .66rem;
+  font-weight: 650;
+}
+.development-card-head > .fit-weight b { color: #fff; }
 .development-values {
   margin-top: 9px;
   color: #eef3f7;
@@ -2138,6 +2146,7 @@ td:has(>.classification-paths-cell) {
   white-space: nowrap;
   text-shadow: 0 1px 2px #0e1216;
 }
+.projection-marker b span { display: none; }
 .marker-baseline { color: #5ca7ff; }
 .marker-target { color: #e3a735; }
 .marker-expected { color: #58c98b; }
@@ -2170,6 +2179,7 @@ td:has(>.classification-paths-cell) {
 .legend-baseline { color: #5ca7ff; }
 .legend-target { color: #e3a735; }
 .legend-expected { color: #58c98b; }
+.projection-compact-labels { display: none; }
 
 @media (max-width: 900px) {
   .target-profile-explainer > summary { align-items: flex-start; flex-wrap: wrap; }
@@ -2177,6 +2187,38 @@ td:has(>.classification-paths-cell) {
   .target-profile-chevron { margin-left: auto; }
   .projection-explanations { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
   .projection-explanations > div { border-bottom: 1px solid #303a45; }
+}
+
+@media (max-width: 520px) {
+  .development-focus-grid { grid-template-columns: minmax(0, 1fr); }
+  .development-focus-chip { min-height: 170px; }
+  .projection-axis { height: 35px; margin-inline: 7px; }
+  .projection-marker b { display: none; }
+  .projection-compact-labels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 1px;
+  }
+  .projection-compact-labels > span {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 3px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    background: #202830;
+    font-size: .68rem;
+  }
+  .projection-compact-labels small {
+    overflow: hidden;
+    color: #e4eaf0;
+    font-size: .56rem;
+    text-overflow: ellipsis;
+  }
+  .projection-compact-labels b { color: currentColor; }
 }
 
 .strategic-table .path-metric-row {
