@@ -37,6 +37,7 @@ def test_run_health_aggregates_result_warnings_and_fallbacks(capsys):
     assert health["result_affecting_warnings"] == 4
     assert health["recoverable_parsing_failures"] == 1
     assert health["unresolved_references_relevant_to_save"] == 2
+    assert health["unresolved_backgrounds_relevant_to_save"] == 1
     assert health["validation_roll_range_violations"] == 1
     assert health["cache_fallbacks"] == 3
     assert health["conservative_recomputations"] == 4
@@ -51,6 +52,7 @@ def test_run_health_aggregates_result_warnings_and_fallbacks(capsys):
     assert "result-affecting warnings: 4" in output
     assert "No result-affecting warnings." not in output
     assert "run-debug.json $.runtime.run_health" in output
+    assert "unresolved backgrounds relevant to save: 1" in output
 
 
 def test_run_health_prints_explicit_clean_statement(capsys):
@@ -59,6 +61,7 @@ def test_run_health_prints_explicit_clean_statement(capsys):
     assert health["result_affecting_warnings"] == 0
     assert health["recoverable_parsing_failures"] == 0
     assert health["unresolved_references_relevant_to_save"] == 0
+    assert health["unresolved_backgrounds_relevant_to_save"] == 0
     assert health["cache_fallbacks"] == 0
     assert health["conservative_recomputations"] == 0
 

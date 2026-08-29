@@ -1144,36 +1144,45 @@ def build_background_dictionary(
         return resolved
 
     out = {}
-    missing_hiring_cost = 0
-    missing_daily_cost = 0
-    inferred_id = 0
-    inherited_hiring = 0
-    inherited_daily = 0
+    economy_fields = {
+        "hiring_cost": {"local": 0, "inherited": 0, "unresolved": 0},
+        "daily_cost": {"local": 0, "inherited": 0, "unresolved": 0},
+    }
+    identifiers = {"explicit": 0, "inferred": 0}
+    resolution_failures = 0
+    usable_background_scripts = 0
 
     for path in scripts:
         rec = resolve(path)
         if rec is None:
+            resolution_failures += 1
             continue
 
         background_id = rec["BackgroundID"]
         if background_id is None:
             background_id = f"background.{rec['Key']}"
-            inferred_id += 1
+            identifiers["inferred"] += 1
+        else:
+            identifiers["explicit"] += 1
 
-        if rec["HiringCostBase"] is None:
-            missing_hiring_cost += 1
-        if rec["DailyCostBase"] is None:
-            missing_daily_cost += 1
-        if rec["InheritedHiringCost"]:
-            inherited_hiring += 1
-        if rec["InheritedDailyCost"]:
-            inherited_daily += 1
+        for field_name, value_key, inherited_key in (
+            ("hiring_cost", "HiringCostBase", "InheritedHiringCost"),
+            ("daily_cost", "DailyCostBase", "InheritedDailyCost"),
+        ):
+            if rec[value_key] is None:
+                origin = "unresolved"
+            elif rec[inherited_key]:
+                origin = "inherited"
+            else:
+                origin = "local"
+            economy_fields[field_name][origin] += 1
 
         # Keep only entries with both economic fields; unresolved scripts are
         # tracked but not allowed to masquerade as usable economy refs.
         if rec["HiringCostBase"] is None or rec["DailyCostBase"] is None:
             continue
 
+        usable_background_scripts += 1
         out[rec["SaveHash"]] = {
             "BackgroundID": background_id,
             "Key": rec["Key"],
@@ -1195,13 +1204,18 @@ def build_background_dictionary(
 
     return {
         "backgrounds": len(out),
-        "scanned_background_scripts": scanned_scripts,
-        "decode_failures": decode_failures,
-        "inferred_id": inferred_id,
-        "missing_hiring_cost": missing_hiring_cost,
-        "missing_daily_cost": missing_daily_cost,
-        "inherited_hiring_cost": inherited_hiring,
-        "inherited_daily_cost": inherited_daily,
+        "usable_background_scripts": usable_background_scripts,
+        "unusable_background_scripts": (
+            len(scripts) - resolution_failures - usable_background_scripts
+        ),
+        "scripts": {
+            "scanned": scanned_scripts,
+            "decoded": len(scripts),
+            "decode_failed": decode_failures,
+            "resolution_failed": resolution_failures,
+        },
+        "economy_fields": economy_fields,
+        "identifiers": identifiers,
         "archive": archive_stats,
         "download_seconds": download_seconds,
         "parse_seconds": parse_seconds,

@@ -20,8 +20,10 @@ def test_console_step_and_profile_and_status(capsys, monkeypatch):
         'dictionary_stats':{'dictionary_ids':2,'output_bytes':1024,'equipment_like':3,'with_value':2,'unresolved':1,'coverage_pct':66.7,
             'exact_hash_matches':2,'exact_hash_with_value':2,'source_value_resolved':2,'source_scripts':3,'source_value_local':2,'source_value_inherited':0,
             'source_value_unresolved':1,'bbedit_download_seconds':.1,'source_parse_seconds':.2,'join_seconds':.01,'write_seconds':.02,'unresolved_sample':['A']},
-        'background_stats':{'backgrounds':2,'scanned_background_scripts':3,'inherited_hiring_cost':1,'inherited_daily_cost':1,'inferred_id':1,
-            'missing_hiring_cost':1,'missing_daily_cost':1,'parse_seconds':.1},
+        'background_stats':{'backgrounds':2,'usable_background_scripts':2,'unusable_background_scripts':1,
+            'scripts':{'scanned':3,'decoded':3,'decode_failed':0,'resolution_failed':0},
+            'economy_fields':{'hiring_cost':{'local':1,'inherited':1,'unresolved':1},'daily_cost':{'local':1,'inherited':1,'unresolved':1}},
+            'identifiers':{'explicit':2,'inferred':1},'parse_seconds':.1},
         'perk_stats':{'perks':3,'stat_modifying':2,'exact_stat_modifying':1,'conditional_stat_modifying':1,'parse_seconds':.1,'output_bytes':1024},
     }
     console.print_reference_status(status)

@@ -117,21 +117,37 @@ def print_reference_status(status: dict) -> None:
 
     bs = status.get("background_stats")
     if bs:
+        scripts = bs["scripts"]
+        hiring = bs["economy_fields"]["hiring_cost"]
+        daily = bs["economy_fields"]["daily_cost"]
+        identifiers = bs["identifiers"]
         print(
             "        backgrounds.json            "
-            f"{bs['backgrounds']} resolved / "
-            f"{bs['scanned_background_scripts']} scanned"
+            f"{bs['backgrounds']} entries from "
+            f"{bs['usable_background_scripts']} usable scripts · "
+            f"{bs['unusable_background_scripts']} unusable / "
+            f"{scripts['decoded']} decoded"
         )
         print(
-            "        background inheritance      "
-            f"hire={bs['inherited_hiring_cost']} · "
-            f"daily={bs['inherited_daily_cost']} · "
-            f"inferred id={bs['inferred_id']}"
+            "        hiring cost origin          "
+            f"local={hiring['local']} · inherited={hiring['inherited']} · "
+            f"unresolved={hiring['unresolved']}"
         )
         print(
-            "        background unresolved       "
-            f"hire={bs['missing_hiring_cost']} · "
-            f"daily={bs['missing_daily_cost']} · "
+            "        daily cost origin           "
+            f"local={daily['local']} · inherited={daily['inherited']} · "
+            f"unresolved={daily['unresolved']}"
+        )
+        print(
+            "        background identifiers      "
+            f"explicit={identifiers['explicit']} · "
+            f"inferred={identifiers['inferred']}"
+        )
+        print(
+            "        background script scan      "
+            f"scanned={scripts['scanned']} · decoded={scripts['decoded']} · "
+            f"decode failed={scripts['decode_failed']} · "
+            f"resolution failed={scripts['resolution_failed']} · "
             f"parse {bs['parse_seconds']:.3f}s"
         )
 
