@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import hashlib
-from pathlib import Path
 import time
+from pathlib import Path
 
 
 class Step:
@@ -55,6 +55,31 @@ def print_generated_files(root: Path) -> None:
 
 def print_reference_status(status: dict) -> None:
     initial = status["initial_cache"]
+    if status.get("schema"):
+        print(
+            "        reference status            "
+            f"{status['schema']} · cache {status['cache_directory']}"
+        )
+        print(
+            "        reference schemas           "
+            + " · ".join(
+                f"{name}={value}"
+                for name, value in status.get("reference_schemas", {}).items()
+            )
+        )
+        print(
+            "        reference fallback          "
+            + ("used" if status.get("fallback_used") else "none")
+        )
+        for name, source in status.get("download_sources", {}).items():
+            if name == "vanilla_scripts":
+                continue
+            print(
+                f"        reference source {name:<11}"
+                f"network · ref {source['selected_revision']} · "
+                f"{format_bytes(source['size_bytes'])} · "
+                f"SHA-256 {source['sha256']} · {source['url']}"
+            )
     print(
         "        cache at start              "
         f"dictionary={'yes' if initial['dictionary']['exists'] else 'no'} · "
@@ -69,8 +94,15 @@ def print_reference_status(status: dict) -> None:
         print(
             "        vanilla scripts download    "
             f"{scripts['archive_bytes'] / (1024 * 1024):.2f} MiB · "
-            f"{scripts['seconds']:.3f}s"
+            f"{scripts['seconds']:.3f}s · "
+            f"{scripts.get('source', 'network')} · "
+            f"ref {scripts.get('selected_revision', 'unknown')}"
         )
+        if scripts.get("sha256"):
+            print(
+                "        vanilla scripts provenance  "
+                f"{scripts.get('url', 'unknown')} · SHA-256 {scripts['sha256']}"
+            )
         print(
             "        vanilla scripts archive     "
             f"{scripts['members']} files · {scripts['nut_files']} .nut · "
@@ -190,6 +222,16 @@ def print_reference_status(status: dict) -> None:
             "        permanent injury parsing    "
             f"{pis['parse_seconds']:.3f}s · {pis['output_bytes'] / 1024:.1f} KiB"
         )
+
+    final_cache = status.get("final_cache", {})
+    if final_cache:
+        print("        reference cache final state")
+        for name, info in final_cache.items():
+            print(
+                f"          {name}: {info['source']} · "
+                f"{'valid' if info['valid'] else 'invalid'} · "
+                f"{format_bytes(info['size'])} · {info['path']}"
+            )
 
 
 def print_projection_profile(profile: dict) -> None:

@@ -31,6 +31,15 @@ Contains tracked seed/catalog data plus generators for runtime vanilla reference
 
 Important generated caches include enriched dictionaries, backgrounds, trait effects, permanent-injury effects, and perk audit data.
 
+Each run reports reference provenance through the
+`bbtool.reference_status.v1` runtime payload. It records the cache directory,
+the expected schema of every generated reference, cache-versus-network source,
+requested upstream revision, downloaded size and SHA-256, and the validated
+final state and absolute path of every persisted cache file. The run-health
+summary separately identifies unresolved references that occur in the current
+save; unresolved upstream entries that are not used by that save remain
+informational and do not produce a result-affecting warning.
+
 ### `bbtool/projection/`
 
 Pure computation layer where practical.

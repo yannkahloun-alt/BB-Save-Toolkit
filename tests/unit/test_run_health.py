@@ -80,6 +80,17 @@ def test_run_health_counts_plain_unknown_parser_fallback():
     assert health["result_affecting_warnings"] == 1
 
 
+def test_upstream_unresolved_references_are_informational_when_save_uses_none():
+    health = build_run_health(
+        [],
+        [],
+        {"dictionary_stats": {"unresolved": 67}},
+    )
+
+    assert health["unresolved_references_relevant_to_save"] == 0
+    assert health["result_affecting_warnings"] == 0
+
+
 def test_run_health_does_not_double_count_permanent_injury_alias():
     injury = "Unknown [DEADBEEF]"
     bro = SimpleNamespace(

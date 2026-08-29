@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import re
 import time
-from pathlib import Path
 import urllib.error
 import urllib.request
 import zipfile
+from pathlib import Path
 
 BBEDIT_DICTIONARY_URL = (
     "https://raw.githubusercontent.com/scarglamour/bb-edit/"
@@ -18,6 +19,16 @@ BB_SCRIPTS_ZIP_URL = (
     "https://codeload.github.com/ninkjin/"
     "Battle-Brothers-Scripts/zip/refs/heads/main"
 )
+
+REFERENCE_STATUS_SCHEMA = "bbtool.reference_status.v1"
+REFERENCE_CACHE_SCHEMAS = {
+    "dictionary": "bbtool.enriched_dictionary.v1",
+    "backgrounds": "legacy-unversioned",
+    "perks": "bbtool.perk_effects.v2",
+    "traits": "bbtool.trait_effects.v2",
+    "permanent_injuries": "bbtool.permanent_injury_effects.v1",
+    "perk_audit": "bbtool.perk_audit.v1",
+}
 
 HERE = Path(__file__).resolve().parent
 DICTIONARY_OUT = HERE / "dictionary.json"
@@ -163,8 +174,7 @@ def _compact_key(value: str) -> str:
 def _stem_slug(path: str) -> str:
     stem = Path(path).stem
     for suffix in ("_background",):
-        if stem.endswith(suffix):
-            stem = stem[: -len(suffix)]
+        stem = stem.removesuffix(suffix)
     return _slug(stem)
 
 
@@ -219,6 +229,24 @@ def _download_bytes(url: str, timeout: int = 30) -> bytes:
         return response.read()
 
 
+def _download_with_provenance(
+    url: str,
+    timeout: int,
+    *,
+    selected_revision: str,
+) -> tuple[bytes, dict]:
+    started = time.perf_counter()
+    payload = _download_bytes(url, timeout)
+    return payload, {
+        "source": "network",
+        "url": url,
+        "selected_revision": selected_revision,
+        "size_bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "seconds": time.perf_counter() - started,
+    }
+
+
 def download_reference_dictionary(
     url: str = BBEDIT_DICTIONARY_URL,
     timeout: int = 20,
@@ -258,7 +286,7 @@ def _extract_script_item_values(
                 continue
 
             rel = path.split("/", 1)[-1]
-            script_path = rel[:-4] if rel.endswith(".nut") else rel
+            script_path = rel.removesuffix(".nut")
             stem = _slug(Path(path).stem)
             parent_match = INHERIT_RE.search(text)
             id_match = ITEM_ID_RE.search(text)
@@ -835,7 +863,7 @@ def build_trait_effect_dictionary(
                 continue
 
             rel = path.split("/", 1)[-1]
-            script_path = rel[:-4] if rel.endswith(".nut") else rel
+            script_path = rel.removesuffix(".nut")
             save_hash = battle_brothers_save_hash(script_path)
             stem = Path(path).stem
             id_match = TRAIT_ID_RE.search(text)
@@ -966,7 +994,7 @@ def build_permanent_injury_effect_dictionary(
             if "/scripts/skills/" not in path or not path.endswith(".nut"):
                 continue
             rel = path.split("/", 1)[-1]
-            script_path = rel[:-4] if rel.endswith(".nut") else rel
+            script_path = rel.removesuffix(".nut")
             save_hash = battle_brothers_save_hash(script_path)
             ref = entries.get(save_hash, {})
             if ref.get("type") != "permanentInjury":
@@ -1082,7 +1110,7 @@ def build_background_dictionary(
                 continue
 
             rel = path.split("/", 1)[-1]
-            script_path = rel[:-4] if rel.endswith(".nut") else rel
+            script_path = rel.removesuffix(".nut")
             parent_match = INHERIT_RE.search(text)
             id_match = BACKGROUND_ID_RE.search(text)
             hiring_match = HIRING_COST_RE.search(text)
@@ -1362,24 +1390,32 @@ def ensure_references(verbose: bool = True) -> dict:
     trait_stats = None
     permanent_injury_stats = None
     scripts_download_stats = None
+    download_sources = {}
 
     scripts_archive = None
 
     if not dictionary_ok:
-        t = time.perf_counter()
         try:
-            bbedit_dictionary = download_reference_dictionary()
+            bbedit_bytes, bbedit_source = _download_with_provenance(
+                BBEDIT_DICTIONARY_URL, 20, selected_revision="master"
+            )
+            bbedit_dictionary = _normalize_dictionary(
+                json.loads(bbedit_bytes.decode("utf-8"))
+            )
         except Exception as exc:
             raise RuntimeError("Failed to download BB-Edit dictionary.") from exc
-        bbedit_seconds = time.perf_counter() - t
+        download_sources["bbedit_dictionary"] = bbedit_source
+        bbedit_seconds = bbedit_source["seconds"]
 
-        t = time.perf_counter()
         try:
-            scripts_archive = _download_bytes(BB_SCRIPTS_ZIP_URL, 45)
+            scripts_archive, scripts_source = _download_with_provenance(
+                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            )
         except Exception as exc:
             raise RuntimeError("Failed to download vanilla scripts.") from exc
+        download_sources["vanilla_scripts"] = scripts_source
         scripts_download_stats = _archive_stats(scripts_archive)
-        scripts_download_stats["seconds"] = time.perf_counter() - t
+        scripts_download_stats.update(scripts_source)
 
         dictionary_stats = build_reference_dictionary(
             bbedit_dictionary=bbedit_dictionary,
@@ -1393,10 +1429,12 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not backgrounds_ok:
         if scripts_archive is None:
-            t = time.perf_counter()
-            scripts_archive = _download_bytes(BB_SCRIPTS_ZIP_URL, 45)
+            scripts_archive, scripts_source = _download_with_provenance(
+                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            )
+            download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
-            scripts_download_stats["seconds"] = time.perf_counter() - t
+            scripts_download_stats.update(scripts_source)
 
         background_stats = build_background_dictionary(
             scripts_archive=scripts_archive,
@@ -1408,10 +1446,12 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not perks_ok:
         if scripts_archive is None:
-            t = time.perf_counter()
-            scripts_archive = _download_bytes(BB_SCRIPTS_ZIP_URL, 45)
+            scripts_archive, scripts_source = _download_with_provenance(
+                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            )
+            download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
-            scripts_download_stats["seconds"] = time.perf_counter() - t
+            scripts_download_stats.update(scripts_source)
 
         perk_stats = build_perk_effect_dictionary(
             scripts_archive=scripts_archive,
@@ -1423,10 +1463,12 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not traits_ok:
         if scripts_archive is None:
-            t = time.perf_counter()
-            scripts_archive = _download_bytes(BB_SCRIPTS_ZIP_URL, 45)
+            scripts_archive, scripts_source = _download_with_provenance(
+                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            )
+            download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
-            scripts_download_stats["seconds"] = time.perf_counter() - t
+            scripts_download_stats.update(scripts_source)
 
         trait_stats = build_trait_effect_dictionary(
             scripts_archive=scripts_archive,
@@ -1438,10 +1480,12 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not permanent_injuries_ok:
         if scripts_archive is None:
-            t = time.perf_counter()
-            scripts_archive = _download_bytes(BB_SCRIPTS_ZIP_URL, 45)
+            scripts_archive, scripts_source = _download_with_provenance(
+                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            )
+            download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
-            scripts_download_stats["seconds"] = time.perf_counter() - t
+            scripts_download_stats.update(scripts_source)
 
         permanent_injury_stats = build_permanent_injury_effect_dictionary(
             scripts_archive=scripts_archive,
@@ -1454,7 +1498,53 @@ def ensure_references(verbose: bool = True) -> dict:
     perk_audit = build_perk_audit() if perks_ok else None
     audit_ok = perk_audit_is_present()
 
+    generated = {
+        "dictionary": generated_dictionary,
+        "backgrounds": generated_backgrounds,
+        "perks": generated_perks,
+        "traits": generated_traits,
+        "permanent_injuries": generated_permanent_injuries,
+        "perk_audit": bool(perk_audit),
+    }
+    valid = {
+        "dictionary": dictionary_ok,
+        "backgrounds": backgrounds_ok,
+        "perks": perks_ok,
+        "traits": traits_ok,
+        "permanent_injuries": permanent_injuries_ok,
+        "perk_audit": audit_ok,
+    }
+    paths = {
+        "dictionary": DICTIONARY_OUT,
+        "backgrounds": BACKGROUNDS_OUT,
+        "perks": PERK_EFFECTS_OUT,
+        "traits": TRAIT_EFFECTS_OUT,
+        "permanent_injuries": PERMANENT_INJURY_EFFECTS_OUT,
+        "perk_audit": PERK_AUDIT_OUT,
+    }
+    final_cache = {
+        name: {
+            "path": str(path.resolve()),
+            **_cache_file_info(path),
+            "valid": valid[name],
+            "source": (
+                ("network-derived" if generated_perks else "cache-derived")
+                if name == "perk_audit"
+                else "network-generated"
+                if generated[name]
+                else "cache"
+            ),
+        }
+        for name, path in paths.items()
+    }
+
     return {
+        "schema": REFERENCE_STATUS_SCHEMA,
+        "reference_schemas": dict(REFERENCE_CACHE_SCHEMAS),
+        "cache_directory": str(HERE.resolve()),
+        "download_sources": download_sources,
+        "fallback_used": False,
+        "final_cache": final_cache,
         "general_ok": dictionary_ok,
         "backgrounds_ok": backgrounds_ok,
         "perks_ok": perks_ok,
