@@ -2,6 +2,8 @@ from pathlib import Path
 from types import SimpleNamespace
 import json
 
+import pytest
+
 import bbtool.app.runner as runner
 
 
@@ -48,6 +50,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "reference_status": [],
         "profile": [],
         "archive_calls": 0,
+        "prune_calls": [],
     }
 
     monkeypatch.setattr(runner, "Step", FakeStep)
@@ -84,6 +87,11 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         return archive
 
     monkeypatch.setattr(runner, "archive_workspace", archive_workspace)
+    monkeypatch.setattr(
+        runner,
+        "prune_outputs",
+        lambda *args: calls["prune_calls"].append(args),
+    )
     monkeypatch.setattr(
         runner.webbrowser,
         "open",
@@ -137,6 +145,28 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert "SHA-256" in out
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
     assert calls["archive_calls"] == 2
+    assert calls["prune_calls"] == [(tmp_path, "x")]
+
+
+def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_path):
+    _, _, _, calls = _patch_runner(
+        monkeypatch,
+        tmp_path,
+        reference_status={
+            "generated_dictionary": False,
+            "generated_backgrounds": False,
+        },
+    )
+    monkeypatch.setattr(
+        runner,
+        "archive_workspace",
+        lambda *args: (_ for _ in ()).throw(OSError("archive failed")),
+    )
+
+    with pytest.raises(OSError, match="archive failed"):
+        runner.run(_opts(tmp_path, no_projection=True))
+
+    assert calls["prune_calls"] == []
 
 
 def test_runner_stops_resource_monitor_after_failure(monkeypatch, tmp_path):

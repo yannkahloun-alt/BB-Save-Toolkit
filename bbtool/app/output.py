@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 from collections import defaultdict
 from pathlib import Path
+import re
 import shutil
 import zipfile
 
@@ -19,6 +20,7 @@ from ..projection import (
 )
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+MAX_RETAINED_OUTPUTS = 10
 
 
 @dataclass(frozen=True)
@@ -421,3 +423,44 @@ def archive_workspace(workspace: RunWorkspace, out_root: Path) -> Path:
             if item.is_file():
                 archive.write(item, item.relative_to(out_root))
     return archive_path
+
+
+def prune_outputs(
+    output_directory: Path,
+    source_stem: str,
+    *,
+    max_outputs: int = MAX_RETAINED_OUTPUTS,
+) -> list[Path]:
+    """Delete obsolete generated archives for one save without touching other files."""
+    if max_outputs < 1:
+        raise ValueError("max_outputs must be at least 1")
+
+    output_directory = output_directory.resolve()
+    pattern = re.compile(
+        rf"^{re.escape(source_stem)}-(\d{{8}})-(\d{{6}})\.zip$"
+    )
+    candidates = []
+    for path in output_directory.iterdir():
+        if not path.is_file() or path.parent.resolve() != output_directory:
+            continue
+        match = pattern.fullmatch(path.name)
+        if match is None:
+            continue
+        try:
+            stamp = datetime.strptime(
+                "".join(match.groups()), "%Y%m%d%H%M%S"
+            )
+        except ValueError:
+            stamp = datetime.fromtimestamp(path.stat().st_mtime)
+        candidates.append((stamp, path.name, path))
+
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    deleted = []
+    for _, _, path in candidates[max_outputs:]:
+        try:
+            path.unlink()
+        except OSError as exc:
+            print(f"Warning: unable to delete obsolete output {path}: {exc}")
+        else:
+            deleted.append(path)
+    return deleted

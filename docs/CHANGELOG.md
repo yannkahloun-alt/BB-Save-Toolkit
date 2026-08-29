@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Retain the 10 newest generated run archives per source-save filename after a
+  successful archive write, without renaming outputs or deleting run folders,
+  unrelated files, or archives from another save family.
 - Add a compact run header and structured debug-bundle metadata covering the
   toolkit, schemas and engines, Python/OS environment, privacy-safe input and
   configuration fingerprints, execution mode, cache locations, and peak
