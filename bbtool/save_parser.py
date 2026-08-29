@@ -692,7 +692,7 @@ class DuplicateBrotherNameError(RuntimeError):
         super().__init__(f"Duplicate company brother name: {name}")
 
 
-def parse_roster(save_path: Path) -> list[Brother]:
+def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Brother]:
     b = save_path.read_bytes()
     refs = load_reference_dictionary(Path(__file__).resolve().parent.parent)
 
@@ -748,19 +748,28 @@ def parse_roster(save_path: Path) -> list[Brother]:
 
         circles = find_circle_metadata(
             b, header["StatsEnd"], ident["Offset"], refs
-        ) or {
-            "BackgroundID": "",
-            "Background": "Unknown",
-            "PerkIDs": [],
-            "Perks": [],
-            "TraitIDs": [],
-            "Traits": [],
-            "InjuryIDs": [],
-            "Injuries": [],
-            "PermanentInjuryIDs": [],
-            "PermanentInjuries": [],
-            "TemporaryInjuryIDs": [],
-        }
+        )
+        if circles is None:
+            if diagnostics is not None:
+                diagnostics.setdefault("recoverable_failures", []).append({
+                    "scope": "roster",
+                    "kind": "circle_metadata_unresolved",
+                    "human_offset": p,
+                    "name": ident["Name"],
+                })
+            circles = {
+                "BackgroundID": "",
+                "Background": "Unknown",
+                "PerkIDs": [],
+                "Perks": [],
+                "TraitIDs": [],
+                "Traits": [],
+                "InjuryIDs": [],
+                "Injuries": [],
+                "PermanentInjuryIDs": [],
+                "PermanentInjuries": [],
+                "TemporaryInjuryIDs": [],
+            }
 
         bro = Brother(
             Name=ident["Name"],

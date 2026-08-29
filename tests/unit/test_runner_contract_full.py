@@ -56,7 +56,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         lambda verbose=False: calls["ensure_verbose"].append(verbose) or dict(reference_status),
     )
     monkeypatch.setattr(runner, "print_reference_status", lambda x: calls["reference_status"].append(x))
-    monkeypatch.setattr(runner, "parse_roster", lambda p: [SimpleNamespace()])
+    monkeypatch.setattr(runner, "parse_roster", lambda p, **kwargs: [SimpleNamespace()])
     monkeypatch.setattr(runner, "parse_recruits", lambda p: [SimpleNamespace(), SimpleNamespace()])
     monkeypatch.setattr(runner, "create_workspace", lambda *a: workspace)
     monkeypatch.setattr(runner, "write_raw_inputs", lambda *a: None)
