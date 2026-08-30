@@ -1,6 +1,49 @@
 {
   "roles": [
     {
+      "name": "Reach DPS",
+      "perk_affinity": {
+        "Battle Forged": 2,
+        "Berserk": 1,
+        "Killing Frenzy": 1,
+        "Nimble": 2,
+        "Pathfinder": 1,
+        "Quick Hands": 2
+      },
+      "perk_conflicts": [],
+      "perks": {
+        "recommended": [
+          "Quick Hands",
+          "Berserk",
+          "Killing Frenzy",
+          "Pathfinder"
+        ],
+        "required": []
+      },
+      "stats": {
+        "Fatigue": {
+          "baseline": 100,
+          "target": 120,
+          "weight": 15.0
+        },
+        "HP": {
+          "baseline": 70,
+          "target": 90,
+          "weight": 15.0
+        },
+        "MAtk": {
+          "baseline": 82,
+          "target": 92,
+          "weight": 60.0
+        },
+        "Resolve": {
+          "baseline": 40,
+          "target": 55,
+          "weight": 10.0
+        }
+      }
+    },
+    {
       "name": "Nimble Frontline DPS",
       "perk_affinity": {
         "Berserk": 1,
@@ -27,23 +70,23 @@
       "stats": {
         "Fatigue": {
           "baseline": 95,
-          "target": 115,
-          "weight": 0.8
+          "target": 110,
+          "weight": 12.0
         },
         "HP": {
           "baseline": 75,
-          "target": 100,
-          "weight": 2.0
+          "target": 95,
+          "weight": 24.0
         },
         "MAtk": {
           "baseline": 80,
           "target": 90,
-          "weight": 4.0
+          "weight": 40.0
         },
         "MDef": {
-          "baseline": 25,
-          "target": 35,
-          "weight": 4.0
+          "baseline": 22,
+          "target": 30,
+          "weight": 24.0
         }
       }
     },
@@ -73,24 +116,24 @@
       },
       "stats": {
         "Fatigue": {
-          "baseline": 125,
-          "target": 135,
-          "weight": 2.5
+          "baseline": 110,
+          "target": 125,
+          "weight": 24.0
         },
         "HP": {
-          "baseline": 65,
+          "baseline": 70,
           "target": 85,
-          "weight": 1.5
+          "weight": 12.0
         },
         "MAtk": {
           "baseline": 80,
           "target": 90,
-          "weight": 4.0
+          "weight": 40.0
         },
         "MDef": {
-          "baseline": 25,
-          "target": 35,
-          "weight": 4.0
+          "baseline": 22,
+          "target": 30,
+          "weight": 24.0
         }
       }
     },
@@ -117,24 +160,24 @@
       },
       "stats": {
         "HP": {
-          "baseline": 72,
+          "baseline": 75,
           "target": 90,
-          "weight": 2.0
+          "weight": 15.62
         },
         "MAtk": {
           "baseline": 82,
           "target": 92,
-          "weight": 4.5
+          "weight": 35.16
         },
         "MDef": {
           "baseline": 27,
           "target": 37,
-          "weight": 4.5
+          "weight": 35.16
         },
         "Resolve": {
-          "baseline": 40,
+          "baseline": 42,
           "target": 55,
-          "weight": 1.8
+          "weight": 14.06
         }
       }
     },
@@ -168,23 +211,23 @@
       "stats": {
         "Fatigue": {
           "baseline": 100,
-          "target": 120,
-          "weight": 1.8
+          "target": 115,
+          "weight": 12.0
         },
         "HP": {
-          "baseline": 85,
-          "target": 110,
-          "weight": 3.0
+          "baseline": 78,
+          "target": 100,
+          "weight": 28.0
         },
         "MDef": {
-          "baseline": 32,
+          "baseline": 34,
           "target": 42,
-          "weight": 5.0
+          "weight": 40.0
         },
         "Resolve": {
           "baseline": 50,
-          "target": 70,
-          "weight": 3.0
+          "target": 65,
+          "weight": 20.0
         }
       }
     },
@@ -218,24 +261,24 @@
       },
       "stats": {
         "Fatigue": {
-          "baseline": 115,
-          "target": 140,
-          "weight": 3.0
+          "baseline": 120,
+          "target": 135,
+          "weight": 28.0
         },
         "HP": {
           "baseline": 70,
           "target": 90,
-          "weight": 1.5
+          "weight": 12.0
         },
         "MDef": {
-          "baseline": 32,
+          "baseline": 34,
           "target": 42,
-          "weight": 5.0
+          "weight": 40.0
         },
         "Resolve": {
           "baseline": 50,
-          "target": 70,
-          "weight": 3.0
+          "target": 65,
+          "weight": 20.0
         }
       }
     },
@@ -259,44 +302,67 @@
       },
       "stats": {
         "Fatigue": {
-          "baseline": 95,
+          "baseline": 100,
           "target": 115,
-          "weight": 1.6
+          "weight": 16.67
+        },
+        "HP": {
+          "baseline": 70,
+          "target": 90,
+          "weight": 10.0
         },
         "RAtk": {
-          "baseline": 82,
-          "target": 92,
-          "weight": 5.0
+          "baseline": 86,
+          "target": 95,
+          "weight": 66.67
+        },
+        "Resolve": {
+          "baseline": 40,
+          "target": 50,
+          "weight": 6.66
         }
       }
     },
     {
       "name": "Thrower Hybrid",
+      "perk_affinity": {
+        "Duelist": 2,
+        "Quick Hands": 1,
+        "Throwing Mastery": 5
+      },
+      "perk_conflicts": [],
+      "perks": {
+        "recommended": [
+          "Quick Hands",
+          "Nimble",
+          "Berserk",
+          "Killing Frenzy"
+        ],
+        "required": [
+          "Throwing Mastery",
+          "Duelist"
+        ]
+      },
       "stats": {
         "Fatigue": {
-          "baseline": 95,
-          "target": 110,
-          "weight": 1.5
+          "baseline": 100,
+          "target": 115,
+          "weight": 11.11
         },
         "HP": {
           "baseline": 70,
           "target": 90,
-          "weight": 2.0
+          "weight": 11.12
         },
         "MAtk": {
-          "baseline": 70,
+          "baseline": 72,
           "target": 80,
-          "weight": 2.5
-        },
-        "MDef": {
-          "baseline": 10,
-          "target": 20,
-          "weight": 2.0
+          "weight": 33.33
         },
         "RAtk": {
           "baseline": 80,
           "target": 88,
-          "weight": 4.0
+          "weight": 44.44
         }
       }
     },
@@ -322,37 +388,35 @@
       },
       "stats": {
         "Fatigue": {
-          "baseline": 95,
-          "target": 115,
-          "weight": 2.0
+          "baseline": 105,
+          "target": 120,
+          "weight": 24.24
         },
         "HP": {
-          "baseline": 70,
+          "baseline": 75,
           "target": 95,
-          "weight": 2.0
+          "weight": 12.12
         },
         "RAtk": {
           "baseline": 80,
           "target": 88,
-          "weight": 4.5
+          "weight": 54.55
         },
         "Resolve": {
-          "baseline": 35,
-          "target": 45,
-          "weight": 1.0
+          "baseline": 40,
+          "target": 50,
+          "weight": 9.09
         }
       }
     },
     {
-      "name": "Crossbow/Gunner",
+      "name": "Crossbow",
       "perk_affinity": {
-        "Crossbow Mastery": 5,
-        "Fearsome": 2
+        "Crossbow Mastery": 5
       },
       "perk_conflicts": [],
       "perks": {
         "recommended": [
-          "Fearsome",
           "Quick Hands",
           "Bags and Belts",
           "Nimble"
@@ -364,23 +428,23 @@
       "stats": {
         "Fatigue": {
           "baseline": 95,
-          "target": 115,
-          "weight": 1.5
+          "target": 110,
+          "weight": 16.67
         },
         "HP": {
-          "baseline": 60,
-          "target": 80,
-          "weight": 1.4
+          "baseline": 70,
+          "target": 90,
+          "weight": 13.33
         },
         "RAtk": {
-          "baseline": 80,
-          "target": 87,
-          "weight": 4.2
+          "baseline": 82,
+          "target": 90,
+          "weight": 60.0
         },
         "Resolve": {
           "baseline": 40,
-          "target": 62,
-          "weight": 1.8
+          "target": 50,
+          "weight": 10.0
         }
       }
     },
@@ -406,31 +470,36 @@
       "stats": {
         "Fatigue": {
           "baseline": 95,
-          "target": 115,
-          "weight": 1.0
+          "target": 110,
+          "weight": 7.69
         },
         "MAtk": {
           "baseline": 65,
           "target": 82,
-          "weight": 1.5
+          "weight": 25.64
+        },
+        "RDef": {
+          "baseline": 0,
+          "target": 10,
+          "weight": 5.13
         },
         "Resolve": {
-          "baseline": 75,
-          "target": 100,
-          "weight": 5.0
+          "baseline": 80,
+          "target": 95,
+          "weight": 61.54
         }
       }
     }
   ],
   "schema": "bb-archetypes-v0.9",
   "semantics": {
-    "baseline": "Optional lower Fit reference point used to shape the continuous Fit curve.",
-    "ceiling": "Optional archetype/stat Fit-valuation saturation point. Projected values remain unchanged; only utility is evaluated at min(projected/effective value, ceiling). Must be finite and >= target.",
+    "baseline": "Level-11 natural-stat neutral point and soft floor. At baseline contribution is zero; below baseline contribution is negative; above baseline contribution is positive up to target.",
+    "ceiling": "Optional explicit Fit-valuation saturation override. Projected values remain unchanged; only utility valuation is capped.",
     "perks.recommended": "Strongly characteristic perks; informative only for now.",
-    "perks.required": "Required perks without which the build is not really this archetype.",
+    "perks.required": "Structural perks without which the build is not really this archetype.",
     "stat_absent": "The archetype does not evaluate this stat for Fit.",
-    "target": "Level-11 natural-stat target. Presence means the stat contributes to Fit.",
-    "weight": "Relative importance of this stat in Fit."
+    "target": "Level-11 natural-stat target and positive Fit saturation point. At or above target, this stat contributes its maximum positive weight.",
+    "weight": "Maximum absolute influence of this stat on Fit. Signed per-stat contribution is bounded from -weight to +weight."
   },
   "status": "ACTIVE"
 }
