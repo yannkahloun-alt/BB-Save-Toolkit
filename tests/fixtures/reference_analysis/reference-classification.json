@@ -1,0 +1,352 @@
+[
+  {
+    "Background": "Synthetic Fixture",
+    "BestRole": "Nimble Frontline DPS",
+    "BrotherID": "human:101",
+    "Category": "Invest",
+    "CategoryReason": "expected Fit 1.00",
+    "EffectiveStats": {
+      "Fatigue": 135.0,
+      "HP": 105.0,
+      "Initiative": 90.0,
+      "MAtk": 95.0,
+      "MDef": 38.0,
+      "RAtk": 45.0,
+      "RDef": 8.0,
+      "Resolve": 55.0
+    },
+    "FitFeasibilityPct": 100.0,
+    "Injuries": "",
+    "Level": 11,
+    "LevelUpAdvice": null,
+    "Name": "Aldric",
+    "PerkCompatibility": "HIGH",
+    "Perks": "Nimble; Berserk",
+    "ProjectedFatigue": 135.0,
+    "ProjectedFit": 1.0,
+    "ProjectedFitFullMaxPct": 100.0,
+    "ProjectedFitFullMinPct": 100.0,
+    "ProjectedFitLabel": "PREMIUM",
+    "ProjectedFitLikelyMaxPct": 100.0,
+    "ProjectedFitLikelyMinPct": 100.0,
+    "ProjectedFitPct": 100.0,
+    "ProjectedHP": 105.0,
+    "ProjectedMAtk": 95.0,
+    "ProjectedMDef": 38.0,
+    "ProjectedRAtk": 45.0,
+    "ProjectedResolve": 55.0,
+    "Traits": ""
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BestRole": "Nimble Frontline DPS",
+    "BrotherID": "human:202",
+    "Category": "Use",
+    "CategoryReason": "expected Fit 0.72",
+    "EffectiveStats": {
+      "Fatigue": 123.0,
+      "HP": 92.0,
+      "Initiative": 90.0,
+      "MAtk": 88.0,
+      "MDef": 31.0,
+      "RAtk": 45.0,
+      "RDef": 8.0,
+      "Resolve": 48.0
+    },
+    "FitFeasibilityPct": 0.0,
+    "Injuries": "",
+    "Level": 11,
+    "LevelUpAdvice": null,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "Perks": "",
+    "ProjectedFatigue": 123.0,
+    "ProjectedFit": 0.719,
+    "ProjectedFitFullMaxPct": 71.9,
+    "ProjectedFitFullMinPct": 71.9,
+    "ProjectedFitLabel": "VIABLE",
+    "ProjectedFitLikelyMaxPct": 71.9,
+    "ProjectedFitLikelyMinPct": 71.9,
+    "ProjectedFitPct": 71.9,
+    "ProjectedHP": 92.0,
+    "ProjectedMAtk": 88.0,
+    "ProjectedMDef": 31.0,
+    "ProjectedRAtk": 45.0,
+    "ProjectedResolve": 48.0,
+    "Traits": ""
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BestRole": "Thrower Hybrid",
+    "BrotherID": "human:303",
+    "Category": "Fodder",
+    "CategoryReason": "expected Fit 0.52; full-range ceiling 0.65 still reaches Use threshold",
+    "EffectiveStats": {
+      "Fatigue": 104.0,
+      "HP": 76.0,
+      "Initiative": 90.0,
+      "MAtk": 77.0,
+      "MDef": 20.0,
+      "RAtk": 68.0,
+      "RDef": 8.0,
+      "Resolve": 45.0
+    },
+    "FitFeasibilityPct": 0.0,
+    "Injuries": "",
+    "Level": 8,
+    "LevelUpAdvice": null,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "Perks": "",
+    "ProjectedFatigue": 110.4,
+    "ProjectedFit": 0.521,
+    "ProjectedFitFullMaxPct": 65.0,
+    "ProjectedFitFullMinPct": 38.3,
+    "ProjectedFitLabel": "LOW",
+    "ProjectedFitLikelyMaxPct": 60.8,
+    "ProjectedFitLikelyMinPct": 40.0,
+    "ProjectedFitPct": 52.1,
+    "ProjectedHP": 88.0,
+    "ProjectedMAtk": 80.0,
+    "ProjectedMDef": 20.0,
+    "ProjectedRAtk": 76.9,
+    "ProjectedResolve": 45.0,
+    "Traits": ""
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BestRole": "Nimble Frontline DPS",
+    "BrotherID": "human:505",
+    "Category": "Use",
+    "CategoryReason": "expected Fit 0.70",
+    "EffectiveStats": {
+      "Fatigue": 112.0,
+      "HP": 84.0,
+      "Initiative": 90.0,
+      "MAtk": 84.0,
+      "MDef": 25.0,
+      "RAtk": 72.0,
+      "RDef": 8.0,
+      "Resolve": 48.0
+    },
+    "FitFeasibilityPct": 0.0,
+    "Injuries": "",
+    "Level": 10,
+    "LevelUpAdvice": {
+      "AllRolls": {
+        "Fatigue": {
+          "Average": 3.0,
+          "Label": "AVG",
+          "Max": 4,
+          "Min": 2,
+          "Quality": 0.5,
+          "Roll": 3
+        },
+        "HP": {
+          "Average": 3.0,
+          "Label": "MAX",
+          "Max": 4,
+          "Min": 2,
+          "Quality": 1.0,
+          "Roll": 4
+        },
+        "Initiative": {
+          "Average": 4.0,
+          "Label": "AVG",
+          "Max": 5,
+          "Min": 3,
+          "Quality": 0.5,
+          "Roll": 4
+        },
+        "MAtk": {
+          "Average": 2.0,
+          "Label": "MAX",
+          "Max": 3,
+          "Min": 1,
+          "Quality": 1.0,
+          "Roll": 3
+        },
+        "MDef": {
+          "Average": 2.0,
+          "Label": "MAX",
+          "Max": 3,
+          "Min": 1,
+          "Quality": 1.0,
+          "Roll": 3
+        },
+        "RAtk": {
+          "Average": 3.0,
+          "Label": "AVG",
+          "Max": 4,
+          "Min": 2,
+          "Quality": 0.5,
+          "Roll": 3
+        },
+        "RDef": {
+          "Average": 3.0,
+          "Label": "AVG",
+          "Max": 4,
+          "Min": 2,
+          "Quality": 0.5,
+          "Roll": 3
+        },
+        "Resolve": {
+          "Average": 3.0,
+          "Label": "AVG",
+          "Max": 4,
+          "Min": 2,
+          "Quality": 0.5,
+          "Roll": 3
+        }
+      },
+      "Alternative": {
+        "AnchorFitAfterPct": 68.1,
+        "AnchorFitBeforePct": 69.9,
+        "FitDeltaPct": -1.8,
+        "FitFeasibilityAfterPct": 0.0,
+        "FitFeasibilityBeforePct": 0.0,
+        "FitLikelyMaxAfterPct": 75.6,
+        "FitLikelyMinAfterPct": 60.7,
+        "FitMaxAfterPct": 76.3,
+        "FitMinAfterPct": 60.0,
+        "Gamble": {
+          "AvgDownsideWhenLosesPct": 1.85,
+          "AvgUpsideWhenWinsPct": 0.0,
+          "ChanceToBeatPrimaryPct": 0.0,
+          "IsGamble": false,
+          "MaxDownsidePct": 1.85,
+          "MaxUpsidePct": 0.0,
+          "MeanDeltaPct": -1.85,
+          "PrimaryWinsPct": 100.0,
+          "Samples": 512,
+          "TiePct": 0.0
+        },
+        "RoleAfter": "Nimble Frontline DPS",
+        "RoleBefore": "Nimble Frontline DPS",
+        "RollQuality": {
+          "Fatigue": 0.5,
+          "MAtk": 1.0,
+          "MDef": 1.0
+        },
+        "Rolls": {
+          "Fatigue": 3,
+          "MAtk": 3,
+          "MDef": 3
+        },
+        "Stats": [
+          "Fatigue",
+          "MAtk",
+          "MDef"
+        ]
+      },
+      "AnchorRole": "Nimble Frontline DPS",
+      "CombinationsEvaluated": 56,
+      "DistinctFitDecisionsEvaluated": 2,
+      "Method": "Fit-only advisor: score all legal current 3-pick combinations by expected final level-11 Fit using the shared blind trajectory engine; paired deterministic scenarios are used only for runner-up gamble diagnostics",
+      "PickReasons": {
+        "HP": "Fit stat · weight 2 · current +4 is MAX",
+        "MAtk": "Fit stat · weight 4 · current +3 is MAX",
+        "MDef": "Fit stat · weight 4 · current +3 is MAX"
+      },
+      "Recommended": {
+        "AnchorFitAfterPct": 69.9,
+        "AnchorFitBeforePct": 69.9,
+        "FitDeltaPct": 0.0,
+        "FitFeasibilityAfterPct": 0.0,
+        "FitFeasibilityBeforePct": 0.0,
+        "FitLikelyMaxAfterPct": 77.4,
+        "FitLikelyMinAfterPct": 62.6,
+        "FitMaxAfterPct": 78.1,
+        "FitMinAfterPct": 61.9,
+        "RoleAfter": "Nimble Frontline DPS",
+        "RoleBefore": "Nimble Frontline DPS",
+        "RollQuality": {
+          "HP": 1.0,
+          "MAtk": 1.0,
+          "MDef": 1.0
+        },
+        "Rolls": {
+          "HP": 4,
+          "MAtk": 3,
+          "MDef": 3
+        },
+        "Stats": [
+          "HP",
+          "MAtk",
+          "MDef"
+        ]
+      },
+      "SkippedImportant": [
+        {
+          "Core": true,
+          "Reason": "Fit stat · current +3 is AVG for its +2–+4 range",
+          "Roll": {
+            "Average": 3.0,
+            "Label": "AVG",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 0.5,
+            "Roll": 3
+          },
+          "Stat": "Fatigue",
+          "Weight": 0.8
+        }
+      ]
+    },
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "Perks": "",
+    "ProjectedFatigue": 112.0,
+    "ProjectedFit": 0.699,
+    "ProjectedFitFullMaxPct": 78.1,
+    "ProjectedFitFullMinPct": 61.9,
+    "ProjectedFitLabel": "VIABLE",
+    "ProjectedFitLikelyMaxPct": 77.4,
+    "ProjectedFitLikelyMinPct": 62.6,
+    "ProjectedFitPct": 69.9,
+    "ProjectedHP": 91.0,
+    "ProjectedMAtk": 89.0,
+    "ProjectedMDef": 30.0,
+    "ProjectedRAtk": 72.0,
+    "ProjectedResolve": 48.0,
+    "Traits": ""
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BestRole": "Nimble Frontline DPS",
+    "BrotherID": "human:404",
+    "Category": "Trash",
+    "CategoryReason": "expected Fit 0.00; full-range ceiling 0.00 stays below Use threshold",
+    "EffectiveStats": {
+      "Fatigue": 82.0,
+      "HP": 54.0,
+      "Initiative": 72.0,
+      "MAtk": 52.0,
+      "MDef": 1.0,
+      "RAtk": 42.0,
+      "RDef": 1.0,
+      "Resolve": 30.0
+    },
+    "FitFeasibilityPct": 0.0,
+    "Injuries": "",
+    "Level": 11,
+    "LevelUpAdvice": null,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "Perks": "",
+    "ProjectedFatigue": 82.0,
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLabel": "LOW",
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedHP": 54.0,
+    "ProjectedMAtk": 52.0,
+    "ProjectedMDef": 1.0,
+    "ProjectedRAtk": 42.0,
+    "ProjectedResolve": 30.0,
+    "Traits": ""
+  }
+]
