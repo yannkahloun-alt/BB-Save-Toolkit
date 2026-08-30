@@ -35,8 +35,10 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request_target" ]]; then
             echo "path=pr-$CLOSED_PR" >> "$GITHUB_OUTPUT"
             echo "cleanup=true" >> "$GITHUB_OUTPUT"
+            echo "apply=true" >> "$GITHUB_OUTPUT"
           else
             echo "cleanup=false" >> "$GITHUB_OUTPUT"
+            echo "apply=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Download trusted build artifact
         if: steps.destination.outputs.cleanup == 'false'
@@ -56,7 +58,9 @@ jobs:
         id: build_destination
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_PRS: ${{ toJson(github.event.workflow_run.pull_requests) }}
         run: |
           destination=$(python -c 'import json; print(json.load(open("preview/preview-context.json", encoding="utf-8"))["destination"])')
@@ -64,15 +68,33 @@ jobs:
           if [[ "$RUN_EVENT" == "pull_request" ]]; then
             number=$(python -c 'import json,os; print(json.loads(os.environ["RUN_PRS"])[0]["number"])')
             [[ "$destination" == "pr-$number" ]]
+            state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .state)
+            current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .head.sha)
+            if [[ "$state" != "open" ]]; then
+              echo "cleanup=true" >> "$GITHUB_OUTPUT"
+              echo "apply=true" >> "$GITHUB_OUTPUT"
+            elif [[ "$current_sha" != "$RUN_HEAD_SHA" ]]; then
+              echo "cleanup=false" >> "$GITHUB_OUTPUT"
+              echo "apply=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "cleanup=false" >> "$GITHUB_OUTPUT"
+              echo "apply=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "cleanup=false" >> "$GITHUB_OUTPUT"
+            echo "apply=true" >> "$GITHUB_OUTPUT"
           fi
           rm preview/preview-context.json
           echo "path=$destination" >> "$GITHUB_OUTPUT"
       - name: Update persistent preview site
+        if: >-
+          steps.destination.outputs.apply == 'true' ||
+          steps.build_destination.outputs.apply == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           DESTINATION: ${{ steps.destination.outputs.path || steps.build_destination.outputs.path }}
-          CLEANUP: ${{ steps.destination.outputs.cleanup }}
+          CLEANUP: ${{ steps.destination.outputs.cleanup == 'true' || steps.build_destination.outputs.cleanup == 'true' }}
         run: |
           git init published
           cd published
@@ -97,7 +119,9 @@ jobs:
           git commit -m "Update render-only preview: $DESTINATION"
           git push origin HEAD:gh-pages
       - name: Publish preview links
-        if: steps.destination.outputs.cleanup == 'false'
+        if: >-
+          steps.build_destination.outputs.apply == 'true' &&
+          steps.build_destination.outputs.cleanup == 'false'
         shell: bash
         env:
           DESTINATION: ${{ steps.build_destination.outputs.path }}

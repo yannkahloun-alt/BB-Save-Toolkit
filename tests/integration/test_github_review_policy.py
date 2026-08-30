@@ -104,6 +104,10 @@ def test_render_preview_workflows_separate_unprivileged_build_and_publication():
     assert "preview/preview-context.json" in publish
     assert "ref-[a-z0-9._-]+" in publish
     assert "rm -rf -- \"$DESTINATION\"" in publish
+    assert 'state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .state)' in publish
+    assert 'current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .head.sha)' in publish
+    assert '[[ "$current_sha" != "$RUN_HEAD_SHA" ]]' in publish
+    assert "steps.build_destination.outputs.apply == 'true'" in publish
     assert "GITHUB_STEP_SUMMARY" in publish
     assert "/standard/" in publish and "/level-up/" in publish and "/recruits/" in publish
     assert "never executes code from the preview artifact" in docs

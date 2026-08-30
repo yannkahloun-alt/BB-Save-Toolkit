@@ -21,6 +21,9 @@ previews are available under the repository Pages base URL:
 Every push refreshes the same PR path. Merges refresh `main`; closing a PR
 removes its complete `pr-<number>` directory. A manual workflow dispatch can
 preview a branch, tag, or exact commit under `ref-<normalized-branch>/`.
+Before writing, the publisher rechecks the PR's live state and head SHA: a late
+run for a closed PR cleans rather than republishes, while a stale run for an
+older open-PR head is ignored.
 Published pages identify render-only mode, source, exact SHA, fixture scenario,
 dataset contract, and generation timestamp.
 
