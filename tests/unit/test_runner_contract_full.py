@@ -97,9 +97,9 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         lambda *args: calls["prune_calls"].append(args),
     )
     monkeypatch.setattr(
-        runner.webbrowser,
-        "open",
-        lambda uri: calls["opened"].append(uri) or open_result,
+        runner,
+        "launch_report_server",
+        lambda source: calls["opened"].append(source) or open_result,
     )
 
     return workspace, archive, report, calls
@@ -246,7 +246,7 @@ def test_runner_open_report_true_opens_and_reports_success(monkeypatch, tmp_path
 
     runner.run(_opts(tmp_path, open_report=True))
 
-    assert calls["opened"] == [report.resolve().as_uri()]
+    assert calls["opened"] == [tmp_path]
     out = capsys.readouterr().out
     assert f"Report: {report}" in out
     assert "Report opening: requested=yes · attempted=yes · successful=yes" in out
@@ -310,7 +310,7 @@ def test_runner_open_report_false_result_prints_no(monkeypatch, tmp_path, capsys
 
     runner.run(_opts(tmp_path, open_report=True))
 
-    assert calls["opened"] == [report.resolve().as_uri()]
+    assert calls["opened"] == [tmp_path]
     assert "Report opening: requested=yes · attempted=yes · successful=no" in capsys.readouterr().out
 
 
@@ -330,9 +330,9 @@ def test_runner_reports_validation_failure_and_browser_exception(monkeypatch, tm
     )
     monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
     monkeypatch.setattr(
-        runner.webbrowser,
-        "open",
-        lambda uri: (_ for _ in ()).throw(RuntimeError("browser unavailable")),
+        runner,
+        "launch_report_server",
+        lambda source: (_ for _ in ()).throw(RuntimeError("browser unavailable")),
     )
     ticks = iter([1.0, 2.0])
     monkeypatch.setattr(runner.time, "perf_counter", lambda: next(ticks))

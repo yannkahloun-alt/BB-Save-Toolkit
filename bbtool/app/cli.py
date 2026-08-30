@@ -21,6 +21,7 @@ class CliOptions:
     verify_cache: bool = False
     cache_debug: bool = False
     render_only: Path | None = None
+    serve_report: Path | None = None
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -33,6 +34,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         metavar="DATASET",
         help="Generate a report from a public JSON dataset directory or manifest",
+    )
+    parser.add_argument(
+        "--serve-report",
+        type=Path,
+        metavar="DATASET",
+        help="Serve an existing report dataset locally for browser viewing",
     )
     parser.add_argument(
         "--targets",
@@ -60,8 +67,12 @@ def build_parser() -> argparse.ArgumentParser:
 def parse_args(argv=None) -> CliOptions:
     parser = build_parser()
     ns = parser.parse_args(argv)
-    if (ns.save is None) == (ns.render_only is None):
-        parser.error("provide exactly one of SAVE or --render-only DATASET")
+    modes = sum(value is not None for value in (ns.save, ns.render_only, ns.serve_report))
+    if modes != 1:
+        parser.error(
+            "provide exactly one of SAVE, --render-only DATASET, or "
+            "--serve-report DATASET"
+        )
     if ns.save is not None and not ns.save.is_file():
         parser.error(f"Save not found: {ns.save}")
     if ns.render_only is not None:
@@ -81,6 +92,23 @@ def parse_args(argv=None) -> CliOptions:
             parser.error(
                 f"{', '.join(incompatible)} cannot be used with --render-only"
             )
+    if ns.serve_report is not None:
+        if not ns.serve_report.exists():
+            parser.error(f"Report dataset not found: {ns.serve_report}")
+        incompatible = [
+            name for name, enabled in (
+                ("--targets", ns.targets != ROOT / "config" / "archetypes.json"),
+                ("--classification", ns.classification != ROOT / "config" / "classification.json"),
+                ("--no-projection", ns.no_projection),
+                ("--full-recompute", ns.full_recompute),
+                ("--verify-cache", ns.verify_cache),
+                ("--cache-debug", ns.cache_debug),
+            ) if enabled
+        ]
+        if incompatible:
+            parser.error(
+                f"{', '.join(incompatible)} cannot be used with --serve-report"
+            )
     return CliOptions(
         save=ns.save,
         targets=ns.targets,
@@ -92,4 +120,5 @@ def parse_args(argv=None) -> CliOptions:
         verify_cache=ns.verify_cache,
         cache_debug=ns.cache_debug,
         render_only=ns.render_only,
+        serve_report=ns.serve_report,
     )

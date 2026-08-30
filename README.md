@@ -27,6 +27,18 @@ Open the generated report automatically:
 python .\bb_analyze.py "C:\path\to\quicksave.sav" --open-report
 ```
 
+Reports consume the six public JSON files stored beside them. Because browsers
+do not reliably allow adjacent JSON reads from `file://`, opening is handled by
+a loopback-only local server. To reopen an extracted or moved report later:
+
+```powershell
+python .\bb_analyze.py --serve-report ".\output\my-report-folder" --open-report
+```
+
+The server binds only to `127.0.0.1`, requires no network connection, and runs
+until stopped with Ctrl+C. Opening an HTML file directly shows the equivalent
+launch instruction instead of a blank or partially populated report.
+
 At completion, the console lists the generated report and data files with
 their sizes, the projection-validation result and artifact path, the final ZIP
 size and SHA-256 checksum, and whether report opening was requested, attempted,
@@ -46,9 +58,10 @@ Generate only the HTML report from an existing versioned public JSON dataset:
 python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis --out .\output
 ```
 
-This mode validates the complete dataset before creating output, then copies
-the public JSON, generates the same HTML/assets as a normal run, and archives
-the portable result. It does not read a save, prepare game references, or run
+This mode validates the complete dataset before creating output, then writes
+the canonical public JSON contract, generates the same data-free HTML shell
+and assets as a normal run, and archives the portable result. It does not read
+a save, prepare game references, or run
 projection, classification, cache, or Level-Up Advisor logic. Add
 `--open-report` to open the result. See `docs/REPORT_DATASET.md` for the input
 contract and compatibility policy.

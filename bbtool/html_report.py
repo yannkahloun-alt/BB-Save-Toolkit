@@ -969,3 +969,25 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
         + '</div><script src="report.js"></script></body></html>'
     )
     return pretty_html(html_doc)
+
+
+def render_report_launcher(save_path: Path, generated_at: str = "") -> str:
+    """Return the data-free shell shown when a report is opened via ``file://``."""
+    stamp = f" Generated {esc(generated_at)}." if generated_at else ""
+    html_doc = (
+        '<!doctype html><html><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<title>{esc(save_path.stem)} roster</title>'
+        '<link rel="stylesheet" href="report.css"></head>'
+        '<body><div class="wrap report-launcher">'
+        f'<h1>{esc(save_path.stem)} — Battle Brothers Report</h1>'
+        '<div class="empty-state"><h2>Local report data is not loaded</h2>'
+        '<p>This report reads its adjacent public JSON through the toolkit\'s '
+        'local report server. Browsers block reliable JSON loading from '
+        '<code>file://</code>.</p>'
+        '<p>Open this report with <code>python bb_analyze.py --serve-report '
+        '&lt;report-folder&gt; --open-report</code>.</p>'
+        f'<p class="muted">No network connection is required.{stamp}</p>'
+        '</div></div></body></html>'
+    )
+    return pretty_html(html_doc)

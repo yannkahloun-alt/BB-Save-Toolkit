@@ -89,7 +89,7 @@ def test_write_debug_bundle(tmp_path):
 
 def test_write_html_copies_assets_and_writes_report(monkeypatch,tmp_path):
     ws=workspace(tmp_path)
-    monkeypatch.setattr(out,"render_html_report",lambda *a,**k:"<html>ok</html>")
+    monkeypatch.setattr(out,"render_report_launcher",lambda *a,**k:"<html>ok</html>")
     path=out.write_html(ws,[],[],[],[],[],{})
     assert path.read_text(encoding="utf-8")=="<html>ok</html>"
     assert (ws.root/"report.css").is_file()

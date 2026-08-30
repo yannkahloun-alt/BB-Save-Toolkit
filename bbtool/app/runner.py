@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import time
-import webbrowser
 
 from references.update_references import ensure_references
 
@@ -15,6 +14,7 @@ from ..incremental import IncrementalCache, find_previous_manifest, first_differ
 from .cli import CliOptions
 from .config import load_config
 from .health import build_run_health, print_run_health
+from .report_server import launch_report_server
 from .telemetry import (
     build_run_metadata,
     print_resource_summary,
@@ -277,7 +277,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
     if options.open_report and report_path is not None:
         open_attempted = True
         try:
-            open_succeeded = bool(webbrowser.open(report_path.resolve().as_uri()))
+            open_succeeded = bool(launch_report_server(workspace.root))
         except Exception as exc:  # Browser integration must not hide completed outputs.
             open_succeeded = False
             open_error = f"{type(exc).__name__}: {exc}"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -13,7 +14,7 @@ import zipfile
 
 from ..formatting import component_summary
 from ..models import STATS
-from ..html_report import render_html_report
+from ..html_report import render_report_launcher
 from ..projection import (
     project_fit_trajectory, project_seeded_fit_trajectory,
     gain_range, development_rounds_to_11,
@@ -102,6 +103,54 @@ def write_analysis_json(
         json.dumps(summaries, indent=2),
         encoding="utf-8",
     )
+
+
+REPORT_DATASET_SCHEMA = "bbtool.reference_analysis.v1"
+
+
+def _write_public_json(path: Path, payload) -> None:
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
+        encoding="utf-8",
+    )
+
+
+def write_report_dataset(
+    workspace: RunWorkspace,
+    bros,
+    recruits,
+    fits: list[dict],
+    summaries: list[dict],
+    roles: list[dict],
+    class_cfg: dict,
+) -> Path:
+    """Write the versioned public JSON contract consumed by report serving."""
+    payloads = {
+        "roster": [_public_bro_dict(bro) for bro in bros],
+        "recruits": recruits,
+        "role_fit": fits,
+        "classification": summaries,
+        "archetypes": {"roles": roles},
+        "classification_config": class_cfg,
+    }
+    files = {}
+    for label, payload in payloads.items():
+        path = workspace.root / f"{workspace.base}-{label.replace('_', '-')}.json"
+        _write_public_json(path, payload)
+        files[label] = {
+            "path": path.name,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+    manifest = {
+        "schema": REPORT_DATASET_SCHEMA,
+        "purpose": "versioned public inputs for the interactive report",
+        "source": workspace.source_save.name,
+        "generated_at": workspace.generated_at,
+        "files": files,
+    }
+    manifest_path = workspace.root / "manifest.json"
+    _write_public_json(manifest_path, manifest)
+    return manifest_path
 
 
 
@@ -394,21 +443,15 @@ def write_html(
     roles: list[dict],
     class_cfg: dict,
 ) -> Path:
+    write_report_dataset(
+        workspace, bros, recruits, fits, summaries, roles, class_cfg
+    )
     shutil.copy2(PACKAGE_ROOT / "report.css", workspace.root / "report.css")
     shutil.copy2(PACKAGE_ROOT / "report.js", workspace.root / "report.js")
 
     report_path = workspace.root / f"{workspace.base}-report.html"
     report_path.write_text(
-        render_html_report(
-            workspace.source_save,
-            bros,
-            fits,
-            summaries,
-            roles,
-            class_cfg,
-            generated_at=workspace.generated_at,
-            recruits=recruits,
-        ),
+        render_report_launcher(workspace.source_save, workspace.generated_at),
         encoding="utf-8",
     )
     return report_path
