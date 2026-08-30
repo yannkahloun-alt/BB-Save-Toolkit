@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add least-privilege render-only web previews for approved public JSON
+  scenarios, with exact-revision metadata, stable PR/main URLs, and automatic
+  closed-PR cleanup on the persistent GitHub Pages branch.
 - Add `--render-only DATASET` to validate a versioned public JSON dataset and
   generate the normal portable HTML report and archive without parsing a save
   or running analysis.

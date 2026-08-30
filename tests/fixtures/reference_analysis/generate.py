@@ -81,7 +81,10 @@ def _payloads() -> dict[str, object]:
 
 
 def _write(path: Path, value: object) -> None:
-    path.write_text(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(
+            json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+        )
 
 
 def regenerate() -> None:

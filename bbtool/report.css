@@ -2240,3 +2240,17 @@ td:has(>.classification-paths-cell) {
 .strategic-table .path-metric-row > strong {
   justify-self: start;
 }
+
+.preview-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: center;
+  padding: 10px 18px;
+  border-bottom: 1px solid #3a4652;
+  background: #11171d;
+  color: #c8d2dc;
+  font-size: .78rem;
+}
+.preview-metadata strong { color: #f0c674; }
+.preview-metadata code { color: #dce8f2; }

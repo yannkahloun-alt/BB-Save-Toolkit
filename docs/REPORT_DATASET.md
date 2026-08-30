@@ -82,3 +82,5 @@ renderer never recalculates missing analysis data to repair an invalid dataset.
 
 The maintained synthetic example in `tests/fixtures/reference_analysis` is the
 canonical v1 fixture and can be regenerated with its adjacent `generate.py`.
+Approved browser previews and their least-privilege publication lifecycle are
+documented in [WEB_PREVIEWS.md](WEB_PREVIEWS.md).
