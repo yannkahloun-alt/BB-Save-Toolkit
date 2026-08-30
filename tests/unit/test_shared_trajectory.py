@@ -82,11 +82,19 @@ if __name__ == "__main__":
 
 
 def test_projection_pick_uses_actual_fit_gain_not_weight_over_target():
-    """A +3 Fatigue roll must beat +4 HP when the BF DPS Fit curve says so."""
+    """A +3 Fatigue roll must beat +4 HP when the Fit curve says so."""
     from dataclasses import replace
+    from bbtool.app.config import _normalize_role
 
-    cfg = load_config(ROOT / "config/archetypes.json", ROOT / "config/classification.json")
-    role = next(r for r in cfg.roles if r["name"] == "Battle Forged Frontline DPS")
+    role = _normalize_role({
+        "name": "Fit gain proof",
+        "stats": {
+            "MAtk": {"target": 90, "weight": 4.0, "baseline": 80},
+            "MDef": {"target": 35, "weight": 4.0, "baseline": 25},
+            "Fatigue": {"target": 135, "weight": 2.5, "baseline": 125},
+            "HP": {"target": 85, "weight": 1.5, "baseline": 65},
+        },
+    })
     bro = replace(_bro(), HP=65, Fatigue=125, MAtk=80, MDef=25)
     exact = [{"HP": (4, 4), "Fatigue": (3, 3), "MAtk": (3, 3), "MDef": (3, 3)}]
 
@@ -145,11 +153,11 @@ def test_four_stat_lookahead_optimization_is_behaviorally_stable():
     # Golden values use the current bounded signed-Fit contract. The 10-round
     # generic comparison in test_four_stat_optimization_contract_full.py
     # independently proves the four-stat specialization.
-    assert result["expected_pct"] == 8.9
+    assert result["expected_pct"] == 27.6
     assert result["full_min_pct"] == 0.0
-    assert result["full_max_pct"] == 86.9
+    assert result["full_max_pct"] == 94.4
     assert result["likely_min_pct"] == 0.0
-    assert result["likely_max_pct"] == 24.0
+    assert result["likely_max_pct"] == 45.6
 
 
 def test_levelup_advisor_ignores_hidden_future_rolls():

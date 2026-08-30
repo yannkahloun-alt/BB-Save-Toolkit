@@ -2,27 +2,27 @@
   "files": {
     "archetypes": {
       "path": "reference-archetypes.json",
-      "sha256": "d0729ba894a384ab8e5325557ad2b2f0b5c5ed3d5c9aa04cf97d5ebc200818e2"
+      "sha256": "17fc7b5c1da1f4c83b16fa050b6d706e54ef37afdbd4c47ad674b9c1cf1f1c69"
     },
     "classification": {
       "path": "reference-classification.json",
-      "sha256": "fc7daee3c685fb3118248364c3574d52883a099d723200009c32ad502710c4a2"
+      "sha256": "4259f477db4e068dbcfcb586b32f9efd02a2a8f23651c9ca4a098c66d5e63dd9"
     },
     "classification_config": {
       "path": "reference-classification-config.json",
-      "sha256": "1d812ea621eea4d48742a613bebc3f0576746f2f417a93812ee14af56f1715d4"
+      "sha256": "47a3b9d213863a2e1641e36979f8f831f6bed36bb767d257a7dd27012bca6011"
     },
     "recruits": {
       "path": "reference-recruits.json",
-      "sha256": "e995d87c28292508e5b5af590c2aaf8e01356b116ce956e222875b328af6bd74"
+      "sha256": "121602914ab017a5e339f329bc9bfebcb13150e66febbae3a3bcc03e9cd712f6"
     },
     "role_fit": {
       "path": "reference-role-fit.json",
-      "sha256": "0286cbec60dccd53d2cdc092fd6f66b53b6d4105e1bb53419cf40a88a075fe6a"
+      "sha256": "a431592a3e6d9dfc3322c556345ba86618f63fbc1d8260861057314d5e2e8846"
     },
     "roster": {
       "path": "reference-roster.json",
-      "sha256": "c3de73ffa85ae8991cc345fe7feac7991e49e16511ad5fff82d55a5a171e6d78"
+      "sha256": "785a6a3c684a13e54c6492b023ea828c631094c6d8f91fbb9bd46461284cffae"
     }
   },
   "purpose": "versioned public inputs for report demos and contract tests",

@@ -8,52 +8,52 @@
     "stat_absent": "The archetype does not evaluate this stat for Fit.",
     "perks.required": "Structural perks without which the build is not really this archetype.",
     "perks.recommended": "Strongly characteristic perks; informative only for now.",
-    "ceiling": "Optional archetype/stat Fit-valuation saturation point. Projected values remain unchanged; only utility is evaluated at min(projected/effective value, ceiling). Must be finite and >= target."
+    "ceiling": "Optional explicit Fit-valuation saturation override. Projected values remain unchanged; only utility valuation is capped."
   },
   "roles": [
-    {
-      "name": "Reach DPS",
-      "stats": {
-        "MAtk": {
-          "target": 92,
-          "weight": 60.0,
-          "baseline": 82
-        },
-        "HP": {
-          "target": 90,
-          "weight": 15.0,
-          "baseline": 70
-        },
-        "Fatigue": {
-          "target": 120,
-          "weight": 15.0,
-          "baseline": 100
-        },
-        "Resolve": {
-          "target": 55,
-          "weight": 10.0,
-          "baseline": 40
-        }
-      },
-      "perks": {
-        "required": [],
-        "recommended": [
-          "Quick Hands",
-          "Berserk",
-          "Killing Frenzy",
-          "Pathfinder"
-        ]
-      },
-      "perk_affinity": {
-        "Quick Hands": 2,
-        "Nimble": 2,
-        "Battle Forged": 2,
-        "Berserk": 1,
-        "Killing Frenzy": 1,
-        "Pathfinder": 1
-      },
-      "perk_conflicts": []
-    },
+  {
+  "name": "Reach DPS",
+  "stats": {
+   "MAtk": {
+  "target": 92,
+  "weight": 60.0,
+  "baseline": 82
+},
+"HP": {
+  "target": 90,
+  "weight": 15.0,
+  "baseline": 70
+},
+"Fatigue": {
+  "target": 120,
+  "weight": 15.0,
+  "baseline": 100
+},
+"Resolve": {
+  "target": 55,
+  "weight": 10.0,
+  "baseline": 40
+}
+  },
+  "perks": {
+    "required": [],
+    "recommended": [
+      "Quick Hands",
+      "Berserk",
+      "Killing Frenzy",
+      "Pathfinder"
+    ]
+  },
+  "perk_affinity": {
+    "Quick Hands": 2,
+    "Nimble": 2,
+    "Battle Forged": 2,
+    "Berserk": 1,
+    "Killing Frenzy": 1,
+    "Pathfinder": 1
+  },
+  "perk_conflicts": []
+},
     {
       "name": "Nimble Frontline DPS",
       "stats": {
