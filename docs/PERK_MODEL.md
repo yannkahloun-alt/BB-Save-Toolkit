@@ -300,4 +300,4 @@ feasibility can legitimately dominate because completing the archetype is no
 longer guaranteed.
 
 This rule is intentionally archetype-agnostic. It protects the configured Fit
-signal rather than hard-coding premium stats such as RAtk for Crossbow/Gunner.
+signal rather than hard-coding premium stats such as RAtk for Crossbow.

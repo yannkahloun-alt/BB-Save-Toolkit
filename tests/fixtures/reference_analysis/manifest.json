@@ -2,11 +2,11 @@
   "files": {
     "archetypes": {
       "path": "reference-archetypes.json",
-      "sha256": "5bb1796ab87a0ca84899418ebe0cd24d18559ec75e4c4f3e4283750c5a86384d"
+      "sha256": "17fc7b5c1da1f4c83b16fa050b6d706e54ef37afdbd4c47ad674b9c1cf1f1c69"
     },
     "classification": {
       "path": "reference-classification.json",
-      "sha256": "cf71676ca339dc063e710efa9ec85476d20bd9def9fd76a46965e07bfef60c4b"
+      "sha256": "4259f477db4e068dbcfcb586b32f9efd02a2a8f23651c9ca4a098c66d5e63dd9"
     },
     "classification_config": {
       "path": "reference-classification-config.json",
@@ -18,11 +18,11 @@
     },
     "role_fit": {
       "path": "reference-role-fit.json",
-      "sha256": "f269c8666c570cb52d97dda7e4f6d7674c82d8443bb73cfd51062ab5f4605a60"
+      "sha256": "a431592a3e6d9dfc3322c556345ba86618f63fbc1d8260861057314d5e2e8846"
     },
     "roster": {
       "path": "reference-roster.json",
-      "sha256": "ff4425ce4e607c0fb9711de98e0a9f4d1383766ecf8e28a097ae6468a173f9ae"
+      "sha256": "785a6a3c684a13e54c6492b023ea828c631094c6d8f91fbb9bd46461284cffae"
     }
   },
   "purpose": "versioned public inputs for report demos and contract tests",

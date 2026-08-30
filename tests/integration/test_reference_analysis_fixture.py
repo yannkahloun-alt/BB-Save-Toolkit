@@ -63,3 +63,4 @@ def test_reference_analysis_is_current_and_deterministic():
     for key, filename in generator["FILES"].items():
         expected = json.dumps(first[key], indent=2, ensure_ascii=False, sort_keys=True) + "\n"
         assert (FIXTURE / filename).read_text(encoding="utf-8") == expected
+        assert (FIXTURE / filename).read_bytes() == expected.encode("utf-8")
