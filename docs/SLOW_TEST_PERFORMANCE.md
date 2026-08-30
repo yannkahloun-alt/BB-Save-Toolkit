@@ -6,8 +6,9 @@ Measured on Windows 11, Python 3.12, from a local SSD, with the same interpreter
 and pytest options for every run:
 
 ```powershell
+$runId = 1  # use 1, 2, then 3
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest `
-  --basetemp=tests/cache/slow-tmp -m coverage_slow -q --durations=10
+  --basetemp="tests/cache/slow-tmp-$runId" -m coverage_slow -q --durations=10
 ```
 
 The temporary directory name was unique per run. No network access was used.

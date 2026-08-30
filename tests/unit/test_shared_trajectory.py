@@ -142,8 +142,9 @@ def test_four_stat_lookahead_optimization_is_behaviorally_stable():
     bro = _bro()
     reset_trajectory_cache()
     result = project_fit_trajectory(bro, role, rounds=10, samples=512, include_trace=True)
-    # Golden values use the current bounded signed-Fit contract. The adjacent
-    # generic-reference tests independently prove the four-stat specialization.
+    # Golden values use the current bounded signed-Fit contract. The 10-round
+    # generic comparison in test_four_stat_optimization_contract_full.py
+    # independently proves the four-stat specialization.
     assert result["expected_pct"] == 8.9
     assert result["full_min_pct"] == 0.0
     assert result["full_max_pct"] == 86.9

@@ -35,7 +35,7 @@ def generic_policy_factory(fit_stats, normal_ranges, selection_cfg, utility_look
     return choose
 
 
-@pytest.mark.parametrize('rounds',[1,2,3])
+@pytest.mark.parametrize('rounds',[1,2,3,10])
 def test_four_stat_specialization_exactly_matches_generic_reference(monkeypatch,bro_factory,simple_role,rounds):
     role=simple_role(('HP','Fatigue','MAtk','MDef'),weights={'HP':1.5,'Fatigue':2.5,'MAtk':4,'MDef':4},baselines={'HP':60,'Fatigue':90,'MAtk':70,'MDef':15},targets={'HP':90,'Fatigue':130,'MAtk':90,'MDef':35})
     b=bro_factory(Level=8)
