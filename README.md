@@ -8,7 +8,8 @@ Read-only Battle Brothers save analyzer focused on level-11 archetype Fit, proba
 
 Start with:
 
-- `AGENTS.md` — instructions for Codex/other coding agents;
+- `AGENTS.md` — concise project adapter for the pinned shared agent workflow;
+- `docs/AGENT_WORKFLOW_DEPENDENCY.md` — workflow version, policy boundary, and update procedure;
 - `docs/INVARIANTS.md` — contracts that must not regress;
 - `docs/ARCHITECTURE.md` — current architecture;
 - `docs/DEVELOPMENT_WORKFLOW.md` — branch/worktree workflow;

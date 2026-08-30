@@ -74,15 +74,17 @@ def test_release_workflow_pins_every_action_to_a_commit():
 def test_release_workflow_matches_repository_release_gate():
     workflow = _read(".github/workflows/pre-release.yml")
     agent_instructions = _read("AGENTS.md")
+    testing_policy = _read("docs/TESTING.md")
 
     command = (
         'python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest '
         '-m "not coverage_slow" -q'
     )
     assert command in workflow
-    assert command in agent_instructions
-    assert "The default GitHub release workflow excludes `coverage_slow`" in agent_instructions
-    assert "run either gate only when explicitly requested" in agent_instructions.lower()
+    assert "docs/TESTING.md" in agent_instructions
+    assert command in testing_policy
+    assert "coverage_slow" in testing_policy
+    assert "explicit" in testing_policy.lower()
 
 
 def test_render_preview_workflows_separate_unprivileged_build_and_publication():
@@ -140,18 +142,7 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     assert "not a github-enforced status check" in policy_lower
     assert "no openai api key" in policy_lower
     assert "remain strictly read-only" in policy_lower
-    assert "### Pull-request publishing handoff" in agent_instructions
-    assert "Automatically create a fresh Codex task" in agent_instructions
-    assert "Independent review — PR #<number>" in agent_instructions
-    assert "$review-bb-pr" in agent_instructions
-    assert "invalidate the previous verdict" in agent_instructions
-    assert "automatically squash-merges" in agent_instructions
-    assert "separate owner confirmation is not required" in agent_instructions
-    assert "Agent A marks the" in agent_instructions
-    assert "Ready for review" in agent_instructions
-    assert "Agent B is strictly read-only" in agent_instructions
-    assert "refuse to review a draft PR" in agent_instructions
-    assert "must not mark a PR ready" in agent_instructions
+    assert "docs/AGENT_B_REVIEW.md" in agent_instructions
     assert "state transition belongs exclusively to Agent A" in policy
     assert "After the exact current head passes every" in policy
     assert "verifies that it is" in policy and "non-draft" in policy
@@ -167,17 +158,17 @@ def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
 def test_selected_ticket_deferral_requires_traceable_comment_without_closure():
     agent_instructions = _read("AGENTS.md")
     workflow = _read("docs/DEVELOPMENT_WORKFLOW.md")
-    start_here = _read("docs/CODEX_START_HERE.md")
 
-    assert "selects, claims, or meaningfully investigates" in agent_instructions
-    assert "must comment on that ticket" in agent_instructions
-    assert "Deferral alone does not close" in agent_instructions
+    assert "docs/DEVELOPMENT_WORKFLOW.md" in agent_instructions
     assert "## Ticket selection and deferral" in workflow
+    assert "selects, claims," in workflow
+    assert "meaningfully investigates" in workflow
+    assert "must leave a concise GitHub" in workflow
+    assert "comment before switching" in workflow
+    assert "Deferral does not mean" in workflow
     assert "before switching to another ticket or ending the task" in workflow
     assert "the ticket remains open" in workflow
     assert "Do not post a" in workflow and "duplicate deferral comment" in workflow
-    assert "requirements\nfor resuming" in start_here
-    assert "Leave a deferred ticket open" in start_here
 
 
 def test_branch_protection_requires_all_checks_without_native_approval():
