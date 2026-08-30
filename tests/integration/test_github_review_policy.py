@@ -85,6 +85,43 @@ def test_release_workflow_matches_repository_release_gate():
     assert "run either gate only when explicitly requested" in agent_instructions.lower()
 
 
+def test_render_preview_workflows_separate_unprivileged_build_and_publication():
+    build = _read(".github/workflows/render-preview-build.yml")
+    publish = _read(".github/workflows/render-preview-publish.yml")
+    docs = _read("docs/WEB_PREVIEWS.md")
+
+    assert "permissions:\n  contents: read" in build
+    assert "tools/build_web_previews.py" in build
+    assert "tests/fixtures/report_previews.json" in build
+    for forbidden in ("bb_analyze.py", "run_tests.ps1", "run_mutation.ps1"):
+        assert forbidden not in build
+
+    assert "workflow_run:" in publish
+    assert "pull_request_target:" in publish
+    assert "contents: write" in publish
+    assert "head_repository.full_name == github.repository" in publish
+    assert "pr-$CLOSED_PR" in publish
+    assert "preview/preview-context.json" in publish
+    assert "ref-[a-z0-9._-]+" in publish
+    assert "rm -rf -- \"$DESTINATION\"" in publish
+    assert 'state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .state)' in publish
+    assert 'current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .head.sha)' in publish
+    assert '[[ "$current_sha" != "$RUN_HEAD_SHA" ]]' in publish
+    assert "steps.build_destination.outputs.apply == 'true'" in publish
+    assert "GITHUB_STEP_SUMMARY" in publish
+    assert "/standard/" in publish and "/level-up/" in publish and "/recruits/" in publish
+    assert "never executes code from the preview artifact" in docs
+    assert "Fork pull requests" in docs
+
+    for workflow in (build, publish):
+        for line in workflow.splitlines():
+            if "uses:" not in line:
+                continue
+            revision = line.split("@", 1)[1].split()[0]
+            assert len(revision) == 40
+            assert all(character in "0123456789abcdef" for character in revision)
+
+
 def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     policy = _read("docs/AGENT_B_REVIEW.md")
     policy_lower = policy.lower()

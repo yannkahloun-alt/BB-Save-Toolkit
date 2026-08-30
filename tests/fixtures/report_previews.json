@@ -1,0 +1,19 @@
+{
+  "scenarios": [
+    {
+      "name": "standard",
+      "dataset": "reference_analysis",
+      "initial_tab": "roster"
+    },
+    {
+      "name": "level-up",
+      "dataset": "reference_analysis",
+      "initial_tab": "levelup"
+    },
+    {
+      "name": "recruits",
+      "dataset": "reference_analysis",
+      "initial_tab": "recruits"
+    }
+  ]
+}

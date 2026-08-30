@@ -58,6 +58,9 @@ Generate only the HTML report from an existing versioned public JSON dataset:
 python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis --out .\output
 ```
 
+Maintainers can also publish the approved JSON scenarios as browser-accessible
+render-only previews; see [docs/WEB_PREVIEWS.md](docs/WEB_PREVIEWS.md).
+
 This mode validates the complete dataset before creating output, then writes
 the canonical public JSON contract, generates the same data-free HTML shell
 and assets as a normal run, and archives the portable result. It does not read

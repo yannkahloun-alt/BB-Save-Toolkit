@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add least-privilege render-only web previews for approved public JSON
+  scenarios, with exact-revision metadata, stable PR/main URLs, and automatic
+  closed-PR cleanup on the persistent GitHub Pages branch.
 - Replace the default archetype calibration with the tested v0.9 role set,
   including the new Reach DPS role and normalized 100-point Fit weights; record
   the source attachment and content fingerprints in

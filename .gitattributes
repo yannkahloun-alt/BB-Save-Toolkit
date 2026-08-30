@@ -1,2 +1,3 @@
+# Public fixture hashes cover exact bytes; keep them identical on every runner.
 tests/fixtures/reference_analysis/*.json text eol=lf
 docs/sources/issue-27-archetype-calibration.json text eol=lf

@@ -22,6 +22,7 @@ def test_reference_analysis_manifest_and_files_are_compatible():
         path = FIXTURE / entry["path"]
         assert path.is_file()
         assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
+        assert b"\r\n" not in path.read_bytes()
         json.loads(path.read_text(encoding="utf-8"))
 
 

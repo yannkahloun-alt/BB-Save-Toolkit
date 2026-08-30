@@ -1,0 +1,137 @@
+name: Publish render-only preview
+
+on:
+  workflow_run:
+    workflows: [Render-only preview build]
+    types: [completed]
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: render-preview-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.event != 'pull_request' ||
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve preview destination
+        id: destination
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CLOSED_PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request_target" ]]; then
+            echo "path=pr-$CLOSED_PR" >> "$GITHUB_OUTPUT"
+            echo "cleanup=true" >> "$GITHUB_OUTPUT"
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "cleanup=false" >> "$GITHUB_OUTPUT"
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download trusted build artifact
+        if: steps.destination.outputs.cleanup == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name == "render-preview" and .expired == false) | .id')
+          test -n "$artifact_id"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > preview.zip
+          mkdir preview
+          unzip -q preview.zip -d preview
+      - name: Validate build destination
+        if: steps.destination.outputs.cleanup == 'false'
+        id: build_destination
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_PRS: ${{ toJson(github.event.workflow_run.pull_requests) }}
+        run: |
+          destination=$(python -c 'import json; print(json.load(open("preview/preview-context.json", encoding="utf-8"))["destination"])')
+          [[ "$destination" =~ ^(main|pr-[0-9]+|ref-[a-z0-9._-]+)$ ]]
+          if [[ "$RUN_EVENT" == "pull_request" ]]; then
+            number=$(python -c 'import json,os; print(json.loads(os.environ["RUN_PRS"])[0]["number"])')
+            [[ "$destination" == "pr-$number" ]]
+            state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .state)
+            current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" --jq .head.sha)
+            if [[ "$state" != "open" ]]; then
+              echo "cleanup=true" >> "$GITHUB_OUTPUT"
+              echo "apply=true" >> "$GITHUB_OUTPUT"
+            elif [[ "$current_sha" != "$RUN_HEAD_SHA" ]]; then
+              echo "cleanup=false" >> "$GITHUB_OUTPUT"
+              echo "apply=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "cleanup=false" >> "$GITHUB_OUTPUT"
+              echo "apply=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "cleanup=false" >> "$GITHUB_OUTPUT"
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+          fi
+          rm preview/preview-context.json
+          echo "path=$destination" >> "$GITHUB_OUTPUT"
+      - name: Update persistent preview site
+        if: >-
+          steps.destination.outputs.apply == 'true' ||
+          steps.build_destination.outputs.apply == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DESTINATION: ${{ steps.destination.outputs.path || steps.build_destination.outputs.path }}
+          CLEANUP: ${{ steps.destination.outputs.cleanup == 'true' || steps.build_destination.outputs.cleanup == 'true' }}
+        run: |
+          git init published
+          cd published
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch --depth=1 origin gh-pages; then
+            git checkout -B gh-pages FETCH_HEAD
+          else
+            git checkout --orphan gh-pages
+          fi
+          rm -rf -- "$DESTINATION"
+          if [[ "$CLEANUP" == "false" ]]; then
+            mkdir -p -- "$DESTINATION"
+            cp -R ../preview/. "$DESTINATION/"
+          fi
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update render-only preview: $DESTINATION"
+          git push origin HEAD:gh-pages
+      - name: Publish preview links
+        if: >-
+          steps.build_destination.outputs.apply == 'true' &&
+          steps.build_destination.outputs.cleanup == 'false'
+        shell: bash
+        env:
+          DESTINATION: ${{ steps.build_destination.outputs.path }}
+        run: |
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          repository=${GITHUB_REPOSITORY#*/}
+          base="https://${owner}.github.io/${repository}/${DESTINATION}"
+          {
+            echo "## Render-only previews"
+            echo "- [Standard](${base}/standard/)"
+            echo "- [Level Up](${base}/level-up/)"
+            echo "- [Recruits](${base}/recruits/)"
+          } >> "$GITHUB_STEP_SUMMARY"
