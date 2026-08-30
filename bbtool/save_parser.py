@@ -600,6 +600,47 @@ def _parse_equipped_item(
     return slot, item, cursor
 
 
+def _find_known_item_tail(
+    b: bytes,
+    start: int,
+    end: int,
+    refs: dict,
+    count: int,
+) -> int | None:
+    """Find a provable known-item tail after one unresolvable item.
+
+    Unknown item payloads have no safe generic length. Recovery is therefore
+    accepted only when every remaining declared record decodes consecutively
+    and the final record lands exactly on the circle-section boundary.
+    """
+    if count <= 0:
+        return end
+    memo: dict[tuple[int, int], bool] = {}
+
+    def completes(offset: int, remaining: int) -> bool:
+        key = (offset, remaining)
+        if key in memo:
+            return memo[key]
+        try:
+            _, _, next_offset = _parse_equipped_item(b, offset, end, refs)
+        except (KeyError, ValueError, struct.error, IndexError):
+            memo[key] = False
+            return False
+        result = (
+            next_offset == end
+            if remaining == 1
+            else completes(next_offset, remaining - 1)
+        )
+        memo[key] = result
+        return result
+
+    last_start = end - 5
+    for candidate in range(start, last_start + 1):
+        if b[candidate] <= 6 and completes(candidate, count):
+            return candidate
+    return None
+
+
 def parse_brother_equipment(
     b: bytes,
     stats_end: int,
@@ -649,7 +690,14 @@ def parse_brother_equipment(
                     "item_id": item_id,
                     "reason": str(exc),
                 })
-            break
+            remaining = item_count - item_index - 1
+            recovery = _find_known_item_tail(
+                b, item_start + 5, circle_offset, refs, remaining
+            )
+            if recovery is None or remaining == 0:
+                break
+            cursor = recovery
+            continue
 
         key = EQUIPMENT_SLOT_NAMES.get(slot)
         if slot == 6:

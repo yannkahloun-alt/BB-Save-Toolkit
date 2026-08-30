@@ -173,6 +173,37 @@ def test_unknown_item_is_emitted_and_does_not_abort_roster_equipment():
     }
 
 
+def test_unknown_item_recovers_a_provable_known_tail():
+    refs = {
+        "31323334": {
+            "name": "Nasal Helmet",
+            "type": "genericHelmet",
+            "slot": "helmet",
+            "durability": 105,
+            "fatigue": -5,
+        }
+    }
+    unknown = _item(0, "DEADBEEF", b"opaque mod payload")
+    helmet = _item(3, "31323334", _generic_state(87) + struct.pack("<f", 87))
+    blob = _inventory(unknown, helmet)
+
+    equipment, fatigue = parse_brother_equipment(blob, 0, len(blob), refs)
+
+    assert equipment["MainHand"]["ItemID"] == "DEADBEEF"
+    assert equipment["Head"] == {
+        "Name": "Nasal Helmet",
+        "ItemID": "31323334",
+        "Type": "helmet",
+        "Condition": 87,
+        "Armor": 87,
+        "Fatigue": 5,
+        "ConditionMax": 105,
+        "ArmorMax": 105,
+    }
+    assert fatigue["Head"] == 5
+    assert fatigue["Total"] == 5
+
+
 def test_nonfinite_named_item_values_degrade_to_partial_item_data():
     refs = {
         "A1A2A3A4": {
