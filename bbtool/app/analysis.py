@@ -52,7 +52,7 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
                 incremental_cache.store_role_row(bro, role, row)
             rows.append(row)
         PROFILE['base_matrix_s']+=time.perf_counter()-t
-        fits.extend(rows); best=_best(rows); effective,_=effective_stat_profile(bro)
+        fits.extend(rows); best=_best(rows)
         cached_summary = incremental_cache.get_summary(bro, roles, class_cfg) if incremental_cache is not None else None
         if cached_summary is not None:
             summaries.append(cached_summary)
@@ -65,6 +65,7 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
                 incremental_cache.mark_advisor_computed()
                 incremental_cache.store_advisor(bro, roles, advice)
 
+        effective,_=effective_stat_profile(bro)
         t=time.perf_counter(); summary=_summary(bro,best,class_cfg,effective,advice); summaries.append(summary); PROFILE['summary_s']+=time.perf_counter()-t
         if incremental_cache is not None:
             incremental_cache.mark_summary_computed()

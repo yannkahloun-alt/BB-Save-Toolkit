@@ -206,9 +206,19 @@ def test_print_projection_profile_full_contract(capsys):
         "trajectory_cache_hits": 6,
         "trajectory_cache_misses": 7,
         "trajectory_adaptive_refinements": 8,
+        "trajectory_cache_miss_reasons": {
+            "missing_entry": 4, "fingerprint_change": 2,
+            "schema_version_mismatch": 0, "refinement": 1, "other_fallback": 0,
+        },
         "full_projection_calls": 9,
         "fast_projection_calls": 10,
         "project_role_calls": 19,
+        "slowest_projections": [{
+            "seconds": 2.5, "brother": "Bodo", "archetype": "Duelist",
+            "kind": "full", "structural_alternatives": 0,
+        }],
+        "brother_projection_s": {"Bodo [human:1]": 2.5},
+        "archetype_projection_s": {"Duelist": 2.5},
     }
 
     console.print_projection_profile(profile)
@@ -220,6 +230,10 @@ def test_print_projection_profile_full_contract(capsys):
         "4.444s",
         "5.555s",
         "6 hits · 7 misses · 8 refined",
+        "fingerprint_change=2",
+        "2.500s · Bodo · Duelist · full · 0 structural alternatives",
+        "slowest brother",
+        "slowest archetype",
         "full projections",
         "9",
         "fast projections",

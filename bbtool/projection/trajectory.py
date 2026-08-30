@@ -20,6 +20,7 @@ _PRIMES = (2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,
            157,163,167,173,179,181,191,193,197,199,211,223,227,229)
 _STAT_INDEX = {stat: i for i, stat in enumerate(STATS)}
 _TRAJECTORY_CACHE: dict[tuple, dict] = {}
+_TRAJECTORY_CACHE_IDENTITIES: dict[tuple, set[tuple[str, str]]] = {}
 _TRAJECTORY_CACHE_MAX = 4096
 _CONTEXT_CACHE: dict[tuple, tuple] = {}
 _CONTEXT_CACHE_MAX = 1024
@@ -27,6 +28,7 @@ _CONTEXT_CACHE_MAX = 1024
 
 def reset_trajectory_cache() -> None:
     _TRAJECTORY_CACHE.clear()
+    _TRAJECTORY_CACHE_IDENTITIES.clear()
     _CONTEXT_CACHE.clear()
 
 
@@ -430,6 +432,7 @@ def _project_fit_trajectory_fixed(
     forced_first_combo: tuple[str, ...] | None = None,
     samples: int = 512,
     include_trace: bool = False,
+    _miss_reason_hint: str | None = None,
 ) -> dict:
     if rounds is None:
         rounds = development_rounds_to_11(bro)
@@ -437,12 +440,23 @@ def _project_fit_trajectory_fixed(
     samples = max(1, int(samples))
     normalized_ranges = _normalize_round_ranges(rounds, first_round_ranges, round_ranges)
     key = _cache_key(bro, role, rounds, normalized_ranges, forced_first_combo, samples, include_trace)
+    logical_identity = (str(bro.BrotherID), str(role.get("name", "")))
     cached = _TRAJECTORY_CACHE.get(key)
     if cached is not None:
         PROFILE["trajectory_cache_hits"] += 1
+        _TRAJECTORY_CACHE_IDENTITIES.setdefault(key, set()).add(logical_identity)
         return cached
 
     PROFILE["trajectory_cache_misses"] += 1
+    miss_reason = _miss_reason_hint
+    if miss_reason is None:
+        same_logical_projection = any(
+            logical_identity in identities
+            for identities in _TRAJECTORY_CACHE_IDENTITIES.values()
+        )
+        miss_reason = "fingerprint_change" if same_logical_projection else "missing_entry"
+    reasons = PROFILE["trajectory_cache_miss_reasons"]
+    reasons[miss_reason if miss_reason in reasons else "other_fallback"] += 1
     _trajectory_started = time.perf_counter()
     ctx = _projection_context(bro, role, rounds, normalized_ranges)
     (fit_stats, effects, raw_start, normal_ranges, range_plan, selection_cfg,
@@ -526,7 +540,9 @@ def _project_fit_trajectory_fixed(
         result["trace"] = selected_trace or []
     if len(_TRAJECTORY_CACHE) >= _TRAJECTORY_CACHE_MAX:
         _TRAJECTORY_CACHE.clear()
+        _TRAJECTORY_CACHE_IDENTITIES.clear()
     _TRAJECTORY_CACHE[key] = result
+    _TRAJECTORY_CACHE_IDENTITIES[key] = {logical_identity}
     PROFILE["trajectory_s"] += time.perf_counter() - _trajectory_started
     return result
 
@@ -578,7 +594,7 @@ def project_fit_trajectory(
         refined = _project_fit_trajectory_fixed(
             bro, role, rounds=rounds, first_round_ranges=first_round_ranges,
             round_ranges=round_ranges, forced_first_combo=forced_first_combo,
-            samples=2048, include_trace=include_trace,
+            samples=2048, include_trace=include_trace, _miss_reason_hint="refinement",
         )
         refined["adaptive_refined"] = True
         refined["initial_sample_count"] = initial

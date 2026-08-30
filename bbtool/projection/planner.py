@@ -1,9 +1,11 @@
 """Fit-only role projection for the v3.x model."""
 from __future__ import annotations
 
+import time
+
 from ..models import STATS, Brother
 from .context import bro_projection_context
-from .runtime import PROFILE
+from .runtime import PROFILE, record_projection
 from .scoring import weighted_role_score
 from .trajectory import project_fit_trajectory
 
@@ -46,7 +48,12 @@ def project_role_fast(bro: Brother, role: dict) -> dict:
     """Compact Fit projection for role/path searches."""
     PROFILE["project_role_calls"] += 1
     PROFILE["fast_projection_calls"] += 1
+    started = time.perf_counter()
     trajectory, values, components = _project_role_common(bro, role)
+    record_projection(
+        getattr(bro, "BrotherID", "unknown"), getattr(bro, "Name", "unknown"),
+        role["name"], "fast", time.perf_counter() - started
+    )
     return _base_projection_payload(role, trajectory, values, components)
 
 
@@ -54,7 +61,12 @@ def project_role(bro: Brother, role: dict) -> dict:
     """Complete Fit projection used by reports and debug outputs."""
     PROFILE["project_role_calls"] += 1
     PROFILE["full_projection_calls"] += 1
+    started = time.perf_counter()
     trajectory, values, components = _project_role_common(bro, role)
+    record_projection(
+        getattr(bro, "BrotherID", "unknown"), getattr(bro, "Name", "unknown"),
+        role["name"], "full", time.perf_counter() - started
+    )
     return {
         **_base_projection_payload(role, trajectory, values, components),
         "ProjectedRanges": {

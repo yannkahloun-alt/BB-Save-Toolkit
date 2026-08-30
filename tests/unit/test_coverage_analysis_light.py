@@ -44,3 +44,17 @@ def test_analyze_brothers_pipeline(monkeypatch,bro_factory):
     monkeypatch.setattr(an,'_summary',lambda b,best,cfg,e,a:{'Name':b.Name,'BestRole':best['Role']})
     out=an.analyze_brothers([bro_factory(Name='One'),bro_factory(Name='Two')],roles,{})
     assert len(out.fits)==4 and [x['BestRole'] for x in out.summaries]==['A','A']
+
+
+def test_reused_summary_skips_unused_effective_stat_profile(monkeypatch, bro_factory):
+    class Cache:
+        def get_role_row(self, bro, role): return row(role['name'])
+        def store_role_row(self, bro, role, value): pass
+        def get_summary(self, bro, roles, cfg): return {'Name': bro.Name}
+
+    monkeypatch.setattr(
+        an, 'effective_stat_profile',
+        lambda bro: (_ for _ in ()).throw(AssertionError('must not be called')),
+    )
+    out = an.analyze_brothers([bro_factory(Name='Cached')], [role('A')], {}, Cache())
+    assert out.summaries == [{'Name': 'Cached'}]

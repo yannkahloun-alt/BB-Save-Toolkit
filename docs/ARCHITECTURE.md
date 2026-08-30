@@ -61,6 +61,12 @@ Evaluates legal current 3-stat choices using the same trajectory/Fit model. Know
 
 Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, advisor output, and summaries.
 
+Runtime profiling reports bounded slowest-projection samples plus aggregate time
+by brother and archetype. Trajectory-cache misses are categorized and their
+total reconciles with the miss counter. The former hypothetical structural-perk
+alternatives are retired: profiling therefore reports zero structural
+alternatives rather than implying a second projection model.
+
 ### `bbtool/incremental/`
 
 Dependency-aware reuse layer. It must remain above the computation engines rather than embedding persistence in trajectory/scoring code.
