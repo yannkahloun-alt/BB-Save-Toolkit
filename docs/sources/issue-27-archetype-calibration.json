@@ -1,0 +1,507 @@
+{
+  "schema": "bb-archetypes-v0.9",
+  "status": "ACTIVE",
+  "semantics": {
+    "target": "Level-11 natural-stat target and positive Fit saturation point. At or above target, this stat contributes its maximum positive weight.",
+    "weight": "Maximum absolute influence of this stat on Fit. Signed per-stat contribution is bounded from -weight to +weight.",
+    "baseline": "Level-11 natural-stat neutral point and soft floor. At baseline contribution is zero; below baseline contribution is negative; above baseline contribution is positive up to target.",
+    "stat_absent": "The archetype does not evaluate this stat for Fit.",
+    "perks.required": "Structural perks without which the build is not really this archetype.",
+    "perks.recommended": "Strongly characteristic perks; informative only for now.",
+    "ceiling": "Optional explicit Fit-valuation saturation override. Projected values remain unchanged; only utility valuation is capped."
+  },
+  "roles": [
+  {
+  "name": "Reach DPS",
+  "stats": {
+   "MAtk": {
+  "target": 92,
+  "weight": 60.0,
+  "baseline": 82
+},
+"HP": {
+  "target": 90,
+  "weight": 15.0,
+  "baseline": 70
+},
+"Fatigue": {
+  "target": 120,
+  "weight": 15.0,
+  "baseline": 100
+},
+"Resolve": {
+  "target": 55,
+  "weight": 10.0,
+  "baseline": 40
+}
+  },
+  "perks": {
+    "required": [],
+    "recommended": [
+      "Quick Hands",
+      "Berserk",
+      "Killing Frenzy",
+      "Pathfinder"
+    ]
+  },
+  "perk_affinity": {
+    "Quick Hands": 2,
+    "Nimble": 2,
+    "Battle Forged": 2,
+    "Berserk": 1,
+    "Killing Frenzy": 1,
+    "Pathfinder": 1
+  },
+  "perk_conflicts": []
+},
+    {
+      "name": "Nimble Frontline DPS",
+      "stats": {
+        "MAtk": {
+          "target": 90,
+          "weight": 40.0,
+          "baseline": 80
+        },
+        "MDef": {
+          "target": 30,
+          "weight": 24.0,
+          "baseline": 22
+        },
+        "HP": {
+          "target": 95,
+          "weight": 24.0,
+          "baseline": 75
+        },
+        "Fatigue": {
+          "target": 110,
+          "weight": 12.0,
+          "baseline": 95
+        }
+      },
+      "perks": {
+        "required": [
+          "Nimble"
+        ],
+        "recommended": [
+          "Colossus",
+          "Underdog",
+          "Berserk",
+          "Killing Frenzy"
+        ]
+      },
+      "perk_affinity": {
+        "Nimble": 4,
+        "Dodge": 2,
+        "Relentless": 1,
+        "Berserk": 1,
+        "Killing Frenzy": 1,
+        "Duelist": 1
+      },
+      "perk_conflicts": [
+        "Battle Forged"
+      ]
+    },
+    {
+      "name": "Battle Forged Frontline DPS",
+      "stats": {
+        "MAtk": {
+          "target": 90,
+          "weight": 40.0,
+          "baseline": 80
+        },
+        "MDef": {
+          "target": 30,
+          "weight": 24.0,
+          "baseline": 22
+        },
+        "Fatigue": {
+          "target": 125,
+          "weight": 24.0,
+          "baseline": 110
+        },
+        "HP": {
+          "target": 85,
+          "weight": 12.0,
+          "baseline": 70
+        }
+      },
+      "perks": {
+        "required": [
+          "Battle Forged"
+        ],
+        "recommended": [
+          "Colossus",
+          "Steel Brow",
+          "Underdog",
+          "Brawny",
+          "Berserk",
+          "Killing Frenzy"
+        ]
+      },
+      "perk_affinity": {
+        "Battle Forged": 4,
+        "Brawny": 1,
+        "Berserk": 1,
+        "Killing Frenzy": 1
+      },
+      "perk_conflicts": [
+        "Nimble"
+      ]
+    },
+    {
+      "name": "Fat Neutral",
+      "stats": {
+        "MAtk": {
+          "target": 92,
+          "weight": 35.16,
+          "baseline": 82
+        },
+        "MDef": {
+          "target": 37,
+          "weight": 35.16,
+          "baseline": 27
+        },
+        "HP": {
+          "target": 90,
+          "weight": 15.62,
+          "baseline": 75
+        },
+        "Resolve": {
+          "target": 55,
+          "weight": 14.06,
+          "baseline": 42
+        }
+      },
+      "perks": {
+        "required": [
+          "Battle Forged",
+          "Pathfinder"
+        ],
+        "recommended": [
+          "Quick Hands",
+          "Steel Brow",
+          "Underdog",
+          "Fearsome"
+        ]
+      },
+      "perk_affinity": {
+        "Battle Forged": 4,
+        "Pathfinder": 1
+      },
+      "perk_conflicts": [
+        "Nimble"
+      ]
+    },
+    {
+      "name": "Nimble Tank",
+      "stats": {
+        "MDef": {
+          "target": 42,
+          "weight": 40.0,
+          "baseline": 34
+        },
+        "HP": {
+          "target": 100,
+          "weight": 28.0,
+          "baseline": 78
+        },
+        "Resolve": {
+          "target": 65,
+          "weight": 20.0,
+          "baseline": 50
+        },
+        "Fatigue": {
+          "target": 115,
+          "weight": 12.0,
+          "baseline": 100
+        }
+      },
+      "perks": {
+        "required": [
+          "Nimble",
+          "Shield Expert",
+          "Indomitable"
+        ],
+        "recommended": [
+          "Colossus",
+          "Recover",
+          "Underdog",
+          "Fortified Mind",
+          "Taunt"
+        ]
+      },
+      "perk_affinity": {
+        "Nimble": 4,
+        "Shield Expert": 3,
+        "Indomitable": 3,
+        "Underdog": 2,
+        "Dodge": 1,
+        "Taunt": 1
+      },
+      "perk_conflicts": [
+        "Battle Forged"
+      ]
+    },
+    {
+      "name": "Battle Forged Tank",
+      "stats": {
+        "MDef": {
+          "target": 42,
+          "weight": 40.0,
+          "baseline": 34
+        },
+        "Resolve": {
+          "target": 65,
+          "weight": 20.0,
+          "baseline": 50
+        },
+        "Fatigue": {
+          "target": 135,
+          "weight": 28.0,
+          "baseline": 120
+        },
+        "HP": {
+          "target": 90,
+          "weight": 12.0,
+          "baseline": 70
+        }
+      },
+      "perks": {
+        "required": [
+          "Battle Forged",
+          "Shield Expert",
+          "Indomitable"
+        ],
+        "recommended": [
+          "Colossus",
+          "Recover",
+          "Underdog",
+          "Brawny",
+          "Fortified Mind",
+          "Taunt"
+        ]
+      },
+      "perk_affinity": {
+        "Battle Forged": 4,
+        "Shield Expert": 3,
+        "Indomitable": 3,
+        "Underdog": 2,
+        "Brawny": 1,
+        "Taunt": 1
+      },
+      "perk_conflicts": [
+        "Nimble"
+      ]
+    },
+    {
+      "name": "Archer",
+      "stats": {
+        "RAtk": {
+          "target": 95,
+          "weight": 66.67,
+          "baseline": 86
+        },
+        "Fatigue": {
+          "target": 115,
+          "weight": 16.67,
+          "baseline": 100
+        },
+        "HP": {
+          "target": 90,
+          "weight": 10.0,
+          "baseline": 70
+        },
+        "Resolve": {
+          "target": 50,
+          "weight": 6.66,
+          "baseline": 40
+        }
+      },
+      "perks": {
+        "required": [
+          "Bow Mastery"
+        ],
+        "recommended": [
+          "Bullseye",
+          "Nimble",
+          "Berserk",
+          "Killing Frenzy"
+        ]
+      },
+      "perk_affinity": {
+        "Bow Mastery": 5,
+        "Bullseye": 1
+      },
+      "perk_conflicts": []
+    },
+    {
+      "name": "Thrower Hybrid",
+      "stats": {
+        "RAtk": {
+          "target": 88,
+          "weight": 44.44,
+          "baseline": 80
+        },
+        "MAtk": {
+          "target": 80,
+          "weight": 33.33,
+          "baseline": 72
+        },
+        "Fatigue": {
+          "target": 115,
+          "weight": 11.11,
+          "baseline": 100
+        },
+        "HP": {
+          "target": 90,
+          "weight": 11.12,
+          "baseline": 70
+        }
+      },
+      "perks": {
+        "required": [
+          "Throwing Mastery",
+          "Duelist"
+        ],
+        "recommended": [
+          "Quick Hands",
+          "Nimble",
+          "Berserk",
+          "Killing Frenzy"
+        ]
+      },
+      "perk_affinity": {
+        "Throwing Mastery": 5,
+        "Duelist": 2,
+        "Quick Hands": 1
+      },
+      "perk_conflicts": []
+    },
+    {
+      "name": "Thrower",
+      "stats": {
+        "RAtk": {
+          "target": 88,
+          "weight": 54.55,
+          "baseline": 80
+        },
+        "Fatigue": {
+          "target": 120,
+          "weight": 24.24,
+          "baseline": 105
+        },
+        "HP": {
+          "target": 95,
+          "weight": 12.12,
+          "baseline": 75
+        },
+        "Resolve": {
+          "target": 50,
+          "weight": 9.09,
+          "baseline": 40
+        }
+      },
+      "perks": {
+        "required": [
+          "Throwing Mastery",
+          "Duelist"
+        ],
+        "recommended": [
+          "Quick Hands",
+          "Bags and Belts",
+          "Nimble",
+          "Berserk",
+          "Killing Frenzy"
+        ]
+      },
+      "perk_affinity": {
+        "Throwing Mastery": 5,
+        "Duelist": 2
+      },
+      "perk_conflicts": []
+    },
+    {
+      "name": "Crossbow",
+      "stats": {
+        "RAtk": {
+          "target": 90,
+          "weight": 60.0,
+          "baseline": 82
+        },
+        "Fatigue": {
+          "target": 110,
+          "weight": 16.67,
+          "baseline": 95
+        },
+        "HP": {
+          "target": 90,
+          "weight": 13.33,
+          "baseline": 70
+        },
+        "Resolve": {
+          "target": 50,
+          "weight": 10.0,
+          "baseline": 40
+        }
+      },
+      "perks": {
+        "required": [
+          "Crossbow Mastery"
+        ],
+        "recommended": [
+          "Quick Hands",
+          "Bags and Belts",
+          "Nimble"
+        ]
+      },
+      "perk_affinity": {
+        "Crossbow Mastery": 5
+      },
+      "perk_conflicts": []
+    },
+    {
+      "name": "Banner",
+      "stats": {
+        "Resolve": {
+          "target": 95,
+          "weight": 61.54,
+          "baseline": 80
+        },
+        "MAtk": {
+          "target": 82,
+          "weight": 25.64,
+          "baseline": 65
+        },
+        "Fatigue": {
+          "target": 110,
+          "weight": 7.69,
+          "baseline": 95
+        },
+        "RDef": {
+          "target": 10,
+          "weight": 5.13,
+          "baseline": 0
+        }
+      },
+      "perks": {
+        "required": [
+          "Rally the Troops",
+          "Fortified Mind"
+        ],
+        "recommended": [
+          "Recover",
+          "Pathfinder",
+          "Nimble",
+          "Quick Hands"
+        ]
+      },
+      "perk_affinity": {
+        "Rally the Troops": 6,
+        "Fortified Mind": 2
+      },
+      "perk_conflicts": []
+    }
+  ]
+}
+
+

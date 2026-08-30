@@ -2,7 +2,10 @@
 
 The default v0.9 role set in `config/archetypes.json` comes from the
 `archetypes.json` attachment on GitHub issue
-[27](https://github.com/yannkahloun-alt/BB-Save-Toolkit/issues/27).
+[27](https://github.com/yannkahloun-alt/BB-Save-Toolkit/issues/27). The exact
+downloaded source is retained at
+`docs/sources/issue-27-archetype-calibration.json` so verification does not depend on
+GitHub attachment access.
 
 Source attachment:
 
@@ -15,7 +18,9 @@ The canonical digest is calculated by serializing the JSON `roles` array with
 UTF-8, sorted object keys, no ASCII escaping, and separators `,` and `:`.
 The same digest is produced from the integrated configuration, proving that
 role names, stats, targets, baselines, weights, perks, affinities, conflicts,
-and ordering match the supplied calibration independent of whitespace.
+and ordering match the supplied calibration independent of whitespace. The
+configuration contract tests also compare the integrated `roles` value
+directly with the retained source.
 
 The repository retains its stronger existing `ceiling` description rather
 than copying the attachment's abbreviated wording. This preserves the
