@@ -29,6 +29,19 @@ def _copy_fixture(tmp_path: Path) -> Path:
     return target
 
 
+def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload_path = source / manifest["files"][label]["path"]
+    payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    mutate(payload)
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+    manifest["files"][label]["sha256"] = hashlib.sha256(
+        payload_path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+
 def test_cli_accepts_render_only_without_save():
     options = parse_args(["--render-only", str(FIXTURE)])
     assert options.save is None
@@ -93,6 +106,35 @@ def test_load_render_dataset_reports_malformed_json_with_matching_hash(tmp_path)
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(RenderDatasetError, match="malformed JSON in roster"):
         load_render_dataset(source)
+
+
+@pytest.mark.parametrize("label, mutation, missing", [
+    ("role_fit", lambda rows: rows[0].pop("ProjectedFitPct"), "ProjectedFitPct"),
+    ("classification", lambda rows: rows[0].pop("Category"), "Category"),
+])
+def test_renderer_fields_are_validated_before_output_creation(
+    tmp_path, label, mutation, missing
+):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(source, label, mutation)
+    out = tmp_path / "out"
+    with pytest.raises(
+        RenderDatasetError,
+        match=rf"renderer contract rejected.*{missing}",
+    ):
+        run_render_only(_options(source, out))
+    assert not out.exists()
+
+
+def test_renderer_field_types_are_validated_before_output_creation(tmp_path):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source, "role_fit", lambda rows: rows[0].update(ProjectedFitPct="high")
+    )
+    out = tmp_path / "out"
+    with pytest.raises(RenderDatasetError, match="renderer contract rejected"):
+        run_render_only(_options(source, out))
+    assert not out.exists()
 
 
 def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):

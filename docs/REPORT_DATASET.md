@@ -59,6 +59,8 @@ Before rendering, the loader verifies:
 - exactly one classification row per brother;
 - all brother and role joins, including `BestRole`;
 - absence of hidden `FutureRolls` from every public input.
+- a full renderer-contract preflight, which exercises every field and type
+  consumed by the shared report renderer before an output directory exists.
 
 Missing, corrupt, incompatible, contradictory, or unsafe input raises an
 `Invalid render dataset` error naming the relevant file or relation. The

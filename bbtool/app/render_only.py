@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import webbrowser
 
+from ..html_report import render_html_report
 from ..models import Brother
 from .cli import CliOptions
 from .console import Step, format_bytes, print_generated_files, sha256_file
@@ -157,12 +158,24 @@ def load_render_dataset(source: Path) -> RenderDataset:
     if any(row.get("BestRole") not in role_names for row in summaries):
         raise _fail("classification BestRole values do not match archetypes")
 
-    return RenderDataset(
+    dataset = RenderDataset(
         root=root, manifest_path=manifest_path, manifest=manifest, bros=bros,
         recruits=payloads["recruits"], fits=fits, summaries=summaries,
         roles=roles, classification=payloads["classification_config"],
         files=tuple(paths),
     )
+    try:
+        render_html_report(
+            Path("validated-dataset.json"), dataset.bros, dataset.fits,
+            dataset.summaries, dataset.roles, dataset.classification,
+            recruits=dataset.recruits,
+        )
+    except Exception as exc:
+        raise _fail(
+            "renderer contract rejected the dataset before output creation: "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
+    return dataset
 
 
 def run_render_only(options: CliOptions) -> tuple:
