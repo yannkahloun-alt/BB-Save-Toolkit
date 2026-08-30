@@ -90,6 +90,11 @@ Conservative exact-state reuse is production-safe. Cross-save progression identi
 ### `bbtool/app/`
 
 CLI, orchestration, console diagnostics, output writing, and runtime workspace management.
+Normal and render-only outputs share the versioned public report dataset
+contract. The generated HTML is a data-free launcher; a loopback-only local
+server validates the adjacent manifest/JSON and invokes the shared Python
+renderer at view time. This avoids unreliable `file://` JSON access without
+duplicating analysis data or introducing a network dependency.
 `app/render_only.py` is a presentation-only entry point. It validates the
 versioned public report dataset, reconstructs display models, and calls the
 same HTML/output functions as a normal analysis run. It does not parse a save,

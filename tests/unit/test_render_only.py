@@ -9,7 +9,8 @@ from bbtool.app.cli import CliOptions, parse_args
 import bbtool.app.main as app_main
 import bbtool.app.render_only as render_only
 from bbtool.app.render_only import RenderDatasetError, load_render_dataset, run_render_only
-from bbtool.html_report import render_html_report
+from bbtool.app.report_server import render_served_report
+from bbtool.html_report import render_report_launcher
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +50,12 @@ def test_cli_accepts_render_only_without_save():
     assert options.render_only == FIXTURE
 
 
+def test_cli_accepts_serve_report_without_save():
+    options = parse_args(["--serve-report", str(FIXTURE)])
+    assert options.save is None
+    assert options.serve_report == FIXTURE
+
+
 def test_cli_rejects_analysis_flags_in_render_only(capsys):
     with pytest.raises(SystemExit):
         parse_args(["--render-only", str(FIXTURE), "--verify-cache"])
@@ -61,6 +68,18 @@ def test_main_dispatches_render_only_without_loading_analysis_runner(monkeypatch
     app_main.main(["--render-only", str(FIXTURE)])
     assert len(calls) == 1
     assert calls[0].render_only == FIXTURE
+
+
+def test_main_dispatches_serve_report(monkeypatch):
+    calls = []
+    from bbtool.app import report_server
+    monkeypatch.setattr(
+        report_server,
+        "serve_report",
+        lambda source, open_browser=False: calls.append((source, open_browser)),
+    )
+    app_main.main(["--serve-report", str(FIXTURE), "--open-report"])
+    assert calls == [(FIXTURE, True)]
 
 
 def test_load_render_dataset_validates_relations_and_builds_brothers():
@@ -106,6 +125,18 @@ def test_load_render_dataset_reports_malformed_json_with_matching_hash(tmp_path)
     manifest["files"]["roster"]["sha256"] = hashlib.sha256(roster.read_bytes()).hexdigest()
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(RenderDatasetError, match="malformed JSON in roster"):
+        load_render_dataset(source)
+
+
+def test_load_render_dataset_reports_invalid_utf8_with_matching_hash(tmp_path):
+    source = _copy_fixture(tmp_path)
+    roster = source / "reference-roster.json"
+    roster.write_bytes(b"\xff")
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["files"]["roster"]["sha256"] = hashlib.sha256(b"\xff").hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="invalid UTF-8 in roster"):
         load_render_dataset(source)
 
 
@@ -169,17 +200,26 @@ def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
     reports = list(workspace.root.glob("*-report.html"))
     assert len(reports) == 1
     html = reports[0].read_text(encoding="utf-8")
-    dataset = load_render_dataset(FIXTURE)
-    expected = render_html_report(
-        workspace.source_save,
-        dataset.bros,
-        dataset.fits,
-        dataset.summaries,
-        dataset.roles,
-        dataset.classification,
-        generated_at=workspace.generated_at,
-        recruits=dataset.recruits,
-    )
+    expected = render_report_launcher(workspace.source_save, workspace.generated_at)
     assert html == expected
-    assert "Aldric" in html
-    assert "Reference Hamlet" in html
+    assert "Aldric" not in html
+    assert "Reference Hamlet" not in html
+    assert "--serve-report" in html
+
+    root, served = render_served_report(workspace.root)
+    assert root == workspace.root.resolve()
+    assert "Aldric" in served
+    assert "Reference Hamlet" in served
+    report_file = next(workspace.root.glob("*-report.html"))
+    assert render_served_report(report_file)[0] == workspace.root.resolve()
+
+
+def test_generated_manifest_is_self_contained_and_versioned(tmp_path):
+    workspace, _archive = run_render_only(_options(FIXTURE, tmp_path / "out"))
+    manifest = json.loads((workspace.root / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["schema"] == "bbtool.reference_analysis.v1"
+    assert set(manifest["files"]) == render_only.REQUIRED_FILES
+    assert all(
+        (workspace.root / entry["path"]).is_file()
+        for entry in manifest["files"].values()
+    )

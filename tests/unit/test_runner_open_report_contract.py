@@ -38,8 +38,10 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "finalize_debug_bundle_metadata", lambda *a: None)
     monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
     opened = []
-    monkeypatch.setattr(runner.webbrowser, "open", lambda uri: opened.append(uri) or True)
+    monkeypatch.setattr(
+        runner, "launch_report_server", lambda source: opened.append(source) or True
+    )
 
     runner.run(opts)
 
-    assert opened == [report.resolve().as_uri()]
+    assert opened == [workspace.root]

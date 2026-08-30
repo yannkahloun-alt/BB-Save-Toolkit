@@ -1,8 +1,10 @@
 # Public report dataset contract
 
-`--render-only` generates the normal interactive HTML report from public JSON
-that was produced previously. This path is presentation-only: it never reads a
-Battle Brothers save and never runs reference preparation, projection, Fit,
+The interactive report is generated from adjacent public JSON under the
+versioned contract below. `--render-only` repackages a compatible dataset, and
+`--serve-report` validates and displays either a generated run directory or an
+existing dataset. These paths are presentation-only: they never read a
+Battle Brothers save and never run reference preparation, projection, Fit,
 classification, incremental-cache, or Level-Up Advisor computation.
 
 ## Usage
@@ -12,18 +14,26 @@ Pass either the dataset directory or its manifest:
 ```powershell
 python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis
 python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis\manifest.json --open-report
+python .\bb_analyze.py --serve-report .\output\my-run --open-report
 ```
 
 `--out` selects the destination. Analysis-only switches (`--no-projection`,
 `--full-recompute`, `--verify-cache`, and `--cache-debug`) are rejected so the
 execution mode cannot be mistaken for a save analysis.
 
-The command validates every input before creating its output directory. On
-success it writes a timestamped directory containing the six public JSON
-files, `manifest.json`, `report.html`, `report.css`, and `report.js`, plus a ZIP
-of that directory. The same renderer and assets are used by full and
-presentation-only runs. Opening a report directly inside a ZIP is unsupported;
-extract the ZIP first.
+The render-only command validates every input before creating its output
+directory. On success it writes a timestamped directory containing the six
+canonical public JSON files, `manifest.json`, a data-free report HTML shell,
+`report.css`, and `report.js`, plus a ZIP of that directory. Full analysis uses
+the identical contract. The local server reads and validates the JSON, then
+uses the shared renderer and assets to produce the complete interactive page.
+
+Browsers block reliable adjacent JSON loading from `file://`; direct HTML
+opening is therefore not the supported data-loading path. It shows a clear
+launch instruction and contains no roster, recruit, Fit, classification, or
+Advisor payload. `--open-report` starts the loopback server automatically.
+After moving a complete directory or extracting its ZIP, use `--serve-report`
+as shown above. Opening from inside a ZIP is unsupported.
 
 ## Version and required files
 
@@ -61,6 +71,10 @@ Before rendering, the loader verifies:
 - absence of hidden `FutureRolls` from every public input.
 - a full renderer-contract preflight, which exercises every field and type
   consumed by the shared report renderer before an output directory exists.
+
+The server binds to an ephemeral port on `127.0.0.1`, serves only the rendered
+page and its two fixed local assets, disables browser caching, and exposes no
+arbitrary file path. It has no network dependency.
 
 Missing, corrupt, incompatible, contradictory, or unsafe input raises an
 `Invalid render dataset` error naming the relevant file or relation. The

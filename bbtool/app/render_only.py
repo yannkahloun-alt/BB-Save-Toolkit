@@ -5,16 +5,17 @@ from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
-import shutil
-import webbrowser
 
 from ..html_report import render_html_report
 from ..models import Brother
 from .cli import CliOptions
 from .console import Step, format_bytes, print_generated_files, sha256_file
-from .output import archive_workspace, create_workspace, prune_outputs, write_html
+from .output import (
+    REPORT_DATASET_SCHEMA, archive_workspace, create_workspace, prune_outputs,
+    write_html,
+)
 
-DATASET_SCHEMA = "bbtool.reference_analysis.v1"
+DATASET_SCHEMA = REPORT_DATASET_SCHEMA
 REQUIRED_FILES = frozenset({
     "roster", "recruits", "role_fit", "classification",
     "archetypes", "classification_config",
@@ -48,6 +49,8 @@ def _load_json(path: Path, label: str):
         return json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
         raise _fail(f"cannot read {label} file {path.name}: {exc}") from exc
+    except UnicodeError as exc:
+        raise _fail(f"invalid UTF-8 in {label} file {path.name}") from exc
     except json.JSONDecodeError as exc:
         raise _fail(
             f"malformed JSON in {label} file {path.name} at line {exc.lineno}, "
@@ -56,7 +59,11 @@ def _load_json(path: Path, label: str):
 
 
 def _manifest_path(source: Path) -> Path:
-    return source / "manifest.json" if source.is_dir() else source
+    if source.is_dir():
+        return source / "manifest.json"
+    if source.suffix.lower() in {".html", ".htm"}:
+        return source.parent / "manifest.json"
+    return source
 
 
 def _contains_key(value, forbidden: str) -> bool:
@@ -195,12 +202,6 @@ def run_render_only(options: CliOptions) -> tuple:
 
     source = Path(f"{dataset.root.name or 'report-dataset'}.json")
     workspace = create_workspace(source, options.out)
-    shutil.copy2(dataset.manifest_path, workspace.root / "manifest.json")
-    for path in dataset.files:
-        destination = workspace.root / path.relative_to(dataset.root)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, destination)
-
     step = Step("Generate HTML report (render only)")
     step.__enter__()
     report_path = write_html(
@@ -223,7 +224,8 @@ def run_render_only(options: CliOptions) -> tuple:
     print(f"Archive: {archive_path}")
     if options.open_report:
         try:
-            if not webbrowser.open(report_path.resolve().as_uri()):
+            from .report_server import launch_report_server
+            if not launch_report_server(workspace.root):
                 print("Warning: the browser did not confirm that the report opened")
         except Exception as exc:
             print(f"Warning: unable to open report: {type(exc).__name__}: {exc}")
