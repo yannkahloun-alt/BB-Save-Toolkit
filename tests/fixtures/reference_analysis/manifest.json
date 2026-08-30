@@ -1,0 +1,31 @@
+{
+  "files": {
+    "archetypes": {
+      "path": "reference-archetypes.json",
+      "sha256": "d0729ba894a384ab8e5325557ad2b2f0b5c5ed3d5c9aa04cf97d5ebc200818e2"
+    },
+    "classification": {
+      "path": "reference-classification.json",
+      "sha256": "fc7daee3c685fb3118248364c3574d52883a099d723200009c32ad502710c4a2"
+    },
+    "classification_config": {
+      "path": "reference-classification-config.json",
+      "sha256": "1d812ea621eea4d48742a613bebc3f0576746f2f417a93812ee14af56f1715d4"
+    },
+    "recruits": {
+      "path": "reference-recruits.json",
+      "sha256": "e995d87c28292508e5b5af590c2aaf8e01356b116ce956e222875b328af6bd74"
+    },
+    "role_fit": {
+      "path": "reference-role-fit.json",
+      "sha256": "0286cbec60dccd53d2cdc092fd6f66b53b6d4105e1bb53419cf40a88a075fe6a"
+    },
+    "roster": {
+      "path": "reference-roster.json",
+      "sha256": "c3de73ffa85ae8991cc345fe7feac7991e49e16511ad5fff82d55a5a171e6d78"
+    }
+  },
+  "purpose": "versioned public inputs for report demos and contract tests",
+  "schema": "bbtool.reference_analysis.v1",
+  "source": "synthetic Brother and recruit records declared in generate.py"
+}

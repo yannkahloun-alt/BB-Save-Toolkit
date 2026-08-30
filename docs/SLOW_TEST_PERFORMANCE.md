@@ -55,4 +55,3 @@ The tests now use the smallest state that proves each existing assertion:
 No production projection, Fit, classification, Advisor, cache, or report logic
 was changed. The `run_tests.ps1 slow` selector now includes both `slow` and
 `coverage_slow`, making the focused pre-release profile directly runnable.
-

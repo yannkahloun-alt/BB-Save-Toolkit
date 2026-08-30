@@ -68,3 +68,33 @@ pre-release performance validation; the normal PR gate still excludes
 - `unit/`: deterministic unit/business tests.
 - `integration/`: cross-module tests.
 - `fixtures/`: deterministic local fixtures; no machine-specific paths or network dependencies.
+
+## Reference analysis JSON
+
+`fixtures/reference_analysis/` is a maintained, versioned set of public analysis
+JSON for report demonstrations and contract tests. It is synthetic: no private
+save is stored or required. `manifest.json` declares the fixture schema, the
+role of every file, and its SHA-256 digest. The set contains the four normal
+public analysis artifacts plus snapshots of the two configurations needed to
+interpret them. Debug, incremental-manifest, projection-validation, hidden
+`FutureRolls`, timestamps, and machine-specific paths are deliberately excluded.
+The committed JSON total is about 147 KiB: small enough for routine diffs and
+tests while retaining every configured archetype for realistic report coverage.
+
+Regenerate it offline from the repository root:
+
+```powershell
+python tests\fixtures\reference_analysis\generate.py
+```
+
+The source records are declared in `generate.py`; the current repository
+configuration and analysis engines produce the outputs. Run the command twice
+and verify a clean `git diff` to confirm determinism. The integration test
+validates JSON syntax, fixture/schema compatibility, hashes, brother/role
+relations, representative roster and recruit states, and forbidden data.
+
+Regenerate and review the fixture whenever a public artifact field or format,
+archetype/classification configuration, or covered analytical result changes.
+Update the JSON and this documentation together when the fixture contract
+changes. A digest change is expected only when its reviewed source or behavior
+changes; do not normalize away meaningful analytical differences.

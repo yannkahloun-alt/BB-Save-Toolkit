@@ -1,0 +1,26 @@
+[
+  {
+    "Background": "Farmhand",
+    "DailyWage": 7,
+    "HireCost": 320,
+    "Level": 1,
+    "Name": "Edda",
+    "Settlement": "Reference Hamlet",
+    "Title": "the Quick",
+    "Traits": [
+      "Quick"
+    ],
+    "TryoutDone": true
+  },
+  {
+    "Background": "Militia",
+    "DailyWage": 14,
+    "HireCost": 780,
+    "Level": 2,
+    "Name": "Falk",
+    "Settlement": "Reference Keep",
+    "Title": "",
+    "Traits": [],
+    "TryoutDone": false
+  }
+]
