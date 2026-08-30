@@ -1132,6 +1132,7 @@ def _parse_recruit_equipment_value(
     header: dict,
     circle_offset: int,
     item_economy: dict,
+    diagnostics: list[dict] | None = None,
 ) -> int | None:
     """
     Sum vanilla getValue() for recruit equipment.
@@ -1157,6 +1158,12 @@ def _parse_recruit_equipment_value(
         item_hash = b[p + 1:p + 5].hex().upper()
         meta = item_economy.get(item_hash)
         if not meta:
+            if diagnostics is not None:
+                diagnostics.append({
+                    "scope": "recruits",
+                    "kind": "unresolved_recruit_equipment",
+                    "reference_hash": item_hash,
+                })
             return None
 
         length = int(meta.get("SerializedLength", 0))
@@ -1263,7 +1270,10 @@ def _compute_daily_wage(
     return max(0, int(math.floor(value + 1e-9)))
 
 
-def parse_recruits(save_path: Path) -> list[dict]:
+def parse_recruits(
+    save_path: Path,
+    diagnostics: dict | None = None,
+) -> list[dict]:
     """
     Return settlement recruitment candidates using public information only.
 
@@ -1281,6 +1291,11 @@ def parse_recruits(save_path: Path) -> list[dict]:
     refs = load_reference_dictionary(script_dir)
     economy = _load_background_economy(script_dir)
     item_economy = _load_item_economy(script_dir)
+    recoverable_failures = (
+        diagnostics.setdefault("recoverable_failures", [])
+        if diagnostics is not None
+        else None
+    )
 
     recruits = []
     for rec in _candidate_records(b, refs):
@@ -1297,6 +1312,7 @@ def parse_recruits(save_path: Path) -> list[dict]:
             rec["_Header"],
             rec["_CircleOffset"],
             item_economy,
+            recoverable_failures,
         )
         hire_cost = _compute_hire_cost(
             rec["_BackgroundID"],

@@ -66,7 +66,10 @@ def test_run_health_prints_explicit_clean_statement(capsys):
     assert health["conservative_recomputations"] == 0
 
     print_run_health(health, None)
-    assert "No result-affecting warnings." in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "No result-affecting warnings." in output
+    assert "no unresolved references are present in the current save" in output
+    assert "analysis results are unaffected" in output
 
 
 def test_run_health_counts_plain_unknown_parser_fallback():
@@ -105,3 +108,32 @@ def test_run_health_does_not_double_count_permanent_injury_alias():
 
     assert health["unresolved_references_relevant_to_save"] == 1
     assert health["unresolved_reference_sample"] == [injury]
+
+
+def test_run_health_warns_for_unresolved_recruit_equipment(capsys):
+    equipment_hash = "AABBCCDD"
+    health = build_run_health(
+        [],
+        [{"Background": "Farmhand", "Traits": [], "HireCost": None}],
+        {},
+        parse_diagnostics={
+            "recoverable_failures": [{
+                "scope": "recruits",
+                "kind": "unresolved_recruit_equipment",
+                "reference_hash": equipment_hash,
+            }]
+        },
+    )
+
+    assert health["result_affecting_warnings"] == 1
+    assert health["unresolved_references_relevant_to_save"] == 1
+    assert health["unresolved_recruit_equipment_relevant_to_save"] == 1
+    assert health["unresolved_recruit_equipment_hash_sample"] == [equipment_hash]
+    assert health["unresolved_reference_sample"] == [
+        f"Unknown equipment [{equipment_hash}]"
+    ]
+
+    print_run_health(health, None)
+    output = capsys.readouterr().out
+    assert "WARNING: unresolved reference data affects the current analysis" in output
+    assert "analysis results are unaffected" not in output

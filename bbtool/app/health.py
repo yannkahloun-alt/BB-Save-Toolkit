@@ -83,7 +83,14 @@ def build_run_health(
     parsing_failures = list(
         (parse_diagnostics or {}).get("recoverable_failures", [])
     )
+    unresolved_equipment = sorted(
+        str(item.get("reference_hash"))
+        for item in parsing_failures
+        if item.get("kind") == "unresolved_recruit_equipment"
+        and item.get("reference_hash")
+    )
     recoverable_parsing_failures = len(parsing_failures)
+    unresolved_reference_count = len(unresolved) + len(unresolved_equipment)
     result_affecting_warnings = (
         recoverable_parsing_failures + len(unresolved) + roll_violations
     )
@@ -98,8 +105,18 @@ def build_run_health(
         "informational_notices": informational_notices,
         "recoverable_parsing_failures": recoverable_parsing_failures,
         "recoverable_parsing_failure_sample": parsing_failures[:10],
-        "unresolved_references_relevant_to_save": len(unresolved),
-        "unresolved_reference_sample": unresolved[:10],
+        "unresolved_references_relevant_to_save": unresolved_reference_count,
+        "unresolved_reference_sample": sorted(
+            [
+                *unresolved,
+                *[
+                    f"Unknown equipment [{value}]"
+                    for value in unresolved_equipment
+                ],
+            ]
+        )[:10],
+        "unresolved_recruit_equipment_relevant_to_save": len(unresolved_equipment),
+        "unresolved_recruit_equipment_hash_sample": unresolved_equipment[:10],
         "unresolved_backgrounds_relevant_to_save": len(unresolved_backgrounds),
         "unresolved_background_sample": unresolved_backgrounds[:10],
         "validation_roll_range_violations": roll_violations,
@@ -135,6 +152,17 @@ def print_run_health(health: dict, debug_name: str | None) -> None:
         "  unresolved backgrounds relevant to save: "
         f"{health['unresolved_backgrounds_relevant_to_save']}"
     )
+    unresolved = health["unresolved_references_relevant_to_save"]
+    if unresolved:
+        print(
+            "  WARNING: unresolved reference data affects the current analysis "
+            f"({unresolved} save-visible value(s))."
+        )
+    else:
+        print(
+            "  Reference audit: no unresolved references are present in the "
+            "current save; analysis results are unaffected."
+        )
     print(
         f"  cache fallbacks: {health['cache_fallbacks']} · "
         f"conservative recomputations: {health['conservative_recomputations']}"

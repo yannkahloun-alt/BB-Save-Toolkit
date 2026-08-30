@@ -79,7 +79,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
 
     step = Step("Parse recruits")
     step.__enter__()
-    recruits = parse_recruits(options.save)
+    recruits = parse_recruits(options.save, diagnostics=parse_diagnostics)
     step.done(f"{len(recruits)} candidates")
 
     step = Step("Prepare run output")
