@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `--render-only DATASET` to validate a versioned public JSON dataset and
+  generate the normal portable HTML report and archive without parsing a save
+  or running analysis.
 - Retain the 10 newest generated run archives per source-save filename after a
   successful archive write, without renaming outputs or deleting run folders,
   unrelated files, or archives from another save family.
