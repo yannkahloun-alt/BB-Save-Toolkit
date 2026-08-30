@@ -47,6 +47,29 @@ def test_adaptive_refinement_has_reconciled_miss_reason(bro_factory, simple_role
     assert profile['trajectory_adaptive_refinements'] == 1
     assert profile['trajectory_cache_miss_reasons']['refinement'] == 1
     assert sum(profile['trajectory_cache_miss_reasons'].values()) == profile['trajectory_cache_misses']
+
+
+def test_new_brother_and_new_role_are_cold_cache_misses(bro_factory, simple_role):
+    reset_trajectory_cache(); reset_profile_values()
+    first = bro_factory(HumanOffset=1)
+    project_fit_trajectory(first, simple_role(name='Duelist'), rounds=1, samples=8)
+    project_fit_trajectory(first, simple_role(name='Tank'), rounds=1, samples=8)
+    project_fit_trajectory(bro_factory(HumanOffset=2, MAtk=61), simple_role(name='Duelist'), rounds=1, samples=8)
+    profile = get_profile_values()
+    assert profile['trajectory_cache_miss_reasons']['missing_entry'] == 3
+    assert profile['trajectory_cache_miss_reasons']['fingerprint_change'] == 0
+    assert sum(profile['trajectory_cache_miss_reasons'].values()) == profile['trajectory_cache_misses']
+
+
+def test_identical_state_cache_hit_registers_each_logical_brother(bro_factory, simple_role):
+    reset_trajectory_cache(); reset_profile_values()
+    role = simple_role(name='Duelist')
+    project_fit_trajectory(bro_factory(HumanOffset=1), role, rounds=1, samples=8)
+    project_fit_trajectory(bro_factory(HumanOffset=2), role, rounds=1, samples=8)
+    project_fit_trajectory(bro_factory(HumanOffset=2, MAtk=61), role, rounds=1, samples=8)
+    profile = get_profile_values()
+    assert profile['trajectory_cache_hits'] == 1
+    assert profile['trajectory_cache_miss_reasons']['fingerprint_change'] == 1
 @pytest.mark.parametrize('change', ['stars','perk','role','rounds','ranges','samples'])
 def test_cache_miss_dimensions(change,bro_factory,simple_role):
     r=simple_role(('MAtk',)); b=bro_factory(); reset_trajectory_cache(); reset_profile_values(); project_fit_trajectory(b,r,rounds=1,samples=8); before=get_profile_values()['trajectory_cache_misses']
