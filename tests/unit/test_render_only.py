@@ -9,6 +9,7 @@ from bbtool.app.cli import CliOptions, parse_args
 import bbtool.app.main as app_main
 import bbtool.app.render_only as render_only
 from bbtool.app.render_only import RenderDatasetError, load_render_dataset, run_render_only
+from bbtool.html_report import render_html_report
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -137,6 +138,28 @@ def test_renderer_field_types_are_validated_before_output_creation(tmp_path):
     assert not out.exists()
 
 
+def test_hidden_future_roll_key_is_rejected_in_every_public_payload(tmp_path):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source,
+        "archetypes",
+        lambda payload: payload.update(FutureRolls={"HP": [4]}),
+    )
+    with pytest.raises(RenderDatasetError, match="must not contain FutureRolls"):
+        load_render_dataset(source)
+
+
+def test_future_rolls_text_in_a_display_value_is_allowed(tmp_path):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source,
+        "recruits",
+        lambda rows: rows[0].update(Title="the FutureRolls Historian"),
+    )
+    dataset = load_render_dataset(source)
+    assert dataset.recruits[0]["Title"] == "the FutureRolls Historian"
+
+
 def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
     workspace, archive = run_render_only(_options(FIXTURE, tmp_path / "out"))
     assert archive.is_file()
@@ -146,5 +169,17 @@ def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
     reports = list(workspace.root.glob("*-report.html"))
     assert len(reports) == 1
     html = reports[0].read_text(encoding="utf-8")
+    dataset = load_render_dataset(FIXTURE)
+    expected = render_html_report(
+        workspace.source_save,
+        dataset.bros,
+        dataset.fits,
+        dataset.summaries,
+        dataset.roles,
+        dataset.classification,
+        generated_at=workspace.generated_at,
+        recruits=dataset.recruits,
+    )
+    assert html == expected
     assert "Aldric" in html
     assert "Reference Hamlet" in html

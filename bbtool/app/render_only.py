@@ -59,6 +59,16 @@ def _manifest_path(source: Path) -> Path:
     return source / "manifest.json" if source.is_dir() else source
 
 
+def _contains_key(value, forbidden: str) -> bool:
+    if isinstance(value, dict):
+        return forbidden in value or any(
+            _contains_key(child, forbidden) for child in value.values()
+        )
+    if isinstance(value, list):
+        return any(_contains_key(child, forbidden) for child in value)
+    return False
+
+
 def load_render_dataset(source: Path) -> RenderDataset:
     """Load and validate the complete public dataset before rendering."""
     manifest_path = _manifest_path(source).resolve()
@@ -102,10 +112,7 @@ def load_render_dataset(source: Path) -> RenderDataset:
     for label in ("roster", "recruits", "role_fit", "classification"):
         if not isinstance(payloads[label], list):
             raise _fail(f"{label} root must be an array")
-    if "FutureRolls" in json.dumps({
-        label: payloads[label]
-        for label in ("roster", "recruits", "role_fit", "classification")
-    }):
+    if any(_contains_key(payload, "FutureRolls") for payload in payloads.values()):
         raise _fail("public report inputs must not contain FutureRolls")
     if not isinstance(payloads["archetypes"], dict):
         raise _fail("archetypes root must be an object")
