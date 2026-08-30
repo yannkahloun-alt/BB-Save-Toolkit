@@ -22,7 +22,7 @@ switch ($Suite.ToLowerInvariant()) {
     "all"         { Invoke-Pytest @("-q") }
     "unit"        { Invoke-Pytest @("tests/unit", "-q") }
     "integration" { Invoke-Pytest @("tests/integration", "-q") }
-    "slow"        { Invoke-Pytest @("-m", "slow", "-q") }
+    "slow"        { Invoke-Pytest @("-m", "slow or coverage_slow", "-q") }
     "parser"      { Invoke-Pytest @("-m", "parser", "-q") }
     "ui"          { Invoke-Pytest @("-m", "ui", "-q") }
     "advisor"     { Invoke-Pytest @("-k", "advisor", "-q") }

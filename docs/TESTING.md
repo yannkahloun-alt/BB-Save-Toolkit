@@ -68,6 +68,9 @@ workflow. Both remain separate, explicitly requested pre-release work. Mutation
 campaigns target changed or high-risk areas; broader campaigns such as
 `-Target all` run only when explicitly requested.
 
+The reproducible slow-test performance baseline and its current optimization
+contract are documented in `docs/SLOW_TEST_PERFORMANCE.md`.
+
 ## Static analysis
 
 ```powershell
