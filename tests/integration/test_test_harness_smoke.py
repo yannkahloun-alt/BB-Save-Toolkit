@@ -18,3 +18,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_package_and_config_are_loadable():
     cfg = load_config(ROOT / "config/archetypes.json", ROOT / "config/classification.json")
     assert cfg.roles
+
+
+def test_slow_selector_includes_coverage_slow_tests():
+    script = (ROOT / "run_tests.ps1").read_text(encoding="utf-8")
+
+    assert '"slow or coverage_slow"' in script

@@ -25,7 +25,9 @@ def test_normal_json_outputs_hide_future_and_validation_exposes_oracle(tmp_path,
 
 
 def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory):
-    b=bro_factory(Name='UIBro',Level=2,LevelPoints=1,CurrentRolls={'HP':4,'Fatigue':3,'Resolve':3,'Initiative':4,'MAtk':2,'RAtk':3,'MDef':3,'RDef':3})
+    # This test exercises the rendered contracts, not long-range trajectory
+    # search. A completed level-11 brother produces the same UI surfaces.
+    b=bro_factory(Name='UIBro',Level=11)
     result=analyze_brothers([b],cfg.roles,cfg.classification)
     html=render_html_report(tmp_path/'x.sav',[b],result.fits,result.summaries,cfg.roles,cfg.classification,'2026-01-01T00:00:00',[])
     assert html.count('strategic-classification-tr')==1

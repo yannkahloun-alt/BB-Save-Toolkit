@@ -54,8 +54,14 @@ They remain mandatory at the pre-release/pre-production tier.
 .\run_tests.ps1 unit
 .\run_tests.ps1 integration
 .\run_tests.ps1 advisor
+.\run_tests.ps1 slow
 .\run_tests.ps1 coverage
 ```
+
+The `slow` selector runs both tests explicitly marked `slow` and the
+combinatorial `coverage_slow` correctness tests. It is intended for focused
+pre-release performance validation; the normal PR gate still excludes
+`coverage_slow`.
 
 ## Layout
 

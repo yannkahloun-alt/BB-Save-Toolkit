@@ -38,7 +38,8 @@ def test_level11_with_pending_point_evaluates_current_pick_then_no_future_rounds
 
 def test_less_than_three_rolls_returns_none(cfg,bro_factory):
     b=bro_factory(LevelPoints=1,CurrentRolls={'HP':4,'MAtk':3})
-    assert advise_levelup(b,cfg.roles,_rows(b,cfg.roles)) is None
+    # The advisor rejects incomplete current rolls before consuming role rows.
+    assert advise_levelup(b,cfg.roles,[]) is None
 
 
 def test_advisor_can_ignore_high_roll_on_saturated_stat(bro_factory,simple_role):

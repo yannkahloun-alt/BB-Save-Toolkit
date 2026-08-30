@@ -7,8 +7,9 @@ from bbtool.projection.planner import project_role
 def rows(b,cfg): return [project_role(b,r) for r in cfg.roles]
 def current(): return {'HP':4,'Fatigue':3,'Resolve':3,'Initiative':4,'MAtk':2,'RAtk':3,'MDef':3,'RDef':3}
 def test_no_current_or_no_points_none(cfg,bro_factory):
-    b=bro_factory(LevelPoints=1); assert advise_levelup(b,cfg.roles,rows(b,cfg)) is None
-    b=bro_factory(LevelPoints=0,CurrentRolls=current()); assert advise_levelup(b,cfg.roles,rows(b,cfg)) is None
+    # Both guards run before role projections are consumed.
+    b=bro_factory(LevelPoints=1); assert advise_levelup(b,cfg.roles,[]) is None
+    b=bro_factory(LevelPoints=0,CurrentRolls=current()); assert advise_levelup(b,cfg.roles,[]) is None
 def test_advisor_evaluates_8_choose_3(cfg,bro_factory):
     b=bro_factory(Level=10,LevelPoints=1,CurrentRolls=current()); a=advise_levelup(b,cfg.roles,rows(b,cfg)); assert a['CombinationsEvaluated']==56; assert len(a['Recommended']['Stats'])==3; assert a['Recommended']['Stats']!=a['Alternative']['Stats']; assert a['Recommended']['AnchorFitAfterPct']>=a['Alternative']['AnchorFitAfterPct']
 def test_advisor_deterministic(cfg,bro_factory):
