@@ -34,7 +34,19 @@ def test_seeded_equals_degenerate_and_incomplete_none(bro_factory,simple_role):
 
 def test_cache_hit_and_key_changes(bro_factory,simple_role):
     r=simple_role(('MAtk',)); b=bro_factory(); reset_trajectory_cache(); reset_profile_values(); project_fit_trajectory(b,r,rounds=1,samples=8); project_fit_trajectory(b,r,rounds=1,samples=8); p=get_profile_values(); assert p['trajectory_cache_hits']>=1
-    before=p['trajectory_cache_misses']; project_fit_trajectory(replace(b,MAtk=b.MAtk+1),r,rounds=1,samples=8); assert get_profile_values()['trajectory_cache_misses']>before
+    assert p['trajectory_cache_miss_reasons']['missing_entry']==1
+    before=p['trajectory_cache_misses']; project_fit_trajectory(replace(b,MAtk=b.MAtk+1),r,rounds=1,samples=8); updated=get_profile_values(); assert updated['trajectory_cache_misses']>before
+    assert updated['trajectory_cache_miss_reasons']['fingerprint_change']==1
+    assert sum(updated['trajectory_cache_miss_reasons'].values())==updated['trajectory_cache_misses']
+
+
+def test_adaptive_refinement_has_reconciled_miss_reason(bro_factory, simple_role):
+    reset_trajectory_cache(); reset_profile_values()
+    project_fit_trajectory(bro_factory(MAtk=100), simple_role(('MAtk',)), rounds=0)
+    profile = get_profile_values()
+    assert profile['trajectory_adaptive_refinements'] == 1
+    assert profile['trajectory_cache_miss_reasons']['refinement'] == 1
+    assert sum(profile['trajectory_cache_miss_reasons'].values()) == profile['trajectory_cache_misses']
 @pytest.mark.parametrize('change', ['stars','perk','role','rounds','ranges','samples'])
 def test_cache_miss_dimensions(change,bro_factory,simple_role):
     r=simple_role(('MAtk',)); b=bro_factory(); reset_trajectory_cache(); reset_profile_values(); project_fit_trajectory(b,r,rounds=1,samples=8); before=get_profile_values()['trajectory_cache_misses']

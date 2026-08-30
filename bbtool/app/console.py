@@ -245,7 +245,30 @@ def print_projection_profile(profile: dict) -> None:
         f"{profile.get('trajectory_cache_misses', 0)} misses · "
         f"{profile.get('trajectory_adaptive_refinements', 0)} refined"
     )
+    miss_reasons = profile.get("trajectory_cache_miss_reasons", {})
+    if miss_reasons:
+        print(
+            "        trajectory miss reasons   "
+            + " · ".join(f"{name}={count}" for name, count in sorted(miss_reasons.items()))
+        )
     print(f"        full projections          {profile.get('full_projection_calls', 0):>7}")
     print(f"        fast projections          {profile.get('fast_projection_calls', 0):>7}")
     print(f"        projection calls          {profile['project_role_calls']:>7}")
+    slowest = profile.get("slowest_projections", ())
+    if slowest:
+        print("        slowest projections")
+        for item in slowest[:5]:
+            print(
+                f"          {item['seconds']:.3f}s · {item['brother']} · "
+                f"{item['archetype']} · {item['kind']} · "
+                f"{item.get('structural_alternatives', 0)} structural alternatives"
+            )
+    brother_totals = profile.get("brother_projection_s", {})
+    if brother_totals:
+        name, seconds = max(brother_totals.items(), key=lambda item: item[1])
+        print(f"        slowest brother            {seconds:.3f}s · {name}")
+    archetype_totals = profile.get("archetype_projection_s", {})
+    if archetype_totals:
+        name, seconds = max(archetype_totals.items(), key=lambda item: item[1])
+        print(f"        slowest archetype          {seconds:.3f}s · {name}")
     print("        * internal subcomponent; included in base role matrix and advisor wall time")

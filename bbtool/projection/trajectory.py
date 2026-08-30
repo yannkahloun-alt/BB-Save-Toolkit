@@ -430,6 +430,7 @@ def _project_fit_trajectory_fixed(
     forced_first_combo: tuple[str, ...] | None = None,
     samples: int = 512,
     include_trace: bool = False,
+    _miss_reason_hint: str | None = None,
 ) -> dict:
     if rounds is None:
         rounds = development_rounds_to_11(bro)
@@ -443,6 +444,15 @@ def _project_fit_trajectory_fixed(
         return cached
 
     PROFILE["trajectory_cache_misses"] += 1
+    miss_reason = _miss_reason_hint
+    if miss_reason is None:
+        same_brother_or_role = any(
+            cached_key[0] == key[0] or cached_key[1] == key[1]
+            for cached_key in _TRAJECTORY_CACHE
+        )
+        miss_reason = "fingerprint_change" if same_brother_or_role else "missing_entry"
+    reasons = PROFILE["trajectory_cache_miss_reasons"]
+    reasons[miss_reason if miss_reason in reasons else "other_fallback"] += 1
     _trajectory_started = time.perf_counter()
     ctx = _projection_context(bro, role, rounds, normalized_ranges)
     (fit_stats, effects, raw_start, normal_ranges, range_plan, selection_cfg,
@@ -578,7 +588,7 @@ def project_fit_trajectory(
         refined = _project_fit_trajectory_fixed(
             bro, role, rounds=rounds, first_round_ranges=first_round_ranges,
             round_ranges=round_ranges, forced_first_combo=forced_first_combo,
-            samples=2048, include_trace=include_trace,
+            samples=2048, include_trace=include_trace, _miss_reason_hint="refinement",
         )
         refined["adaptive_refined"] = True
         refined["initial_sample_count"] = initial
