@@ -40,6 +40,19 @@ python .\bb_analyze.py <save.sav> --verify-cache --cache-debug
 python .\bb_analyze.py <save.sav> --full-recompute
 ```
 
+Generate only the HTML report from an existing versioned public JSON dataset:
+
+```powershell
+python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis --out .\output
+```
+
+This mode validates the complete dataset before creating output, then copies
+the public JSON, generates the same HTML/assets as a normal run, and archives
+the portable result. It does not read a save, prepare game references, or run
+projection, classification, cache, or Level-Up Advisor logic. Add
+`--open-report` to open the result. See `docs/REPORT_DATASET.md` for the input
+contract and compatibility policy.
+
 ## Development setup
 
 ```powershell

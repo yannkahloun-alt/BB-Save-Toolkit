@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @dataclass(frozen=True)
 class CliOptions:
-    save: Path
+    save: Path | None
     targets: Path
     classification: Path
     out: Path
@@ -20,13 +20,20 @@ class CliOptions:
     full_recompute: bool = False
     verify_cache: bool = False
     cache_debug: bool = False
+    render_only: Path | None = None
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Read-only Battle Brothers save analyzer"
     )
-    parser.add_argument("save", type=Path, help="Path to .sav")
+    parser.add_argument("save", nargs="?", type=Path, help="Path to .sav")
+    parser.add_argument(
+        "--render-only",
+        type=Path,
+        metavar="DATASET",
+        help="Generate a report from a public JSON dataset directory or manifest",
+    )
     parser.add_argument(
         "--targets",
         type=Path,
@@ -53,8 +60,27 @@ def build_parser() -> argparse.ArgumentParser:
 def parse_args(argv=None) -> CliOptions:
     parser = build_parser()
     ns = parser.parse_args(argv)
-    if not ns.save.is_file():
+    if (ns.save is None) == (ns.render_only is None):
+        parser.error("provide exactly one of SAVE or --render-only DATASET")
+    if ns.save is not None and not ns.save.is_file():
         parser.error(f"Save not found: {ns.save}")
+    if ns.render_only is not None:
+        if not ns.render_only.exists():
+            parser.error(f"Render dataset not found: {ns.render_only}")
+        incompatible = [
+            name for name, enabled in (
+                ("--targets", ns.targets != ROOT / "config" / "archetypes.json"),
+                ("--classification", ns.classification != ROOT / "config" / "classification.json"),
+                ("--no-projection", ns.no_projection),
+                ("--full-recompute", ns.full_recompute),
+                ("--verify-cache", ns.verify_cache),
+                ("--cache-debug", ns.cache_debug),
+            ) if enabled
+        ]
+        if incompatible:
+            parser.error(
+                f"{', '.join(incompatible)} cannot be used with --render-only"
+            )
     return CliOptions(
         save=ns.save,
         targets=ns.targets,
@@ -65,4 +91,5 @@ def parse_args(argv=None) -> CliOptions:
         full_recompute=ns.full_recompute,
         verify_cache=ns.verify_cache,
         cache_debug=ns.cache_debug,
+        render_only=ns.render_only,
     )

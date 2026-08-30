@@ -90,6 +90,11 @@ Conservative exact-state reuse is production-safe. Cross-save progression identi
 ### `bbtool/app/`
 
 CLI, orchestration, console diagnostics, output writing, and runtime workspace management.
+`app/render_only.py` is a presentation-only entry point. It validates the
+versioned public report dataset, reconstructs display models, and calls the
+same HTML/output functions as a normal analysis run. It does not parse a save,
+prepare runtime references, or invoke projection, classification, Advisor, or
+incremental-cache logic.
 After a run archive is written successfully, output retention keeps the 10
 newest timestamped ZIP archives for that source-save filename. Retention does
 not rename outputs, remove run directories, or act on unrelated files.
