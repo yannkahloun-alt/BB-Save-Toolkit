@@ -1,5 +1,11 @@
 # Architecture — current repository baseline
 
+The code-level architecture review and incremental cleanup plan for the v3.86
+development baseline is documented in
+[`ARCHITECTURE_REVIEW_v3.86.md`](ARCHITECTURE_REVIEW_v3.86.md). This file remains
+the concise statement of the current supported architecture; the review records
+observed debt, target boundaries, open decisions, and sequenced migrations.
+
 ## Central analytical model
 
 The toolkit has one primary gameplay concept: **level-11 Fit to a configured archetype**. Secondary systems consume that model instead of inventing parallel scoring systems.
