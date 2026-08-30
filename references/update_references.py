@@ -451,6 +451,12 @@ def build_reference_dictionary(
             "slot": rec.get("slot"),
             "subType": rec.get("subType"),
         }
+        # Runtime roster equipment parsing needs the immutable vanilla maximum
+        # condition and stamina modifier for generic items. Avoid expanding the
+        # generated cache with null fields for non-item dictionary records.
+        for field in ("durability", "fatigue"):
+            if isinstance(rec.get(field), (int, float)):
+                entry[field] = rec[field]
 
         ts = type_stats.setdefault(str(typ), {"ids": 0, "with_value": 0, "unresolved": 0})
         ts["ids"] += 1

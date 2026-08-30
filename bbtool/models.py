@@ -1,8 +1,35 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 STATS = ("HP", "Fatigue", "Resolve", "Initiative", "MAtk", "RAtk", "MDef", "RDef")
 STAR_FIELDS = tuple(f"{s}Stars" for s in STATS)
+
+
+def empty_equipment() -> dict:
+    """Return the stable public shape used for a brother's current loadout."""
+    return {
+        "MainHand": None,
+        "OffHand": None,
+        "Body": None,
+        "Head": None,
+        "Accessory": None,
+        "Ammo": None,
+        "Bag": [],
+    }
+
+
+def empty_gear_fatigue() -> dict[str, int]:
+    return {
+        "MainHand": 0,
+        "OffHand": 0,
+        "Body": 0,
+        "Head": 0,
+        "Accessory": 0,
+        "Ammo": 0,
+        "Bag": 0,
+        "Total": 0,
+    }
 
 @dataclass
 class Brother:
@@ -44,6 +71,8 @@ class Brother:
     PermanentInjuryIDs: list[str] = field(default_factory=list)
     PermanentInjuries: list[str] = field(default_factory=list)
     TemporaryInjuryIDs: list[str] = field(default_factory=list)
+    Equipment: dict = field(default_factory=empty_equipment)
+    GearFatigue: dict[str, int] = field(default_factory=empty_gear_fatigue)
 
     @property
     def BrotherID(self) -> str:
