@@ -1,0 +1,4893 @@
+[
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 100.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 2048,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "HIGH",
+    "PerkCompatibilityScore": 5,
+    "PerkSignals": [
+      "Nimble",
+      "Berserk"
+    ],
+    "ProjectedComponentSummary": "MAtk:95.0×4.0→1.00; MDef:38.0×4.0→1.00; HP:105.0×2.0→1.00; Fatigue:135.0×0.8→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 0.8,
+        "weighted": 0.8
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 95.0,
+        "utility": 1.0,
+        "value": 95.0,
+        "weight": 4.0,
+        "weighted": 4.0
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 1.0,
+        "value": 38.0,
+        "weight": 4.0,
+        "weighted": 4.0
+      }
+    },
+    "ProjectedFit": 1.0,
+    "ProjectedFitFullMaxPct": 100.0,
+    "ProjectedFitFullMinPct": 100.0,
+    "ProjectedFitLikelyMaxPct": 100.0,
+    "ProjectedFitLikelyMinPct": 100.0,
+    "ProjectedFitPct": 100.0,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); MAtk:95.0-95.0 (EV 95.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 115.0,
+        "weight": 0.8
+      },
+      "HP": {
+        "baseline": 75.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 100.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 95.0,
+        "max": 95.0,
+        "min": 95.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Nimble Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 100.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 2048,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "CONFLICT",
+    "PerkCompatibilityScore": -100,
+    "PerkSignals": [
+      "Nimble"
+    ],
+    "ProjectedComponentSummary": "MAtk:95.0×4.0→1.00; MDef:38.0×4.0→1.00; Fatigue:135.0×2.5→1.00; HP:105.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 2.5,
+        "weighted": 2.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 95.0,
+        "utility": 1.0,
+        "value": 95.0,
+        "weight": 4.0,
+        "weighted": 4.0
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 1.0,
+        "value": 38.0,
+        "weight": 4.0,
+        "weighted": 4.0
+      }
+    },
+    "ProjectedFit": 1.0,
+    "ProjectedFitFullMaxPct": 100.0,
+    "ProjectedFitFullMinPct": 100.0,
+    "ProjectedFitLikelyMaxPct": 100.0,
+    "ProjectedFitLikelyMinPct": 100.0,
+    "ProjectedFitPct": 100.0,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); MAtk:95.0-95.0 (EV 95.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 125.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 135.0,
+        "weight": 2.5
+      },
+      "HP": {
+        "baseline": 65.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 85.0,
+        "weight": 1.5
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 95.0,
+        "max": 95.0,
+        "min": 95.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Battle Forged Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 100.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 2048,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "CONFLICT",
+    "PerkCompatibilityScore": -100,
+    "PerkSignals": [
+      "Nimble"
+    ],
+    "ProjectedComponentSummary": "MAtk:95.0×4.5→1.00; MDef:38.0×4.5→1.00; HP:105.0×2.0→1.00; Resolve:55.0×1.8→1.00",
+    "ProjectedComponents": {
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 95.0,
+        "utility": 1.0,
+        "value": 95.0,
+        "weight": 4.5,
+        "weighted": 4.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 1.0,
+        "value": 38.0,
+        "weight": 4.5,
+        "weighted": 4.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": 1.0,
+        "value": 55.0,
+        "weight": 1.8,
+        "weighted": 1.8
+      }
+    },
+    "ProjectedFit": 1.0,
+    "ProjectedFitFullMaxPct": 100.0,
+    "ProjectedFitFullMinPct": 100.0,
+    "ProjectedFitLikelyMaxPct": 100.0,
+    "ProjectedFitLikelyMinPct": 100.0,
+    "ProjectedFitPct": 100.0,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Resolve:55.0-55.0 (EV 55.0); MAtk:95.0-95.0 (EV 95.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "HP": {
+        "baseline": 72.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 82.0,
+        "ev": 95.0,
+        "max": 95.0,
+        "min": 95.0,
+        "target": 92.0,
+        "weight": 4.5
+      },
+      "MDef": {
+        "baseline": 27.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 37.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 55.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Fat Neutral"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "MEDIUM",
+    "PerkCompatibilityScore": 4,
+    "PerkSignals": [
+      "Nimble"
+    ],
+    "ProjectedComponentSummary": "MDef:38.0×5.0→0.60; HP:105.0×3.0→0.80; Resolve:55.0×3.0→0.25; Fatigue:135.0×1.8→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 1.8,
+        "weighted": 1.8
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 0.8,
+        "value": 105.0,
+        "weight": 3.0,
+        "weighted": 2.4
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 0.6,
+        "value": 38.0,
+        "weight": 5.0,
+        "weighted": 3.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": 0.25,
+        "value": 55.0,
+        "weight": 3.0,
+        "weighted": 0.75
+      }
+    },
+    "ProjectedFit": 0.621,
+    "ProjectedFitFullMaxPct": 62.1,
+    "ProjectedFitFullMinPct": 62.1,
+    "ProjectedFitLikelyMaxPct": 62.1,
+    "ProjectedFitLikelyMinPct": 62.1,
+    "ProjectedFitPct": 62.1,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); Resolve:55.0-55.0 (EV 55.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 100.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 120.0,
+        "weight": 1.8
+      },
+      "HP": {
+        "baseline": 85.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 110.0,
+        "weight": 3.0
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Nimble Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "CONFLICT",
+    "PerkCompatibilityScore": -100,
+    "PerkSignals": [
+      "Nimble"
+    ],
+    "ProjectedComponentSummary": "MDef:38.0×5.0→0.60; Resolve:55.0×3.0→0.25; Fatigue:135.0×3.0→0.80; HP:105.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 0.8,
+        "value": 135.0,
+        "weight": 3.0,
+        "weighted": 2.4
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 0.6,
+        "value": 38.0,
+        "weight": 5.0,
+        "weighted": 3.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": 0.25,
+        "value": 55.0,
+        "weight": 3.0,
+        "weighted": 0.75
+      }
+    },
+    "ProjectedFit": 0.612,
+    "ProjectedFitFullMaxPct": 61.2,
+    "ProjectedFitFullMinPct": 61.2,
+    "ProjectedFitLikelyMaxPct": 61.2,
+    "ProjectedFitLikelyMinPct": 61.2,
+    "ProjectedFitPct": 61.2,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); Resolve:55.0-55.0 (EV 55.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 115.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 140.0,
+        "weight": 3.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 90.0,
+        "weight": 1.5
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Battle Forged Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×5.0→-1.00; Fatigue:135.0×1.6→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 1.6,
+        "weighted": 1.6
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:135.0-135.0 (EV 135.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 115.0,
+        "weight": 1.6
+      },
+      "RAtk": {
+        "baseline": 82.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 92.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Archer"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.0→-1.00; MAtk:95.0×2.5→1.00; MDef:38.0×2.0→1.00; HP:105.0×2.0→1.00; Fatigue:135.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 95.0,
+        "utility": 1.0,
+        "value": 95.0,
+        "weight": 2.5,
+        "weighted": 2.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 38.0,
+        "utility": 1.0,
+        "value": 38.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.333,
+    "ProjectedFitFullMaxPct": 33.3,
+    "ProjectedFitFullMinPct": 33.3,
+    "ProjectedFitLikelyMaxPct": 33.3,
+    "ProjectedFitLikelyMinPct": 33.3,
+    "ProjectedFitPct": 33.3,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); MAtk:95.0-95.0 (EV 95.0); RAtk:45.0-45.0 (EV 45.0); MDef:38.0-38.0 (EV 38.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 110.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 70.0,
+        "ev": 95.0,
+        "max": 95.0,
+        "min": 95.0,
+        "target": 80.0,
+        "weight": 2.5
+      },
+      "MDef": {
+        "baseline": 10.0,
+        "ev": 38.0,
+        "max": 38.0,
+        "min": 38.0,
+        "target": 20.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 88.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Thrower Hybrid"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.5→-1.00; Fatigue:135.0×2.0→1.00; HP:105.0×2.0→1.00; Resolve:55.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.5,
+        "weighted": -4.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": 1.0,
+        "value": 55.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      }
+    },
+    "ProjectedFit": 0.053,
+    "ProjectedFitFullMaxPct": 5.3,
+    "ProjectedFitFullMinPct": 5.3,
+    "ProjectedFitLikelyMaxPct": 5.3,
+    "ProjectedFitLikelyMinPct": 5.3,
+    "ProjectedFitPct": 5.3,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); Resolve:55.0-55.0 (EV 55.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 115.0,
+        "weight": 2.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 95.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 88.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 35.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 45.0,
+        "weight": 1.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Thrower"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.2→-1.00; Resolve:55.0×1.8→0.68; Fatigue:135.0×1.5→1.00; HP:105.0×1.4→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.0,
+        "utility": 1.0,
+        "value": 105.0,
+        "weight": 1.4,
+        "weighted": 1.4
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.2,
+        "weighted": -4.2
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": 0.6818,
+        "value": 55.0,
+        "weight": 1.8,
+        "weighted": 1.2273
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:105.0-105.0 (EV 105.0); Fatigue:135.0-135.0 (EV 135.0); Resolve:55.0-55.0 (EV 55.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 115.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 60.0,
+        "ev": 105.0,
+        "max": 105.0,
+        "min": 105.0,
+        "target": 80.0,
+        "weight": 1.4
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 87.0,
+        "weight": 4.2
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 62.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Crossbow/Gunner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:101",
+    "Fatigue": 135.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 105.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 95.0,
+    "MDef": 38.0,
+    "Name": "Aldric",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "Resolve:55.0×5.0→-0.80; MAtk:95.0×1.5→1.00; Fatigue:135.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 135.0,
+        "utility": 1.0,
+        "value": 135.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 95.0,
+        "utility": 1.0,
+        "value": 95.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 55.0,
+        "utility": -0.8,
+        "value": 55.0,
+        "weight": 5.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:135.0-135.0 (EV 135.0); Resolve:55.0-55.0 (EV 55.0); MAtk:95.0-95.0 (EV 95.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 135.0,
+        "max": 135.0,
+        "min": 135.0,
+        "target": 115.0,
+        "weight": 1.0
+      },
+      "MAtk": {
+        "baseline": 65.0,
+        "ev": 95.0,
+        "max": 95.0,
+        "min": 95.0,
+        "target": 82.0,
+        "weight": 1.5
+      },
+      "Resolve": {
+        "baseline": 75.0,
+        "ev": 55.0,
+        "max": 55.0,
+        "min": 55.0,
+        "target": 100.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 55.0,
+    "Role": "Banner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:88.0×4.0→0.80; MDef:31.0×4.0→0.60; HP:92.0×2.0→0.68; Fatigue:123.0×0.8→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 0.8,
+        "weighted": 0.8
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 0.68,
+        "value": 92.0,
+        "weight": 2.0,
+        "weighted": 1.36
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.8,
+        "value": 88.0,
+        "weight": 4.0,
+        "weighted": 3.2
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": 0.6,
+        "value": 31.0,
+        "weight": 4.0,
+        "weighted": 2.4
+      }
+    },
+    "ProjectedFit": 0.719,
+    "ProjectedFitFullMaxPct": 71.9,
+    "ProjectedFitFullMinPct": 71.9,
+    "ProjectedFitLikelyMaxPct": 71.9,
+    "ProjectedFitLikelyMinPct": 71.9,
+    "ProjectedFitPct": 71.9,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); MAtk:88.0-88.0 (EV 88.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 115.0,
+        "weight": 0.8
+      },
+      "HP": {
+        "baseline": 75.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 100.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Nimble Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:88.0×4.0→0.80; MDef:31.0×4.0→0.60; Fatigue:123.0×2.5→-0.20; HP:92.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": -0.2,
+        "value": 123.0,
+        "weight": 2.5,
+        "weighted": -0.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 1.0,
+        "value": 92.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.8,
+        "value": 88.0,
+        "weight": 4.0,
+        "weighted": 3.2
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": 0.6,
+        "value": 31.0,
+        "weight": 4.0,
+        "weighted": 2.4
+      }
+    },
+    "ProjectedFit": 0.55,
+    "ProjectedFitFullMaxPct": 55.0,
+    "ProjectedFitFullMinPct": 55.0,
+    "ProjectedFitLikelyMaxPct": 55.0,
+    "ProjectedFitLikelyMinPct": 55.0,
+    "ProjectedFitPct": 55.0,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); MAtk:88.0-88.0 (EV 88.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 125.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 135.0,
+        "weight": 2.5
+      },
+      "HP": {
+        "baseline": 65.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 85.0,
+        "weight": 1.5
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Battle Forged Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:88.0×4.5→0.60; MDef:31.0×4.5→0.40; HP:92.0×2.0→1.00; Resolve:48.0×1.8→0.53",
+    "ProjectedComponents": {
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 1.0,
+        "value": 92.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.6,
+        "value": 88.0,
+        "weight": 4.5,
+        "weighted": 2.7
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": 0.4,
+        "value": 31.0,
+        "weight": 4.5,
+        "weighted": 1.8
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": 0.5333,
+        "value": 48.0,
+        "weight": 1.8,
+        "weighted": 0.96
+      }
+    },
+    "ProjectedFit": 0.583,
+    "ProjectedFitFullMaxPct": 58.3,
+    "ProjectedFitFullMinPct": 58.3,
+    "ProjectedFitLikelyMaxPct": 58.3,
+    "ProjectedFitLikelyMinPct": 58.3,
+    "ProjectedFitPct": 58.3,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Resolve:48.0-48.0 (EV 48.0); MAtk:88.0-88.0 (EV 88.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "HP": {
+        "baseline": 72.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 82.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 92.0,
+        "weight": 4.5
+      },
+      "MDef": {
+        "baseline": 27.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 37.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 55.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Fat Neutral"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:31.0×5.0→-0.10; HP:92.0×3.0→0.28; Resolve:48.0×3.0→-0.10; Fatigue:123.0×1.8→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 1.8,
+        "weighted": 1.8
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 0.28,
+        "value": 92.0,
+        "weight": 3.0,
+        "weighted": 0.84
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": -0.1,
+        "value": 31.0,
+        "weight": 5.0,
+        "weighted": -0.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": -0.1,
+        "value": 48.0,
+        "weight": 3.0,
+        "weighted": -0.3
+      }
+    },
+    "ProjectedFit": 0.144,
+    "ProjectedFitFullMaxPct": 14.4,
+    "ProjectedFitFullMinPct": 14.4,
+    "ProjectedFitLikelyMaxPct": 14.4,
+    "ProjectedFitLikelyMinPct": 14.4,
+    "ProjectedFitPct": 14.4,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); Resolve:48.0-48.0 (EV 48.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 100.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 120.0,
+        "weight": 1.8
+      },
+      "HP": {
+        "baseline": 85.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 110.0,
+        "weight": 3.0
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Nimble Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:31.0×5.0→-0.10; Resolve:48.0×3.0→-0.10; Fatigue:123.0×3.0→0.32; HP:92.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 0.32,
+        "value": 123.0,
+        "weight": 3.0,
+        "weighted": 0.96
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 1.0,
+        "value": 92.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": -0.1,
+        "value": 31.0,
+        "weight": 5.0,
+        "weighted": -0.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": -0.1,
+        "value": 48.0,
+        "weight": 3.0,
+        "weighted": -0.3
+      }
+    },
+    "ProjectedFit": 0.133,
+    "ProjectedFitFullMaxPct": 13.3,
+    "ProjectedFitFullMinPct": 13.3,
+    "ProjectedFitLikelyMaxPct": 13.3,
+    "ProjectedFitLikelyMinPct": 13.3,
+    "ProjectedFitPct": 13.3,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); Resolve:48.0-48.0 (EV 48.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 115.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 140.0,
+        "weight": 3.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 90.0,
+        "weight": 1.5
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Battle Forged Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×5.0→-1.00; Fatigue:123.0×1.6→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 1.6,
+        "weighted": 1.6
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:123.0-123.0 (EV 123.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 115.0,
+        "weight": 1.6
+      },
+      "RAtk": {
+        "baseline": 82.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 92.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Archer"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.0→-1.00; MAtk:88.0×2.5→1.00; MDef:31.0×2.0→1.00; HP:92.0×2.0→1.00; Fatigue:123.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 1.0,
+        "value": 92.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 1.0,
+        "value": 88.0,
+        "weight": 2.5,
+        "weighted": 2.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 31.0,
+        "utility": 1.0,
+        "value": 31.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.333,
+    "ProjectedFitFullMaxPct": 33.3,
+    "ProjectedFitFullMinPct": 33.3,
+    "ProjectedFitLikelyMaxPct": 33.3,
+    "ProjectedFitLikelyMinPct": 33.3,
+    "ProjectedFitPct": 33.3,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); MAtk:88.0-88.0 (EV 88.0); RAtk:45.0-45.0 (EV 45.0); MDef:31.0-31.0 (EV 31.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 110.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 70.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 80.0,
+        "weight": 2.5
+      },
+      "MDef": {
+        "baseline": 10.0,
+        "ev": 31.0,
+        "max": 31.0,
+        "min": 31.0,
+        "target": 20.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 88.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Thrower Hybrid"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.5→-1.00; Fatigue:123.0×2.0→1.00; HP:92.0×2.0→0.88; Resolve:48.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 0.88,
+        "value": 92.0,
+        "weight": 2.0,
+        "weighted": 1.76
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.5,
+        "weighted": -4.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": 1.0,
+        "value": 48.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      }
+    },
+    "ProjectedFit": 0.027,
+    "ProjectedFitFullMaxPct": 2.7,
+    "ProjectedFitFullMinPct": 2.7,
+    "ProjectedFitLikelyMaxPct": 2.7,
+    "ProjectedFitLikelyMinPct": 2.7,
+    "ProjectedFitPct": 2.7,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); Resolve:48.0-48.0 (EV 48.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 115.0,
+        "weight": 2.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 95.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 88.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 35.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 45.0,
+        "weight": 1.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Thrower"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:45.0×4.2→-1.00; Resolve:48.0×1.8→0.36; Fatigue:123.0×1.5→1.00; HP:92.0×1.4→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 92.0,
+        "utility": 1.0,
+        "value": 92.0,
+        "weight": 1.4,
+        "weighted": 1.4
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": -1.0,
+        "value": 45.0,
+        "weight": 4.2,
+        "weighted": -4.2
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": 0.3636,
+        "value": 48.0,
+        "weight": 1.8,
+        "weighted": 0.6545
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:92.0-92.0 (EV 92.0); Fatigue:123.0-123.0 (EV 123.0); Resolve:48.0-48.0 (EV 48.0); RAtk:45.0-45.0 (EV 45.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 115.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 60.0,
+        "ev": 92.0,
+        "max": 92.0,
+        "min": 92.0,
+        "target": 80.0,
+        "weight": 1.4
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 87.0,
+        "weight": 4.2
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 62.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Crossbow/Gunner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:202",
+    "Fatigue": 123.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 92.0,
+    "Initiative": 90.0,
+    "Level": 11,
+    "MAtk": 88.0,
+    "MDef": 31.0,
+    "Name": "Berta",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "Resolve:48.0×5.0→-1.00; MAtk:88.0×1.5→1.00; Fatigue:123.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 123.0,
+        "utility": 1.0,
+        "value": 123.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 1.0,
+        "value": 88.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": -1.0,
+        "value": 48.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:123.0-123.0 (EV 123.0); Resolve:48.0-48.0 (EV 48.0); MAtk:88.0-88.0 (EV 88.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 123.0,
+        "max": 123.0,
+        "min": 123.0,
+        "target": 115.0,
+        "weight": 1.0
+      },
+      "MAtk": {
+        "baseline": 65.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 82.0,
+        "weight": 1.5
+      },
+      "Resolve": {
+        "baseline": 75.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 100.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 45.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Banner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 104.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 86.0,
+    "MDef": 29.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:86.0×4.0→0.60; MDef:29.0×4.0→0.40; HP:88.0×2.0→0.52; Fatigue:104.0×0.8→0.45",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 104.0,
+        "utility": 0.45,
+        "value": 104.0,
+        "weight": 0.8,
+        "weighted": 0.36
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.52,
+        "value": 88.0,
+        "weight": 2.0,
+        "weighted": 1.04
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 86.0,
+        "utility": 0.6,
+        "value": 86.0,
+        "weight": 4.0,
+        "weighted": 2.4
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 29.0,
+        "utility": 0.4,
+        "value": 29.0,
+        "weight": 4.0,
+        "weighted": 1.6
+      }
+    },
+    "ProjectedFit": 0.5,
+    "ProjectedFitFullMaxPct": 50.0,
+    "ProjectedFitFullMinPct": 50.0,
+    "ProjectedFitLikelyMaxPct": 50.0,
+    "ProjectedFitLikelyMinPct": 50.0,
+    "ProjectedFitPct": 50.0,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:104.0-104.0 (EV 104.0); MAtk:86.0-86.0 (EV 86.0); MDef:29.0-29.0 (EV 29.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 104.0,
+        "max": 104.0,
+        "min": 104.0,
+        "target": 115.0,
+        "weight": 0.8
+      },
+      "HP": {
+        "baseline": 75.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 100.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 86.0,
+        "max": 86.0,
+        "min": 86.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 29.0,
+        "max": 29.0,
+        "min": 29.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 45.0,
+    "Role": "Nimble Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 104.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 86.0,
+    "MDef": 29.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:86.0×4.0→0.60; MDef:29.0×4.0→0.40; Fatigue:104.0×2.5→-1.00; HP:88.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 104.0,
+        "utility": -1.0,
+        "value": 104.0,
+        "weight": 2.5,
+        "weighted": -2.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 1.0,
+        "value": 88.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 86.0,
+        "utility": 0.6,
+        "value": 86.0,
+        "weight": 4.0,
+        "weighted": 2.4
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 29.0,
+        "utility": 0.4,
+        "value": 29.0,
+        "weight": 4.0,
+        "weighted": 1.6
+      }
+    },
+    "ProjectedFit": 0.25,
+    "ProjectedFitFullMaxPct": 25.0,
+    "ProjectedFitFullMinPct": 25.0,
+    "ProjectedFitLikelyMaxPct": 25.0,
+    "ProjectedFitLikelyMinPct": 25.0,
+    "ProjectedFitPct": 25.0,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:104.0-104.0 (EV 104.0); MAtk:86.0-86.0 (EV 86.0); MDef:29.0-29.0 (EV 29.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 125.0,
+        "ev": 104.0,
+        "max": 104.0,
+        "min": 104.0,
+        "target": 135.0,
+        "weight": 2.5
+      },
+      "HP": {
+        "baseline": 65.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 85.0,
+        "weight": 1.5
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 86.0,
+        "max": 86.0,
+        "min": 86.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 29.0,
+        "max": 29.0,
+        "min": 29.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 45.0,
+    "Role": "Battle Forged Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 104.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 84.2,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 86.0,
+    "MDef": 29.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:86.0×4.5→0.40; MDef:29.0×4.5→0.20; HP:84.2×2.0→0.68; Resolve:48.8×1.8→0.59",
+    "ProjectedComponents": {
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 84.2,
+        "utility": 0.6778,
+        "value": 84.2,
+        "weight": 2.0,
+        "weighted": 1.3556
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 86.0,
+        "utility": 0.4,
+        "value": 86.0,
+        "weight": 4.5,
+        "weighted": 1.8
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 29.0,
+        "utility": 0.2,
+        "value": 29.0,
+        "weight": 4.5,
+        "weighted": 0.9
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.8,
+        "utility": 0.5867,
+        "value": 48.8,
+        "weight": 1.8,
+        "weighted": 1.056
+      }
+    },
+    "ProjectedFit": 0.399,
+    "ProjectedFitFullMaxPct": 40.2,
+    "ProjectedFitFullMinPct": 39.7,
+    "ProjectedFitLikelyMaxPct": 40.2,
+    "ProjectedFitLikelyMinPct": 39.7,
+    "ProjectedFitPct": 39.9,
+    "ProjectedRangeSummary": "HP:80.0-88.0 (EV 84.2); Resolve:45.0-53.0 (EV 48.8); MAtk:86.0-86.0 (EV 86.0); MDef:29.0-29.0 (EV 29.0)",
+    "ProjectedRanges": {
+      "HP": {
+        "baseline": 72.0,
+        "ev": 84.2,
+        "max": 88.0,
+        "min": 80.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 82.0,
+        "ev": 86.0,
+        "max": 86.0,
+        "min": 86.0,
+        "target": 92.0,
+        "weight": 4.5
+      },
+      "MDef": {
+        "baseline": 27.0,
+        "ev": 29.0,
+        "max": 29.0,
+        "min": 29.0,
+        "target": 37.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 48.8,
+        "max": 53.0,
+        "min": 45.0,
+        "target": 55.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 48.8,
+    "Role": "Fat Neutral"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 105.3,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 77.0,
+    "MDef": 29.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:29.0×5.0→-0.30; HP:88.0×3.0→0.12; Resolve:53.3×3.0→0.17; Fatigue:105.3×1.8→0.27",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 105.3,
+        "utility": 0.265,
+        "value": 105.3,
+        "weight": 1.8,
+        "weighted": 0.477
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.12,
+        "value": 88.0,
+        "weight": 3.0,
+        "weighted": 0.36
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 29.0,
+        "utility": -0.3,
+        "value": 29.0,
+        "weight": 5.0,
+        "weighted": -1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 53.3,
+        "utility": 0.165,
+        "value": 53.3,
+        "weight": 3.0,
+        "weighted": 0.495
+      }
+    },
+    "ProjectedFit": 0.002,
+    "ProjectedFitFullMaxPct": 2.1,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.9,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.2,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:104.0-116.0 (EV 105.3); Resolve:45.0-57.0 (EV 53.3); MDef:29.0-29.0 (EV 29.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 100.0,
+        "ev": 105.3,
+        "max": 116.0,
+        "min": 104.0,
+        "target": 120.0,
+        "weight": 1.8
+      },
+      "HP": {
+        "baseline": 85.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 110.0,
+        "weight": 3.0
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 29.0,
+        "max": 29.0,
+        "min": 29.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 53.3,
+        "max": 57.0,
+        "min": 45.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 53.3,
+    "Role": "Nimble Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 110.9,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 81.7,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 77.0,
+    "MDef": 29.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:29.0×5.0→-0.30; Resolve:53.1×3.0→0.15; Fatigue:110.9×3.0→-0.16; HP:81.7×1.5→0.58",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 110.9,
+        "utility": -0.164,
+        "value": 110.9,
+        "weight": 3.0,
+        "weighted": -0.492
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 81.7,
+        "utility": 0.585,
+        "value": 81.7,
+        "weight": 1.5,
+        "weighted": 0.8775
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 29.0,
+        "utility": -0.3,
+        "value": 29.0,
+        "weight": 5.0,
+        "weighted": -1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 53.1,
+        "utility": 0.155,
+        "value": 53.1,
+        "weight": 3.0,
+        "weighted": 0.465
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 1.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:76.0-88.0 (EV 81.7); Fatigue:104.0-116.0 (EV 110.9); Resolve:48.0-57.0 (EV 53.1); MDef:29.0-29.0 (EV 29.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 115.0,
+        "ev": 110.9,
+        "max": 116.0,
+        "min": 104.0,
+        "target": 140.0,
+        "weight": 3.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 81.7,
+        "max": 88.0,
+        "min": 76.0,
+        "target": 90.0,
+        "weight": 1.5
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 29.0,
+        "max": 29.0,
+        "min": 29.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 53.1,
+        "max": 57.0,
+        "min": 48.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 53.1,
+    "Role": "Battle Forged Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 113.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 76.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 77.0,
+    "MDef": 20.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:77.0×5.0→-0.50; Fatigue:113.0×1.6→0.90",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 113.0,
+        "utility": 0.9,
+        "value": 113.0,
+        "weight": 1.6,
+        "weighted": 1.44
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 77.0,
+        "utility": -0.5,
+        "value": 77.0,
+        "weight": 5.0,
+        "weighted": -2.5
+      }
+    },
+    "ProjectedFit": 0.003,
+    "ProjectedFitFullMaxPct": 9.1,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.3,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.3,
+    "ProjectedRangeSummary": "Fatigue:110.0-116.0 (EV 113.0); RAtk:74.0-80.0 (EV 77.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 113.0,
+        "max": 116.0,
+        "min": 110.0,
+        "target": 115.0,
+        "weight": 1.6
+      },
+      "RAtk": {
+        "baseline": 82.0,
+        "ev": 77.0,
+        "max": 80.0,
+        "min": 74.0,
+        "target": 92.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 77.0,
+    "RDef": 8.0,
+    "Resolve": 45.0,
+    "Role": "Archer"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 110.4,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 80.0,
+    "MDef": 20.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:76.9×4.0→-0.39; MAtk:80.0×2.5→1.00; MDef:20.0×2.0→1.00; HP:88.0×2.0→0.90; Fatigue:110.4×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 110.4,
+        "utility": 1.0,
+        "value": 110.4,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.9,
+        "value": 88.0,
+        "weight": 2.0,
+        "weighted": 1.8
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 80.0,
+        "utility": 1.0,
+        "value": 80.0,
+        "weight": 2.5,
+        "weighted": 2.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 20.0,
+        "utility": 1.0,
+        "value": 20.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 76.9,
+        "utility": -0.3875,
+        "value": 76.9,
+        "weight": 4.0,
+        "weighted": -1.55
+      }
+    },
+    "ProjectedFit": 0.521,
+    "ProjectedFitFullMaxPct": 65.0,
+    "ProjectedFitFullMinPct": 38.3,
+    "ProjectedFitLikelyMaxPct": 60.8,
+    "ProjectedFitLikelyMinPct": 40.0,
+    "ProjectedFitPct": 52.1,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:108.0-112.0 (EV 110.4); MAtk:80.0-80.0 (EV 80.0); RAtk:74.0-80.0 (EV 76.9); MDef:20.0-20.0 (EV 20.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 110.4,
+        "max": 112.0,
+        "min": 108.0,
+        "target": 110.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 70.0,
+        "ev": 80.0,
+        "max": 80.0,
+        "min": 80.0,
+        "target": 80.0,
+        "weight": 2.5
+      },
+      "MDef": {
+        "baseline": 10.0,
+        "ev": 20.0,
+        "max": 20.0,
+        "min": 20.0,
+        "target": 20.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 76.9,
+        "max": 80.0,
+        "min": 74.0,
+        "target": 88.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 76.9,
+    "RDef": 8.0,
+    "Resolve": 45.0,
+    "Role": "Thrower Hybrid"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 113.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 77.0,
+    "MDef": 20.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:76.9×4.5→-0.39; Fatigue:113.0×2.0→0.90; HP:88.0×2.0→0.72; Resolve:45.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 113.0,
+        "utility": 0.9,
+        "value": 113.0,
+        "weight": 2.0,
+        "weighted": 1.8
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.72,
+        "value": 88.0,
+        "weight": 2.0,
+        "weighted": 1.44
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 76.9,
+        "utility": -0.3875,
+        "value": 76.9,
+        "weight": 4.5,
+        "weighted": -1.7437
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 45.0,
+        "utility": 1.0,
+        "value": 45.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      }
+    },
+    "ProjectedFit": 0.264,
+    "ProjectedFitFullMaxPct": 46.7,
+    "ProjectedFitFullMinPct": 5.9,
+    "ProjectedFitLikelyMaxPct": 39.8,
+    "ProjectedFitLikelyMinPct": 12.9,
+    "ProjectedFitPct": 26.4,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:110.0-116.0 (EV 113.0); Resolve:45.0-45.0 (EV 45.0); RAtk:74.0-80.0 (EV 76.9)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 113.0,
+        "max": 116.0,
+        "min": 110.0,
+        "target": 115.0,
+        "weight": 2.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 95.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 76.9,
+        "max": 80.0,
+        "min": 74.0,
+        "target": 88.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 35.0,
+        "ev": 45.0,
+        "max": 45.0,
+        "min": 45.0,
+        "target": 45.0,
+        "weight": 1.0
+      }
+    },
+    "RAtk": 76.9,
+    "RDef": 8.0,
+    "Resolve": 45.0,
+    "Role": "Thrower"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 111.2,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 80.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 77.0,
+    "MDef": 20.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:76.9×4.2→-0.44; Resolve:53.4×1.8→0.61; Fatigue:111.2×1.5→0.81; HP:80.0×1.4→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 111.2,
+        "utility": 0.81,
+        "value": 111.2,
+        "weight": 1.5,
+        "weighted": 1.215
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 80.0,
+        "utility": 1.0,
+        "value": 80.0,
+        "weight": 1.4,
+        "weighted": 1.4
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 76.9,
+        "utility": -0.4429,
+        "value": 76.9,
+        "weight": 4.2,
+        "weighted": -1.86
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 53.4,
+        "utility": 0.6091,
+        "value": 53.4,
+        "weight": 1.8,
+        "weighted": 1.0964
+      }
+    },
+    "ProjectedFit": 0.211,
+    "ProjectedFitFullMaxPct": 45.7,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 36.1,
+    "ProjectedFitLikelyMinPct": 4.9,
+    "ProjectedFitPct": 21.1,
+    "ProjectedRangeSummary": "HP:80.0-80.0 (EV 80.0); Fatigue:108.0-116.0 (EV 111.2); Resolve:49.0-57.0 (EV 53.4); RAtk:74.0-80.0 (EV 76.9)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 111.2,
+        "max": 116.0,
+        "min": 108.0,
+        "target": 115.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 60.0,
+        "ev": 80.0,
+        "max": 80.0,
+        "min": 80.0,
+        "target": 80.0,
+        "weight": 1.4
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 76.9,
+        "max": 80.0,
+        "min": 74.0,
+        "target": 87.0,
+        "weight": 4.2
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 53.4,
+        "max": 57.0,
+        "min": 49.0,
+        "target": 62.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 76.9,
+    "RDef": 8.0,
+    "Resolve": 53.4,
+    "Role": "Crossbow/Gunner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:303",
+    "Fatigue": 113.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 76.0,
+    "Initiative": 90.0,
+    "Level": 8,
+    "MAtk": 86.0,
+    "MDef": 20.0,
+    "Name": "Cem",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "Resolve:54.0×5.0→-0.84; MAtk:86.0×1.5→1.00; Fatigue:113.0×1.0→0.90",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 113.0,
+        "utility": 0.9,
+        "value": 113.0,
+        "weight": 1.0,
+        "weighted": 0.9
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 86.0,
+        "utility": 1.0,
+        "value": 86.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.84,
+        "value": 54.0,
+        "weight": 5.0,
+        "weighted": -4.2
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:110.0-116.0 (EV 113.0); Resolve:51.0-57.0 (EV 54.0); MAtk:86.0-86.0 (EV 86.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 113.0,
+        "max": 116.0,
+        "min": 110.0,
+        "target": 115.0,
+        "weight": 1.0
+      },
+      "MAtk": {
+        "baseline": 65.0,
+        "ev": 86.0,
+        "max": 86.0,
+        "min": 86.0,
+        "target": 82.0,
+        "weight": 1.5
+      },
+      "Resolve": {
+        "baseline": 75.0,
+        "ev": 54.0,
+        "max": 57.0,
+        "min": 51.0,
+        "target": 100.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 68.0,
+    "RDef": 8.0,
+    "Resolve": 54.0,
+    "Role": "Banner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 112.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 91.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 89.0,
+    "MDef": 30.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:89.0×4.0→0.90; MDef:30.0×4.0→0.50; HP:91.0×2.0→0.64; Fatigue:112.0×0.8→0.85",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 112.0,
+        "utility": 0.85,
+        "value": 112.0,
+        "weight": 0.8,
+        "weighted": 0.68
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 91.0,
+        "utility": 0.64,
+        "value": 91.0,
+        "weight": 2.0,
+        "weighted": 1.28
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 89.0,
+        "utility": 0.9,
+        "value": 89.0,
+        "weight": 4.0,
+        "weighted": 3.6
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": 0.5,
+        "value": 30.0,
+        "weight": 4.0,
+        "weighted": 2.0
+      }
+    },
+    "ProjectedFit": 0.699,
+    "ProjectedFitFullMaxPct": 78.1,
+    "ProjectedFitFullMinPct": 61.9,
+    "ProjectedFitLikelyMaxPct": 77.4,
+    "ProjectedFitLikelyMinPct": 62.6,
+    "ProjectedFitPct": 69.9,
+    "ProjectedRangeSummary": "HP:90.0-92.0 (EV 91.0); Fatigue:112.0-112.0 (EV 112.0); MAtk:88.0-90.0 (EV 89.0); MDef:29.0-31.0 (EV 30.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 112.0,
+        "max": 112.0,
+        "min": 112.0,
+        "target": 115.0,
+        "weight": 0.8
+      },
+      "HP": {
+        "baseline": 75.0,
+        "ev": 91.0,
+        "max": 92.0,
+        "min": 90.0,
+        "target": 100.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 89.0,
+        "max": 90.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 30.0,
+        "max": 31.0,
+        "min": 29.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Nimble Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 118.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 84.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 89.0,
+    "MDef": 30.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:89.0×4.0→0.90; MDef:30.0×4.0→0.50; Fatigue:118.0×2.5→-0.70; HP:84.0×1.5→0.95",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 118.0,
+        "utility": -0.7,
+        "value": 118.0,
+        "weight": 2.5,
+        "weighted": -1.75
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 84.0,
+        "utility": 0.95,
+        "value": 84.0,
+        "weight": 1.5,
+        "weighted": 1.425
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 89.0,
+        "utility": 0.9,
+        "value": 89.0,
+        "weight": 4.0,
+        "weighted": 3.6
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": 0.5,
+        "value": 30.0,
+        "weight": 4.0,
+        "weighted": 2.0
+      }
+    },
+    "ProjectedFit": 0.438,
+    "ProjectedFitFullMaxPct": 52.7,
+    "ProjectedFitFullMinPct": 35.2,
+    "ProjectedFitLikelyMaxPct": 50.6,
+    "ProjectedFitLikelyMinPct": 37.3,
+    "ProjectedFitPct": 43.8,
+    "ProjectedRangeSummary": "HP:84.0-84.0 (EV 84.0); Fatigue:117.0-119.0 (EV 118.0); MAtk:88.0-90.0 (EV 89.0); MDef:29.0-31.0 (EV 30.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 125.0,
+        "ev": 118.0,
+        "max": 119.0,
+        "min": 117.0,
+        "target": 135.0,
+        "weight": 2.5
+      },
+      "HP": {
+        "baseline": 65.0,
+        "ev": 84.0,
+        "max": 84.0,
+        "min": 84.0,
+        "target": 85.0,
+        "weight": 1.5
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 89.0,
+        "max": 90.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 30.0,
+        "max": 31.0,
+        "min": 29.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Battle Forged Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 112.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 89.0,
+    "MDef": 30.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:89.0×4.5→0.70; MDef:30.0×4.5→0.30; HP:88.0×2.0→0.89; Resolve:51.0×1.8→0.73",
+    "ProjectedComponents": {
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 0.8889,
+        "value": 88.0,
+        "weight": 2.0,
+        "weighted": 1.7778
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 89.0,
+        "utility": 0.7,
+        "value": 89.0,
+        "weight": 4.5,
+        "weighted": 3.15
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": 0.3,
+        "value": 30.0,
+        "weight": 4.5,
+        "weighted": 1.35
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 51.0,
+        "utility": 0.7333,
+        "value": 51.0,
+        "weight": 1.8,
+        "weighted": 1.32
+      }
+    },
+    "ProjectedFit": 0.592,
+    "ProjectedFitFullMaxPct": 67.3,
+    "ProjectedFitFullMinPct": 51.4,
+    "ProjectedFitLikelyMaxPct": 66.4,
+    "ProjectedFitLikelyMinPct": 52.3,
+    "ProjectedFitPct": 59.2,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Resolve:50.0-52.0 (EV 51.0); MAtk:88.0-90.0 (EV 89.0); MDef:29.0-31.0 (EV 30.0)",
+    "ProjectedRanges": {
+      "HP": {
+        "baseline": 72.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 82.0,
+        "ev": 89.0,
+        "max": 90.0,
+        "min": 88.0,
+        "target": 92.0,
+        "weight": 4.5
+      },
+      "MDef": {
+        "baseline": 27.0,
+        "ev": 30.0,
+        "max": 31.0,
+        "min": 29.0,
+        "target": 37.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 51.0,
+        "max": 52.0,
+        "min": 50.0,
+        "target": 55.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 51.0,
+    "Role": "Fat Neutral"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 113.1,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 90.5,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 30.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:30.0×5.0→-0.20; HP:90.5×3.0→0.22; Resolve:53.8×3.0→0.19; Fatigue:113.1×1.8→0.66",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 113.1,
+        "utility": 0.655,
+        "value": 113.1,
+        "weight": 1.8,
+        "weighted": 1.179
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 90.5,
+        "utility": 0.22,
+        "value": 90.5,
+        "weight": 3.0,
+        "weighted": 0.66
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -0.2,
+        "value": 30.0,
+        "weight": 5.0,
+        "weighted": -1.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 53.8,
+        "utility": 0.19,
+        "value": 53.8,
+        "weight": 3.0,
+        "weighted": 0.57
+      }
+    },
+    "ProjectedFit": 0.11,
+    "ProjectedFitFullMaxPct": 17.0,
+    "ProjectedFitFullMinPct": 4.9,
+    "ProjectedFitLikelyMaxPct": 16.0,
+    "ProjectedFitLikelyMinPct": 5.9,
+    "ProjectedFitPct": 11.0,
+    "ProjectedRangeSummary": "HP:88.0-92.0 (EV 90.5); Fatigue:112.0-116.0 (EV 113.1); Resolve:51.0-55.0 (EV 53.8); MDef:29.0-31.0 (EV 30.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 100.0,
+        "ev": 113.1,
+        "max": 116.0,
+        "min": 112.0,
+        "target": 120.0,
+        "weight": 1.8
+      },
+      "HP": {
+        "baseline": 85.0,
+        "ev": 90.5,
+        "max": 92.0,
+        "min": 88.0,
+        "target": 110.0,
+        "weight": 3.0
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 30.0,
+        "max": 31.0,
+        "min": 29.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 53.8,
+        "max": 55.0,
+        "min": 51.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 53.8,
+    "Role": "Nimble Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 117.8,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 84.7,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 30.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:30.0×5.0→-0.20; Resolve:53.8×3.0→0.19; Fatigue:117.8×3.0→0.11; HP:84.7×1.5→0.73",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 117.8,
+        "utility": 0.112,
+        "value": 117.8,
+        "weight": 3.0,
+        "weighted": 0.336
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 84.7,
+        "utility": 0.735,
+        "value": 84.7,
+        "weight": 1.5,
+        "weighted": 1.1025
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -0.2,
+        "value": 30.0,
+        "weight": 5.0,
+        "weighted": -1.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 53.8,
+        "utility": 0.19,
+        "value": 53.8,
+        "weight": 3.0,
+        "weighted": 0.57
+      }
+    },
+    "ProjectedFit": 0.08,
+    "ProjectedFitFullMaxPct": 14.2,
+    "ProjectedFitFullMinPct": 1.9,
+    "ProjectedFitLikelyMaxPct": 13.3,
+    "ProjectedFitLikelyMinPct": 2.9,
+    "ProjectedFitPct": 8.0,
+    "ProjectedRangeSummary": "HP:84.0-88.0 (EV 84.7); Fatigue:115.0-119.0 (EV 117.8); Resolve:51.0-55.0 (EV 53.8); MDef:29.0-31.0 (EV 30.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 115.0,
+        "ev": 117.8,
+        "max": 119.0,
+        "min": 115.0,
+        "target": 140.0,
+        "weight": 3.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 84.7,
+        "max": 88.0,
+        "min": 84.0,
+        "target": 90.0,
+        "weight": 1.5
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 30.0,
+        "max": 31.0,
+        "min": 29.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 53.8,
+        "max": 55.0,
+        "min": 51.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 53.8,
+    "Role": "Battle Forged Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 118.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 84.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 25.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:78.0×5.0→-0.40; Fatigue:118.0×1.6→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 118.0,
+        "utility": 1.0,
+        "value": 118.0,
+        "weight": 1.6,
+        "weighted": 1.6
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 78.0,
+        "utility": -0.4,
+        "value": 78.0,
+        "weight": 5.0,
+        "weighted": -2.0
+      }
+    },
+    "ProjectedFit": 0.005,
+    "ProjectedFitFullMaxPct": 1.5,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 1.5,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.5,
+    "ProjectedRangeSummary": "Fatigue:117.0-119.0 (EV 118.0); RAtk:77.0-79.0 (EV 78.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 118.0,
+        "max": 119.0,
+        "min": 117.0,
+        "target": 115.0,
+        "weight": 1.6
+      },
+      "RAtk": {
+        "baseline": 82.0,
+        "ev": 78.0,
+        "max": 79.0,
+        "min": 77.0,
+        "target": 92.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 78.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Archer"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 118.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 91.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 25.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:78.0×4.0→-0.25; MAtk:84.0×2.5→1.00; MDef:25.0×2.0→1.00; HP:91.0×2.0→1.00; Fatigue:118.0×1.5→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 118.0,
+        "utility": 1.0,
+        "value": 118.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 91.0,
+        "utility": 1.0,
+        "value": 91.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 84.0,
+        "utility": 1.0,
+        "value": 84.0,
+        "weight": 2.5,
+        "weighted": 2.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 25.0,
+        "utility": 1.0,
+        "value": 25.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 78.0,
+        "utility": -0.25,
+        "value": 78.0,
+        "weight": 4.0,
+        "weighted": -1.0
+      }
+    },
+    "ProjectedFit": 0.583,
+    "ProjectedFitFullMaxPct": 62.5,
+    "ProjectedFitFullMinPct": 54.2,
+    "ProjectedFitLikelyMaxPct": 62.5,
+    "ProjectedFitLikelyMinPct": 54.2,
+    "ProjectedFitPct": 58.3,
+    "ProjectedRangeSummary": "HP:90.0-92.0 (EV 91.0); Fatigue:117.0-119.0 (EV 118.0); MAtk:84.0-84.0 (EV 84.0); RAtk:77.0-79.0 (EV 78.0); MDef:25.0-25.0 (EV 25.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 118.0,
+        "max": 119.0,
+        "min": 117.0,
+        "target": 110.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 91.0,
+        "max": 92.0,
+        "min": 90.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 70.0,
+        "ev": 84.0,
+        "max": 84.0,
+        "min": 84.0,
+        "target": 80.0,
+        "weight": 2.5
+      },
+      "MDef": {
+        "baseline": 10.0,
+        "ev": 25.0,
+        "max": 25.0,
+        "min": 25.0,
+        "target": 20.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 78.0,
+        "max": 79.0,
+        "min": 77.0,
+        "target": 88.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 78.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Thrower Hybrid"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 118.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 91.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 25.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:78.0×4.5→-0.25; Fatigue:118.0×2.0→1.00; HP:91.0×2.0→0.84; Resolve:48.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 118.0,
+        "utility": 1.0,
+        "value": 118.0,
+        "weight": 2.0,
+        "weighted": 2.0
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 91.0,
+        "utility": 0.84,
+        "value": 91.0,
+        "weight": 2.0,
+        "weighted": 1.68
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 78.0,
+        "utility": -0.25,
+        "value": 78.0,
+        "weight": 4.5,
+        "weighted": -1.125
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 48.0,
+        "utility": 1.0,
+        "value": 48.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      }
+    },
+    "ProjectedFit": 0.373,
+    "ProjectedFitFullMaxPct": 44.2,
+    "ProjectedFitFullMinPct": 30.7,
+    "ProjectedFitLikelyMaxPct": 44.2,
+    "ProjectedFitLikelyMinPct": 30.7,
+    "ProjectedFitPct": 37.3,
+    "ProjectedRangeSummary": "HP:90.0-92.0 (EV 91.0); Fatigue:117.0-119.0 (EV 118.0); Resolve:48.0-48.0 (EV 48.0); RAtk:77.0-79.0 (EV 78.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 118.0,
+        "max": 119.0,
+        "min": 117.0,
+        "target": 115.0,
+        "weight": 2.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 91.0,
+        "max": 92.0,
+        "min": 90.0,
+        "target": 95.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 78.0,
+        "max": 79.0,
+        "min": 77.0,
+        "target": 88.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 35.0,
+        "ev": 48.0,
+        "max": 48.0,
+        "min": 48.0,
+        "target": 45.0,
+        "weight": 1.0
+      }
+    },
+    "RAtk": 78.0,
+    "RDef": 8.0,
+    "Resolve": 48.0,
+    "Role": "Thrower"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 115.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 88.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 84.0,
+    "MDef": 25.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:78.0×4.2→-0.29; Resolve:54.0×1.8→0.64; Fatigue:115.0×1.5→1.00; HP:88.0×1.4→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 115.0,
+        "utility": 1.0,
+        "value": 115.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 88.0,
+        "utility": 1.0,
+        "value": 88.0,
+        "weight": 1.4,
+        "weighted": 1.4
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 78.0,
+        "utility": -0.2857,
+        "value": 78.0,
+        "weight": 4.2,
+        "weighted": -1.2
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": 0.6364,
+        "value": 54.0,
+        "weight": 1.8,
+        "weighted": 1.1455
+      }
+    },
+    "ProjectedFit": 0.316,
+    "ProjectedFitFullMaxPct": 39.6,
+    "ProjectedFitFullMinPct": 23.5,
+    "ProjectedFitLikelyMaxPct": 39.6,
+    "ProjectedFitLikelyMinPct": 24.3,
+    "ProjectedFitPct": 31.6,
+    "ProjectedRangeSummary": "HP:88.0-88.0 (EV 88.0); Fatigue:114.0-116.0 (EV 115.0); Resolve:53.0-55.0 (EV 54.0); RAtk:77.0-79.0 (EV 78.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 115.0,
+        "max": 116.0,
+        "min": 114.0,
+        "target": 115.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 60.0,
+        "ev": 88.0,
+        "max": 88.0,
+        "min": 88.0,
+        "target": 80.0,
+        "weight": 1.4
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 78.0,
+        "max": 79.0,
+        "min": 77.0,
+        "target": 87.0,
+        "weight": 4.2
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 54.0,
+        "max": 55.0,
+        "min": 53.0,
+        "target": 62.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 78.0,
+    "RDef": 8.0,
+    "Resolve": 54.0,
+    "Role": "Crossbow/Gunner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:505",
+    "Fatigue": 118.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 84.0,
+    "Initiative": 90.0,
+    "Level": 10,
+    "MAtk": 89.0,
+    "MDef": 25.0,
+    "Name": "Elin",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "Resolve:54.0×5.0→-0.84; MAtk:89.0×1.5→1.00; Fatigue:118.0×1.0→1.00",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 118.0,
+        "utility": 1.0,
+        "value": 118.0,
+        "weight": 1.0,
+        "weighted": 1.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 89.0,
+        "utility": 1.0,
+        "value": 89.0,
+        "weight": 1.5,
+        "weighted": 1.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.84,
+        "value": 54.0,
+        "weight": 5.0,
+        "weighted": -4.2
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:117.0-119.0 (EV 118.0); Resolve:53.0-55.0 (EV 54.0); MAtk:88.0-90.0 (EV 89.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 118.0,
+        "max": 119.0,
+        "min": 117.0,
+        "target": 115.0,
+        "weight": 1.0
+      },
+      "MAtk": {
+        "baseline": 65.0,
+        "ev": 89.0,
+        "max": 90.0,
+        "min": 88.0,
+        "target": 82.0,
+        "weight": 1.5
+      },
+      "Resolve": {
+        "baseline": 75.0,
+        "ev": 54.0,
+        "max": 55.0,
+        "min": 53.0,
+        "target": 100.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 72.0,
+    "RDef": 8.0,
+    "Resolve": 54.0,
+    "Role": "Banner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:52.0×4.0→-1.00; MDef:1.0×4.0→-1.00; HP:54.0×2.0→-0.84; Fatigue:82.0×0.8→-0.65",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.65,
+        "value": 82.0,
+        "weight": 0.8,
+        "weighted": -0.52
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.84,
+        "value": 54.0,
+        "weight": 2.0,
+        "weighted": -1.68
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 52.0,
+        "utility": -1.0,
+        "value": 52.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -1.0,
+        "value": 1.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); MAtk:52.0-52.0 (EV 52.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 115.0,
+        "weight": 0.8
+      },
+      "HP": {
+        "baseline": 75.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 100.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 52.0,
+        "max": 52.0,
+        "min": 52.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Nimble Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:52.0×4.0→-1.00; MDef:1.0×4.0→-1.00; Fatigue:82.0×2.5→-1.00; HP:54.0×1.5→-0.55",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -1.0,
+        "value": 82.0,
+        "weight": 2.5,
+        "weighted": -2.5
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.55,
+        "value": 54.0,
+        "weight": 1.5,
+        "weighted": -0.825
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 52.0,
+        "utility": -1.0,
+        "value": 52.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -1.0,
+        "value": 1.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); MAtk:52.0-52.0 (EV 52.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 125.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 135.0,
+        "weight": 2.5
+      },
+      "HP": {
+        "baseline": 65.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 85.0,
+        "weight": 1.5
+      },
+      "MAtk": {
+        "baseline": 80.0,
+        "ev": 52.0,
+        "max": 52.0,
+        "min": 52.0,
+        "target": 90.0,
+        "weight": 4.0
+      },
+      "MDef": {
+        "baseline": 25.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 35.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Battle Forged Frontline DPS"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MAtk:52.0×4.5→-1.00; MDef:1.0×4.5→-1.00; HP:54.0×2.0→-1.00; Resolve:30.0×1.8→-0.67",
+    "ProjectedComponents": {
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -1.0,
+        "value": 54.0,
+        "weight": 2.0,
+        "weighted": -2.0
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 52.0,
+        "utility": -1.0,
+        "value": 52.0,
+        "weight": 4.5,
+        "weighted": -4.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -1.0,
+        "value": 1.0,
+        "weight": 4.5,
+        "weighted": -4.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -0.6667,
+        "value": 30.0,
+        "weight": 1.8,
+        "weighted": -1.2
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Resolve:30.0-30.0 (EV 30.0); MAtk:52.0-52.0 (EV 52.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "HP": {
+        "baseline": 72.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 82.0,
+        "ev": 52.0,
+        "max": 52.0,
+        "min": 52.0,
+        "target": 92.0,
+        "weight": 4.5
+      },
+      "MDef": {
+        "baseline": 27.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 37.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 55.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Fat Neutral"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:1.0×5.0→-1.00; HP:54.0×3.0→-1.00; Resolve:30.0×3.0→-1.00; Fatigue:82.0×1.8→-0.90",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.9,
+        "value": 82.0,
+        "weight": 1.8,
+        "weighted": -1.62
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -1.0,
+        "value": 54.0,
+        "weight": 3.0,
+        "weighted": -3.0
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -1.0,
+        "value": 1.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -1.0,
+        "value": 30.0,
+        "weight": 3.0,
+        "weighted": -3.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); Resolve:30.0-30.0 (EV 30.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 100.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 120.0,
+        "weight": 1.8
+      },
+      "HP": {
+        "baseline": 85.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 110.0,
+        "weight": 3.0
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Nimble Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "MDef:1.0×5.0→-1.00; Resolve:30.0×3.0→-1.00; Fatigue:82.0×3.0→-1.00; HP:54.0×1.5→-0.80",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -1.0,
+        "value": 82.0,
+        "weight": 3.0,
+        "weighted": -3.0
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.8,
+        "value": 54.0,
+        "weight": 1.5,
+        "weighted": -1.2
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -1.0,
+        "value": 1.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -1.0,
+        "value": 30.0,
+        "weight": 3.0,
+        "weighted": -3.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); Resolve:30.0-30.0 (EV 30.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 115.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 140.0,
+        "weight": 3.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 90.0,
+        "weight": 1.5
+      },
+      "MDef": {
+        "baseline": 32.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 42.0,
+        "weight": 5.0
+      },
+      "Resolve": {
+        "baseline": 50.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 70.0,
+        "weight": 3.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Battle Forged Tank"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:42.0×5.0→-1.00; Fatigue:82.0×1.6→-0.65",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.65,
+        "value": 82.0,
+        "weight": 1.6,
+        "weighted": -1.04
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 42.0,
+        "utility": -1.0,
+        "value": 42.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:82.0-82.0 (EV 82.0); RAtk:42.0-42.0 (EV 42.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 115.0,
+        "weight": 1.6
+      },
+      "RAtk": {
+        "baseline": 82.0,
+        "ev": 42.0,
+        "max": 42.0,
+        "min": 42.0,
+        "target": 92.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Archer"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:42.0×4.0→-1.00; MAtk:52.0×2.5→-1.00; MDef:1.0×2.0→-0.90; HP:54.0×2.0→-0.80; Fatigue:82.0×1.5→-0.87",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.8667,
+        "value": 82.0,
+        "weight": 1.5,
+        "weighted": -1.3
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.8,
+        "value": 54.0,
+        "weight": 2.0,
+        "weighted": -1.6
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 52.0,
+        "utility": -1.0,
+        "value": 52.0,
+        "weight": 2.5,
+        "weighted": -2.5
+      },
+      "MDef": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 1.0,
+        "utility": -0.9,
+        "value": 1.0,
+        "weight": 2.0,
+        "weighted": -1.8
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 42.0,
+        "utility": -1.0,
+        "value": 42.0,
+        "weight": 4.0,
+        "weighted": -4.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); MAtk:52.0-52.0 (EV 52.0); RAtk:42.0-42.0 (EV 42.0); MDef:1.0-1.0 (EV 1.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 110.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 90.0,
+        "weight": 2.0
+      },
+      "MAtk": {
+        "baseline": 70.0,
+        "ev": 52.0,
+        "max": 52.0,
+        "min": 52.0,
+        "target": 80.0,
+        "weight": 2.5
+      },
+      "MDef": {
+        "baseline": 10.0,
+        "ev": 1.0,
+        "max": 1.0,
+        "min": 1.0,
+        "target": 20.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 42.0,
+        "max": 42.0,
+        "min": 42.0,
+        "target": 88.0,
+        "weight": 4.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Thrower Hybrid"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:42.0×4.5→-1.00; Fatigue:82.0×2.0→-0.65; HP:54.0×2.0→-0.64; Resolve:30.0×1.0→-0.50",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.65,
+        "value": 82.0,
+        "weight": 2.0,
+        "weighted": -1.3
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.64,
+        "value": 54.0,
+        "weight": 2.0,
+        "weighted": -1.28
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 42.0,
+        "utility": -1.0,
+        "value": 42.0,
+        "weight": 4.5,
+        "weighted": -4.5
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -0.5,
+        "value": 30.0,
+        "weight": 1.0,
+        "weighted": -0.5
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); Resolve:30.0-30.0 (EV 30.0); RAtk:42.0-42.0 (EV 42.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 115.0,
+        "weight": 2.0
+      },
+      "HP": {
+        "baseline": 70.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 95.0,
+        "weight": 2.0
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 42.0,
+        "max": 42.0,
+        "min": 42.0,
+        "target": 88.0,
+        "weight": 4.5
+      },
+      "Resolve": {
+        "baseline": 35.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 45.0,
+        "weight": 1.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Thrower"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "RAtk:42.0×4.2→-1.00; Resolve:30.0×1.8→-0.45; Fatigue:82.0×1.5→-0.65; HP:54.0×1.4→-0.30",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.65,
+        "value": 82.0,
+        "weight": 1.5,
+        "weighted": -0.975
+      },
+      "HP": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 54.0,
+        "utility": -0.3,
+        "value": 54.0,
+        "weight": 1.4,
+        "weighted": -0.42
+      },
+      "RAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 42.0,
+        "utility": -1.0,
+        "value": 42.0,
+        "weight": 4.2,
+        "weighted": -4.2
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -0.4545,
+        "value": 30.0,
+        "weight": 1.8,
+        "weighted": -0.8182
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "HP:54.0-54.0 (EV 54.0); Fatigue:82.0-82.0 (EV 82.0); Resolve:30.0-30.0 (EV 30.0); RAtk:42.0-42.0 (EV 42.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 115.0,
+        "weight": 1.5
+      },
+      "HP": {
+        "baseline": 60.0,
+        "ev": 54.0,
+        "max": 54.0,
+        "min": 54.0,
+        "target": 80.0,
+        "weight": 1.4
+      },
+      "RAtk": {
+        "baseline": 80.0,
+        "ev": 42.0,
+        "max": 42.0,
+        "min": 42.0,
+        "target": 87.0,
+        "weight": 4.2
+      },
+      "Resolve": {
+        "baseline": 40.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 62.0,
+        "weight": 1.8
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Crossbow/Gunner"
+  },
+  {
+    "Background": "Synthetic Fixture",
+    "BrotherID": "human:404",
+    "Fatigue": 82.0,
+    "FitFeasibilityPct": 0.0,
+    "FitTrajectoryPruned": false,
+    "FitTrajectoryStateCount": 512,
+    "HP": 54.0,
+    "Initiative": 72.0,
+    "Level": 11,
+    "MAtk": 52.0,
+    "MDef": 1.0,
+    "Name": "Daria",
+    "PerkCompatibility": "NEUTRAL",
+    "PerkCompatibilityScore": 0,
+    "PerkSignals": [],
+    "ProjectedComponentSummary": "Resolve:30.0×5.0→-1.00; MAtk:52.0×1.5→-0.76; Fatigue:82.0×1.0→-0.65",
+    "ProjectedComponents": {
+      "Fatigue": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 82.0,
+        "utility": -0.65,
+        "value": 82.0,
+        "weight": 1.0,
+        "weighted": -0.65
+      },
+      "MAtk": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 52.0,
+        "utility": -0.7647,
+        "value": 52.0,
+        "weight": 1.5,
+        "weighted": -1.1471
+      },
+      "Resolve": {
+        "capped": false,
+        "ceiling": null,
+        "fit_value": 30.0,
+        "utility": -1.0,
+        "value": 30.0,
+        "weight": 5.0,
+        "weighted": -5.0
+      }
+    },
+    "ProjectedFit": 0.0,
+    "ProjectedFitFullMaxPct": 0.0,
+    "ProjectedFitFullMinPct": 0.0,
+    "ProjectedFitLikelyMaxPct": 0.0,
+    "ProjectedFitLikelyMinPct": 0.0,
+    "ProjectedFitPct": 0.0,
+    "ProjectedRangeSummary": "Fatigue:82.0-82.0 (EV 82.0); Resolve:30.0-30.0 (EV 30.0); MAtk:52.0-52.0 (EV 52.0)",
+    "ProjectedRanges": {
+      "Fatigue": {
+        "baseline": 95.0,
+        "ev": 82.0,
+        "max": 82.0,
+        "min": 82.0,
+        "target": 115.0,
+        "weight": 1.0
+      },
+      "MAtk": {
+        "baseline": 65.0,
+        "ev": 52.0,
+        "max": 52.0,
+        "min": 52.0,
+        "target": 82.0,
+        "weight": 1.5
+      },
+      "Resolve": {
+        "baseline": 75.0,
+        "ev": 30.0,
+        "max": 30.0,
+        "min": 30.0,
+        "target": 100.0,
+        "weight": 5.0
+      }
+    },
+    "RAtk": 42.0,
+    "RDef": 1.0,
+    "Resolve": 30.0,
+    "Role": "Banner"
+  }
+]
