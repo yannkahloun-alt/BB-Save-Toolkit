@@ -1,7 +1,9 @@
 ## Unreleased
 
 - Replace the default archetype calibration with the tested v0.9 role set,
-  including the new Reach DPS role and normalized 100-point Fit weights.
+  including the new Reach DPS role and normalized 100-point Fit weights; record
+  the source attachment and content fingerprints in
+  `docs/ARCHETYPE_CALIBRATION.md`.
 - Add `--render-only DATASET` to validate a versioned public JSON dataset and
   generate the normal portable HTML report and archive without parsing a save
   or running analysis.

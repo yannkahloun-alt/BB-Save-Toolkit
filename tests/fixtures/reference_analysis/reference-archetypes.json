@@ -494,7 +494,7 @@
   "schema": "bb-archetypes-v0.9",
   "semantics": {
     "baseline": "Level-11 natural-stat neutral point and soft floor. At baseline contribution is zero; below baseline contribution is negative; above baseline contribution is positive up to target.",
-    "ceiling": "Optional explicit Fit-valuation saturation override. Projected values remain unchanged; only utility valuation is capped.",
+    "ceiling": "Optional archetype/stat Fit-valuation saturation point. Projected values remain unchanged; only utility is evaluated at min(projected/effective value, ceiling). Must be finite and >= target.",
     "perks.recommended": "Strongly characteristic perks; informative only for now.",
     "perks.required": "Structural perks without which the build is not really this archetype.",
     "stat_absent": "The archetype does not evaluate this stat for Fit.",

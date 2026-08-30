@@ -2,7 +2,7 @@
   "files": {
     "archetypes": {
       "path": "reference-archetypes.json",
-      "sha256": "a347b15a7ab3491151a9f1968328ea19208e29ffd8c03ea36734b6b0f75cfd73"
+      "sha256": "a1753b18b27eb1dc5e7c631bd9760d95d60cc171fac20a007b8a40ea1b503f4d"
     },
     "classification": {
       "path": "reference-classification.json",
