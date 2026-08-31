@@ -54,6 +54,7 @@ def test_ci_initializes_shared_workflow() -> None:
         ROOT / ".github/workflows/pr-validation.yml",
         ROOT / ".github/workflows/pre-release.yml",
         ROOT / ".github/workflows/render-preview-build.yml",
+        ROOT / ".github/workflows/full-preview-build.yml",
     )
 
     for workflow in workflows:

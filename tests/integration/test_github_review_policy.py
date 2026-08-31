@@ -124,6 +124,52 @@ def test_render_preview_workflows_separate_unprivileged_build_and_publication():
             assert all(character in "0123456789abcdef" for character in revision)
 
 
+def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
+    build = _read(".github/workflows/full-preview-build.yml")
+    publish = _read(".github/workflows/full-preview-publish.yml")
+    docs = _read("docs/WEB_PREVIEWS.md")
+
+    assert "workflow_dispatch:" in build
+    assert "pull_request:" not in build
+    assert "source_ref:" in build and "fixture:" in build
+    assert "contents: read" in build
+    assert "bb_analyze.py" in build
+    assert "--full-recompute" in build
+    assert "--verify-cache --cache-debug" in build
+    assert "stage_full_preview_dataset" in build
+    assert "full-preview-logs" in build
+    assert "  package:" in build and "needs: analyze" in build
+    assert "name: full-preview-data" in build
+    assert "ref: main" in build
+    assert "needs.analyze.outputs.source_sha" in build
+    assert "needs.analyze.outputs.destination" in build
+    assert "tools/package_full_preview_artifact.py" in build
+
+    assert "workflow_run:" in publish
+    assert "contents: write" in publish
+    assert "ref: main" in publish
+    assert "tools/validate_full_preview_artifact.py" in publish
+    assert "--catalog tests/fixtures/full_preview/catalog.json" in publish
+    assert "cp -R ../preview/." in publish
+    assert 'select(.name == "full-preview"' in publish
+    assert "preview/preview-context.json" in publish
+    assert 'test "$current_sha" = "$source_sha"' in publish
+    assert "rm -rf -- \"$DESTINATION\"" in publish
+    assert "GITHUB_STEP_SUMMARY" in publish
+
+    assert "Full-application previews" in docs
+    assert "never" in docs and "source `.sav`" in docs
+    assert "FutureRolls" in docs and "separate diagnostic logs" in docs
+
+    for workflow in (build, publish):
+        for line in workflow.splitlines():
+            if "uses:" not in line:
+                continue
+            revision = line.split("@", 1)[1].split()[0]
+            assert len(revision) == 40
+            assert all(character in "0123456789abcdef" for character in revision)
+
+
 def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
     policy = _read("docs/AGENT_B_REVIEW.md")
     policy_lower = policy.lower()

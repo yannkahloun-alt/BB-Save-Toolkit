@@ -1,5 +1,10 @@
 ## Unreleased
 
+- Add manually triggered full-application previews from an approved real save,
+  with exact-revision and input fingerprints, separate diagnostics, strict
+  publication allowlisting, and persistent GitHub Pages routes.
+- Accept the generic skill hierarchy as the valid inheritance boundary of the
+  vanilla character-background root when generating background references.
 - Add least-privilege render-only web previews for approved public JSON
   scenarios, with exact-revision metadata, stable PR/main URLs, and automatic
   closed-PR cleanup on the persistent GitHub Pages branch.

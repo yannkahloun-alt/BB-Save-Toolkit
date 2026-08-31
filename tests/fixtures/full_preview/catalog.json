@@ -1,0 +1,12 @@
+{
+  "schema": "bbtool.approved_save_catalog.v1",
+  "fixtures": [
+    {
+      "id": "reference-save",
+      "path": "reference-save.sav",
+      "sha256": "220294d33c363200a8a55b75458e2483af6d3b77e6ab3b99da8997fedc88e3ac",
+      "source": "GitHub issue #10 attachment quicksave-20260831-015449.zip",
+      "approval": "Repository owner supplied the save for this use in issue #10 on 2026-08-31."
+    }
+  ]
+}

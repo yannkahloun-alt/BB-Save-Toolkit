@@ -1,0 +1,152 @@
+name: Full application preview build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Pull request number, branch, tag, or exact commit SHA
+        required: true
+        default: main
+      fixture:
+        description: Approved save fixture
+        required: true
+        type: choice
+        options:
+          - reference-save
+      verify_cache:
+        description: Verify incremental output against a full recomputation
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: full-preview-build-${{ inputs.source_ref }}-${{ inputs.fixture }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: analyze approved save at selected revision
+    runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.exact.outputs.sha }}
+      source_label: ${{ steps.source.outputs.label }}
+      destination: ${{ steps.source.outputs.destination }}
+      toolkit_version: ${{ steps.exact.outputs.toolkit_version }}
+      incremental_verified: ${{ inputs.verify_cache }}
+    steps:
+      - name: Resolve trusted repository revision
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_REF: ${{ inputs.source_ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$REQUESTED_REF" =~ ^[0-9]+$ ]]; then
+            record=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$REQUESTED_REF")
+            repository=$(python -c 'import json,sys; print(json.load(sys.stdin)["head"]["repo"]["full_name"])' <<< "$record")
+            test "$repository" = "$GITHUB_REPOSITORY"
+            echo "ref=$(python -c 'import json,sys; print(json.load(sys.stdin)["head"]["sha"])' <<< "$record")" >> "$GITHUB_OUTPUT"
+            echo "label=PR #$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "destination=pr-$REQUESTED_REF/full" >> "$GITHUB_OUTPUT"
+          else
+            safe=$(printf '%s' "$REQUESTED_REF" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+|-+$//g')
+            test -n "$safe"
+            echo "ref=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "label=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "destination=ref-$safe/full" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.source.outputs.ref }}
+          persist-credentials: false
+          submodules: recursive
+      - name: Record exact selected revision without executing it
+        id: exact
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          version=$(sed -nE 's/^TOOLKIT_VERSION = "([^"]+)"$/\1/p' bbtool/app/telemetry.py)
+          test -n "$version"
+          echo "toolkit_version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Run the complete application pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p full-run full-preview-logs
+          verify=()
+          if [[ "${{ inputs.verify_cache }}" == "true" ]]; then
+            verify=(--verify-cache --cache-debug)
+          else
+            verify=(--full-recompute)
+          fi
+          python bb_analyze.py "tests/fixtures/full_preview/${{ inputs.fixture }}.sav" \
+            --out full-run "${verify[@]}" 2>&1 | tee full-preview-logs/analysis.log
+          manifest=$(find full-run -name manifest.json -type f -print)
+          test "$(printf '%s\n' "$manifest" | sed '/^$/d' | wc -l)" -eq 1
+          python -c "from pathlib import Path; from bbtool.app.full_preview import load_approved_save,stage_full_preview_dataset; fixture=load_approved_save(Path('tests/fixtures/full_preview/catalog.json'),'${{ inputs.fixture }}'); stage_full_preview_dataset(Path('$manifest'),Path('preview-data'),fixture)"
+      - name: Upload unprivileged public dataset only
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: full-preview-data
+          path: preview-data
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload diagnostic logs separately
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: full-preview-logs
+          path: full-preview-logs
+          if-no-files-found: warn
+          retention-days: 7
+
+  package:
+    name: reconstruct trusted publication payload
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted packager
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          persist-credentials: false
+          submodules: recursive
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Download isolated unprivileged dataset
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: full-preview-data
+          path: preview-data
+      - name: Reconstruct metadata and deployable assets from trusted code
+        shell: bash
+        run: |
+          verified=()
+          if [[ "${{ needs.analyze.outputs.incremental_verified }}" == "true" ]]; then verified=(--incremental-verified); fi
+          python tools/package_full_preview_artifact.py preview-data \
+            --catalog tests/fixtures/full_preview/catalog.json \
+            --fixture "${{ inputs.fixture }}" \
+            --output preview-site \
+            --source-label "${{ needs.analyze.outputs.source_label }}" \
+            --source-sha "${{ needs.analyze.outputs.source_sha }}" \
+            --generated-at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --toolkit-version "${{ needs.analyze.outputs.toolkit_version }}" \
+            --destination "${{ needs.analyze.outputs.destination }}" \
+            "${verified[@]}"
+      - name: Upload trusted publication input
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: full-preview
+          path: preview-site
+          if-no-files-found: error
+          retention-days: 7

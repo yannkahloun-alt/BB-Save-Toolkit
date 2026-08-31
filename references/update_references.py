@@ -1156,6 +1156,12 @@ def build_background_dictionary(
         if parent_path is None:
             inheritance_memo[path] = True
             return True
+        if not parent_path.startswith("scripts/skills/backgrounds/"):
+            # The background root inherits from the generic skill hierarchy.
+            # That external parent has no economy fields and is a valid
+            # inheritance boundary, not a missing background script.
+            inheritance_memo[path] = True
+            return True
 
         checking_inheritance.add(path)
         valid = inheritance_resolves(parent_path)
