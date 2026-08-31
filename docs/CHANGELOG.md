@@ -1,4 +1,4 @@
-## Unreleased
+## v3.88 — Application previews, calibrated archetypes, and run diagnostics
 
 - Add manually triggered full-application previews from an approved real save,
   with exact-revision and input fingerprints, separate diagnostics, strict
