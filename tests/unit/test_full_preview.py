@@ -7,7 +7,8 @@ import pytest
 
 from bbtool.app.full_preview import (
     FullPreviewError, FullPreviewMetadata, build_full_preview,
-    load_approved_save, rebuild_trusted_full_preview_artifact,
+    load_approved_save, package_trusted_full_preview_dataset,
+    rebuild_trusted_full_preview_artifact,
     stage_full_preview_dataset, validate_full_preview_artifact,
 )
 
@@ -65,6 +66,12 @@ def _staged_input(tmp_path: Path, fixture) -> Path:
     (site / "preview-context.json").write_text(
         json.dumps(_context(fixture)), encoding="utf-8"
     )
+    return site
+
+
+def _staged_dataset(tmp_path: Path, fixture) -> Path:
+    site = tmp_path / "input"
+    stage_full_preview_dataset(_run_dataset(tmp_path), site, fixture)
     return site
 
 
@@ -162,3 +169,22 @@ def test_privileged_job_reconstructs_all_deployable_assets_from_trusted_code(tmp
     html = (target / "index.html").read_text(encoding="utf-8")
     assert "Full application preview" in html and "Aldric" in html
     assert validate_full_preview_artifact(trusted, catalog)["fixture"] == fixture.identifier
+
+
+def test_trusted_package_overwrites_untrusted_routing_metadata(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_dataset(tmp_path, fixture)
+    (site / "preview-context.json").write_text(json.dumps(
+        _context(fixture, destination="pr-999/full", source_sha="f" * 40)
+    ), encoding="utf-8")
+
+    package_trusted_full_preview_dataset(
+        site, tmp_path / "trusted", catalog, fixture.identifier, META, "pr-10/full"
+    )
+
+    context = json.loads(
+        (tmp_path / "trusted" / "preview-context.json").read_text(encoding="utf-8")
+    )
+    assert context["destination"] == "pr-10/full"
+    assert context["source_sha"] == "a" * 40

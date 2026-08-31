@@ -58,11 +58,15 @@ provenance, approval, and SHA-256 are recorded in
 their exact current head, and fork heads are refused. Branches, tags, and SHAs
 must resolve inside this repository.
 
-The build executes the selected revision's normal `bb_analyze.py` entry point
+The analysis job executes the selected revision's normal `bb_analyze.py` entry point
 from the approved `.sav`, with either a full recomputation or optional
 `--verify-cache --cache-debug`. It validates the resulting public manifest and
 JSON contract, renders the interactive HTML, and uploads two short-lived
-artifacts: an allowlisted publication payload and separate diagnostic logs.
+artifacts: a public-JSON-only dataset and separate diagnostic logs. A second,
+isolated job checks out `main`, receives the exact SHA, label, and destination
+through immutable job outputs from the pre-execution resolution steps, and
+reconstructs the allowlisted publication payload. Selected-revision code cannot
+declare or replace the published route or visible revision metadata.
 This workflow is deliberately not part of routine PR CI because a cold complete
 analysis is comparatively expensive and may prepare runtime references.
 

@@ -230,6 +230,33 @@ def rebuild_trusted_full_preview_artifact(
     return {**context, "built": str(built)}
 
 
+def package_trusted_full_preview_dataset(
+    root: Path,
+    output_root: Path,
+    catalog_path: Path,
+    fixture_id: str,
+    metadata: FullPreviewMetadata,
+    destination: str,
+) -> dict:
+    """Bind trusted routing metadata to isolated data, then reconstruct it."""
+    approved = load_approved_save(catalog_path, fixture_id)
+    context = {
+        "schema": PREVIEW_CONTEXT_SCHEMA,
+        "destination": destination,
+        "fixture": approved.identifier,
+        "save_sha256": approved.sha256,
+        "source_sha": metadata.source_sha,
+        "source_label": metadata.source_label,
+        "generated_at": metadata.generated_at,
+        "toolkit_version": metadata.toolkit_version,
+        "incremental_verified": metadata.incremental_verified,
+    }
+    (root / "preview-context.json").write_text(
+        json.dumps(context, indent=2), encoding="utf-8"
+    )
+    return rebuild_trusted_full_preview_artifact(root, output_root, catalog_path)
+
+
 def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
     """Validate the trusted reconstruction immediately before publication."""
     root = root.resolve()

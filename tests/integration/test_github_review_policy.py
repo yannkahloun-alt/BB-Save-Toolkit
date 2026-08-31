@@ -136,19 +136,23 @@ def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
     assert "bb_analyze.py" in build
     assert "--full-recompute" in build
     assert "--verify-cache --cache-debug" in build
-    assert "tools/build_full_preview.py" in build
+    assert "stage_full_preview_dataset" in build
     assert "full-preview-logs" in build
+    assert "  package:" in build and "needs: analyze" in build
+    assert "name: full-preview-data" in build
+    assert "ref: main" in build
+    assert "needs.analyze.outputs.source_sha" in build
+    assert "needs.analyze.outputs.destination" in build
+    assert "tools/package_full_preview_artifact.py" in build
 
     assert "workflow_run:" in publish
     assert "contents: write" in publish
     assert "ref: main" in publish
-    assert "tools/rebuild_full_preview_artifact.py" in publish
+    assert "tools/validate_full_preview_artifact.py" in publish
     assert "--catalog tests/fixtures/full_preview/catalog.json" in publish
-    assert "--output trusted-preview" in publish
-    assert "cp -R ../trusted-preview/." in publish
-    assert "cp -R ../preview/." not in publish
+    assert "cp -R ../preview/." in publish
     assert 'select(.name == "full-preview"' in publish
-    assert "trusted-preview/preview-context.json" in publish
+    assert "preview/preview-context.json" in publish
     assert 'test "$current_sha" = "$source_sha"' in publish
     assert "rm -rf -- \"$DESTINATION\"" in publish
     assert "GITHUB_STEP_SUMMARY" in publish
