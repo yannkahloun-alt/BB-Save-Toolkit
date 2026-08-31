@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 import bbtool.app.analysis_service as service
+import bbtool.app.runner as runner
 import bbtool.save_parser as save_parser
 from bbtool.app.analysis import AnalysisResult
 
@@ -27,6 +28,16 @@ def _patch_pipeline(monkeypatch):
     monkeypatch.setattr(service, "configure_engine", lambda: None)
     monkeypatch.setattr(service, "reset_profile", lambda: None)
     monkeypatch.setattr(service, "get_profile", lambda: {"project_role_calls": 2})
+    monkeypatch.setattr(
+        service, "public_brother_data", lambda bro: {"Name": bro.Name}
+    )
+    monkeypatch.setattr(
+        service,
+        "build_projection_validation",
+        lambda *args: {
+            "summary": {"comparisons": 1, "roll_range_violations": 0}
+        },
+    )
     monkeypatch.setattr(service, "IncrementalCache", FakeCache)
     monkeypatch.setattr(service, "analyze_brothers", lambda *args: analysis)
     monkeypatch.setattr(
@@ -61,10 +72,11 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     assert result.recruits is recruits
     assert result.analysis is analysis
     assert result.public_data["fits"] == analysis.fits
+    assert "FutureRolls" not in result.public_data["roster"][0]
     assert result.source_fingerprint.startswith("sha256:")
     assert set(result.configuration_fingerprints) == {"archetypes", "classification"}
     assert [event.stage for event in observed] == [
-        "references", "roster", "recruits", "analysis"
+        "references", "roster", "recruits", "analysis", "validation"
     ]
     assert result.incremental_cache.received == (
         {"schema": "test"}, True, "provenance-only"
@@ -128,6 +140,37 @@ def test_service_cache_verification_failure_is_structured(monkeypatch):
     assert raised.value.stage == "cache_verification"
 
 
+def test_service_validation_drives_structured_roll_warning(monkeypatch):
+    _patch_pipeline(monkeypatch)
+    validation = {
+        "summary": {"comparisons": 1, "roll_range_violations": 1}
+    }
+    monkeypatch.setattr(service, "build_projection_validation", lambda *args: validation)
+    monkeypatch.setattr(
+        service,
+        "build_run_health",
+        lambda *args, validation_payload=None, **kwargs: {
+            "recoverable_parsing_failure_sample": [],
+            "unresolved_references_relevant_to_save": 0,
+            "unresolved_reference_sample": [],
+            "validation_roll_range_violations": validation_payload["summary"][
+                "roll_range_violations"
+            ],
+        },
+    )
+
+    result = service.analyze_save(
+        service.AnalysisServiceRequest(
+            source=service.SaveSource(b"save"),
+            roles=[{"name": "Tank"}],
+            classification={},
+        )
+    )
+
+    assert result.projection_validation is validation
+    assert result.warnings == [{"code": "roll_range_violations", "count": 1}]
+
+
 def test_parser_path_entrypoints_are_only_byte_adapters(monkeypatch, tmp_path):
     path = tmp_path / "campaign.sav"
     path.write_bytes(b"save content")
@@ -150,3 +193,46 @@ def test_parser_path_entrypoints_are_only_byte_adapters(monkeypatch, tmp_path):
         ("roster", b"save content", diagnostics),
         ("recruits", b"save content", diagnostics),
     ]
+
+
+def test_cli_request_and_direct_service_have_equivalent_public_results(
+    monkeypatch, tmp_path, bro_factory, cfg
+):
+    save = tmp_path / "same.sav"
+    save.write_bytes(b"same supplied content")
+    bro = bro_factory(Level=11, LevelPoints=0, FutureRolls={})
+    role = cfg.roles[0]
+    classification = cfg.classification
+    monkeypatch.setattr(service, "ensure_references", lambda verbose=False: {})
+    monkeypatch.setattr(
+        service, "parse_roster_bytes", lambda content, diagnostics=None: [bro]
+    )
+    monkeypatch.setattr(
+        service, "parse_recruits_bytes", lambda content, diagnostics=None: []
+    )
+    options = SimpleNamespace(
+        save=save,
+        full_recompute=True,
+        verify_cache=False,
+    )
+    config = SimpleNamespace(roles=[role], classification=classification)
+
+    cli_result = service.analyze_save(
+        runner._analysis_request(
+            options,
+            config,
+            previous_manifest=None,
+            previous_path=None,
+        )
+    )
+    direct_result = service.analyze_save(
+        service.AnalysisServiceRequest(
+            source=service.SaveSource(save.read_bytes(), "transport-name.sav"),
+            roles=[role],
+            classification=classification,
+            cache=service.CompatibleCacheContext(enabled=False),
+        )
+    )
+
+    assert cli_result.public_data == direct_result.public_data
+    assert cli_result.source_fingerprint == direct_result.source_fingerprint

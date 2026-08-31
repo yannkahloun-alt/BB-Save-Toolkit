@@ -44,7 +44,7 @@ from .output import (
     prune_outputs,
     write_analysis_json,
     write_debug_bundle,
-    write_projection_validation,
+    write_projection_validation_payload,
     write_html,
     write_raw_inputs,
 )
@@ -56,6 +56,30 @@ def run(options: CliOptions) -> tuple:
         return _run(options, resource_monitor_started)
     finally:
         stop_resource_monitoring(resource_monitor_started)
+
+
+def _analysis_request(
+    options: CliOptions,
+    config,
+    *,
+    previous_manifest: dict | None,
+    previous_path,
+) -> AnalysisServiceRequest:
+    """Translate CLI concerns into the transport-independent service contract."""
+    full_recompute = bool(getattr(options, "full_recompute", False))
+    return AnalysisServiceRequest(
+        source=SaveSource(Path(options.save).read_bytes(), Path(options.save).name),
+        roles=config.roles,
+        classification=config.classification,
+        options=AnalysisServiceOptions(
+            verify_cache=bool(getattr(options, "verify_cache", False))
+        ),
+        cache=CompatibleCacheContext(
+            manifest=previous_manifest,
+            previous_path=previous_path,
+            enabled=not full_recompute,
+        ),
+    )
 
 
 def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
@@ -82,25 +106,17 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         step.done()
 
         full_recompute = bool(getattr(options, "full_recompute", False))
-        verify_cache = bool(getattr(options, "verify_cache", False))
         previous_path, previous_manifest = (None, None)
         if not full_recompute:
             previous_path, previous_manifest = find_previous_manifest(options.out, exclude_root=workspace.root, source_save=options.save)
         step = Step("Strategic classification")
         step.__enter__()
         service_result = analyze_save(
-            AnalysisServiceRequest(
-                source=SaveSource(
-                    Path(options.save).read_bytes(), Path(options.save).name
-                ),
-                roles=config.roles,
-                classification=config.classification,
-                options=AnalysisServiceOptions(verify_cache=verify_cache),
-                cache=CompatibleCacheContext(
-                    manifest=previous_manifest,
-                    previous_path=previous_path,
-                    enabled=not full_recompute,
-                ),
+            _analysis_request(
+                options,
+                config,
+                previous_manifest=previous_manifest,
+                previous_path=previous_path,
             )
         )
         bros = service_result.roster
@@ -174,11 +190,9 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
 
         step = Step("Write projection validation")
         step.__enter__()
-        validation_path = write_projection_validation(
+        validation_path = write_projection_validation_payload(
             workspace,
-            bros,
-            analysis.fits,
-            config.roles,
+            service_result.projection_validation,
         )
         validation_payload = json.loads(validation_path.read_text(encoding="utf-8"))
         validation_passed = not validation_payload.get("summary", {}).get(

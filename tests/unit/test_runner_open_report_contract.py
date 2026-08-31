@@ -47,12 +47,13 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
                 "references": runner.ensure_references(verbose=False),
                 "projection_profile": {},
             },
+            projection_validation={"summary": {"roll_range_violations": 0}},
         ),
     )
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: None)
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: Path("debug.json"))
     monkeypatch.setattr(runner, "finalize_debug_bundle_metadata", lambda *a: None)
     monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)

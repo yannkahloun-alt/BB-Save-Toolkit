@@ -15,6 +15,7 @@ from ..projection import configure_engine, get_profile, reset_profile
 from ..save_parser import parse_recruits_bytes, parse_roster_bytes
 from .analysis import AnalysisResult, analyze_brothers
 from .health import build_run_health
+from .output import build_projection_validation, public_brother_data
 
 
 @dataclass(frozen=True)
@@ -71,11 +72,12 @@ class AnalysisServiceResult:
     timings: dict[str, float]
     progress_events: list[ProgressEvent]
     incremental_cache: IncrementalCache
+    projection_validation: dict
 
     @property
     def public_data(self) -> dict:
         return {
-            "roster": self.roster,
+            "roster": [public_brother_data(bro) for bro in self.roster],
             "recruits": self.recruits,
             "fits": self.analysis.fits,
             "summaries": self.analysis.summaries,
@@ -200,12 +202,29 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             timings[stage] = time.perf_counter() - tick
             emit(stage, "completed", tick)
 
+        stage = "validation"
+        tick = time.perf_counter()
+        projection_validation = build_projection_validation(
+            roster, analysis.fits, request.roles
+        )
+        timings[stage] = time.perf_counter() - tick
+        emit(
+            stage,
+            "completed",
+            tick,
+            comparisons=projection_validation["summary"]["comparisons"],
+            roll_range_violations=projection_validation["summary"][
+                "roll_range_violations"
+            ],
+        )
+
         health = build_run_health(
             roster,
             recruits,
             reference_status,
             parse_diagnostics=parse_diagnostics,
             incremental_cache=cache,
+            validation_payload=projection_validation,
         )
         warnings = _structured_warnings(health)
         timings["total"] = time.perf_counter() - started
@@ -232,6 +251,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             timings=timings,
             progress_events=events,
             incremental_cache=cache,
+            projection_validation=projection_validation,
         )
     except AnalysisServiceError:
         raise

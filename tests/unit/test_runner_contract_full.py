@@ -94,12 +94,13 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
                 "references": status,
                 "projection_profile": {"project_role_calls": 7},
             },
+            projection_validation={"summary": {"roll_range_violations": 0}},
         )
     monkeypatch.setattr(runner, "analyze_save", fake_analyze_save)
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: calls["profile"].append(x))
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: debug)
     def archive_workspace(*args):
         calls["archive_calls"] += 1
@@ -344,7 +345,7 @@ def test_runner_reports_validation_failure_and_browser_exception(monkeypatch, tm
         json.dumps({"summary": {"roll_range_violations": 2}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(
         runner,
         "launch_report_server",
