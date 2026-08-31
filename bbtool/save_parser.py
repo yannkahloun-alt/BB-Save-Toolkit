@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import json
 import math
 import struct
 from pathlib import Path
-from .models import Brother
+
+from .models import Brother, empty_equipment, empty_gear_fatigue
 
 def u16(b: bytes, o: int) -> int:
     return struct.unpack_from("<H", b, o)[0]
@@ -390,6 +392,330 @@ def ref_name(refs: dict, item_id: str) -> str:
     return rec.get("name", f"Unknown [{item_id.upper()}]")
 
 
+EQUIPMENT_SLOT_NAMES = {
+    0: "MainHand",
+    1: "OffHand",
+    2: "Body",
+    3: "Head",
+    4: "Accessory",
+    5: "Ammo",
+}
+
+
+def _number(value: float) -> float | int:
+    return int(value) if float(value).is_integer() else round(float(value), 2)
+
+
+def _finite_number(value: float, label: str) -> float | int:
+    if not math.isfinite(value) or value < 0:
+        raise ValueError(f"invalid {label}")
+    return _number(value)
+
+
+def _fatigue_penalty(value) -> int | float | None:
+    if not isinstance(value, (int, float)) or not math.isfinite(value):
+        return None
+    # Battle Brothers stores item stamina modifiers as negative values.
+    return _number(max(0.0, -float(value)))
+
+
+def _read_item_string(b: bytes, offset: int, end: int) -> tuple[str, int]:
+    parsed = lp_string(b, offset, 512)
+    if not parsed or parsed[1] > end:
+        raise ValueError("invalid serialized item string")
+    return parsed[0], parsed[1]
+
+
+def _parse_generic_item_state(b: bytes, offset: int, end: int) -> tuple[dict, int]:
+    if offset + 20 > end:
+        raise ValueError("truncated generic item state")
+    condition = f32(b, offset + 3)
+    if not math.isfinite(condition) or condition < 0:
+        raise ValueError("invalid item condition")
+    return {"Condition": _number(condition)}, offset + 20
+
+
+def _parse_armor_attachment(b: bytes, offset: int, end: int) -> tuple[dict, int]:
+    if offset + 4 > end:
+        raise ValueError("truncated armor attachment")
+    attachment_id = b[offset:offset + 4].hex().upper()
+    offset += 4
+    result = {}
+    if attachment_id != "00000000":
+        if offset + 32 > end:
+            raise ValueError("truncated armor attachment state")
+        result["AttachmentID"] = attachment_id
+        offset += 32
+    return result, offset
+
+
+def _public_item_type(record: dict, slot: int) -> str:
+    if slot == 0:
+        return "weapon"
+    if slot == 1:
+        return "shield"
+    if slot == 2:
+        return "armor"
+    if slot == 3:
+        return "helmet"
+    if slot == 4:
+        return "accessory"
+    if slot == 5:
+        return "ammo"
+    return str(record.get("subType") or record.get("type") or "item")
+
+
+def _parse_equipped_item(
+    b: bytes, offset: int, end: int, refs: dict
+) -> tuple[int, dict, int]:
+    """Parse one BB-Edit-compatible serialized inventory record."""
+    if offset + 5 > end:
+        raise ValueError("truncated item header")
+    slot = b[offset]
+    item_id = b[offset + 1:offset + 5].hex().upper()
+    record = refs.get(item_id)
+    if not record:
+        raise KeyError(item_id)
+
+    typ = record.get("type")
+    subtype = record.get("subType")
+    cursor = offset + 5
+    item = {
+        "Name": record.get("name") or f"Unknown [{item_id}]",
+        "ItemID": item_id,
+        "Type": _public_item_type(record, slot),
+    }
+    serialized_fatigue = None
+
+    if typ == "namedWeapon":
+        item["Name"], cursor = _read_item_string(b, cursor, end)
+        if cursor + 34 > end:
+            raise ValueError("truncated named weapon state")
+        item["ConditionMax"] = _finite_number(f32(b, cursor), "maximum condition")
+        serialized_fatigue = struct.unpack_from("<b", b, cursor + 4)[0]
+        item["DamageMin"] = u16(b, cursor + 5)
+        item["DamageMax"] = u16(b, cursor + 7)
+        item["ArmorDamagePercent"] = _finite_number(
+            f32(b, cursor + 9) * 100, "armor damage"
+        )
+        item["DirectDamagePercent"] = _finite_number(
+            f32(b, cursor + 18) * 100, "direct damage"
+        )
+        cursor += 34
+
+    elif typ == "namedArmor":
+        item["Name"], cursor = _read_item_string(b, cursor, end)
+        if cursor + 5 > end:
+            raise ValueError("truncated named armor state")
+        item["ArmorMax"] = _finite_number(f32(b, cursor), "maximum armor")
+        serialized_fatigue = struct.unpack_from("<b", b, cursor + 4)[0]
+        cursor += 5
+
+    elif typ == "namedHelmet":
+        item["Name"], cursor = _read_item_string(b, cursor, end)
+        if cursor + 5 > end:
+            raise ValueError("truncated named helmet state")
+        item["ArmorMax"] = _finite_number(f32(b, cursor), "maximum armor")
+        serialized_fatigue = struct.unpack_from("<b", b, cursor + 4)[0]
+        cursor += 5
+
+    elif typ == "namedShield":
+        if cursor + 4 > end:
+            raise ValueError("truncated named shield state")
+        item["ConditionMax"] = _finite_number(f32(b, cursor), "maximum condition")
+        cursor += 4
+
+    elif typ not in {
+        "genericWeapon", "genericShield", "genericArmor", "genericHelmet", "auxiliary"
+    }:
+        raise ValueError(f"unsupported item type {typ!r}")
+
+    if typ in {"genericArmor", "namedArmor"} and subtype == "nobleArmor":
+        cursor += 1
+    if typ in {"genericArmor", "namedArmor"} and record.get("slot") == "body":
+        attachment, cursor = _parse_armor_attachment(b, cursor, end)
+        item.update(attachment)
+
+    generic, cursor = _parse_generic_item_state(b, cursor, end)
+    item.update(generic)
+
+    if typ in {"genericWeapon", "namedWeapon"}:
+        if cursor + 2 > end:
+            raise ValueError("truncated weapon ammo state")
+        item["Quantity"] = u16(b, cursor)
+        cursor += 2
+        if subtype == "masterworkBow":
+            _, cursor = _read_item_string(b, cursor, end)
+    elif typ == "genericShield" and subtype == "nobleShield":
+        cursor += 1
+    elif typ in {"genericArmor", "namedArmor", "genericHelmet", "namedHelmet"}:
+        if cursor + 4 > end:
+            raise ValueError("truncated armor condition")
+        armor = f32(b, cursor)
+        if not math.isfinite(armor) or armor < 0:
+            raise ValueError("invalid armor condition")
+        item["Armor"] = _number(armor)
+        item["Condition"] = _number(armor)
+        cursor += 4
+        if record.get("slot") == "body":
+            if cursor + 4 > end:
+                raise ValueError("truncated body armor fatigue")
+            serialized_fatigue = f32(b, cursor)
+            cursor += 4
+        if subtype == "davkul":
+            _, cursor = _read_item_string(b, cursor, end)
+    elif typ == "namedShield":
+        item["Name"], cursor = _read_item_string(b, cursor, end)
+        if cursor + 7 > end:
+            raise ValueError("truncated named shield modifiers")
+        serialized_fatigue = struct.unpack_from("<b", b, cursor)[0]
+        cursor += 7
+    elif typ == "auxiliary":
+        if subtype == "ammo":
+            if cursor + 2 > end:
+                raise ValueError("truncated ammunition quantity")
+            item["Quantity"] = u16(b, cursor)
+            cursor += 2
+        elif subtype == "canine":
+            item["Name"], cursor = _read_item_string(b, cursor, end)
+        elif subtype == "provisions":
+            cursor += 10
+        elif subtype == "commodity":
+            cursor += 2
+
+    fatigue = _fatigue_penalty(
+        serialized_fatigue if serialized_fatigue is not None else record.get("fatigue")
+    )
+    if fatigue is not None:
+        item["Fatigue"] = fatigue
+    if "ConditionMax" not in item and isinstance(record.get("durability"), (int, float)):
+        item["ConditionMax"] = _number(record["durability"])
+    if item["Type"] in {"armor", "helmet"} and "ArmorMax" not in item:
+        maximum = record.get("durability")
+        if isinstance(maximum, (int, float)):
+            item["ArmorMax"] = _number(maximum)
+
+    if cursor > end:
+        raise ValueError("item extends beyond inventory block")
+    return slot, item, cursor
+
+
+def _find_known_item_tail(
+    b: bytes,
+    start: int,
+    end: int,
+    refs: dict,
+    count: int,
+) -> int | None:
+    """Find a provable known-item tail after one unresolvable item.
+
+    Unknown item payloads have no safe generic length. Recovery is therefore
+    accepted only when every remaining declared record decodes consecutively
+    and the final record lands exactly on the circle-section boundary.
+    """
+    if count <= 0:
+        return end
+    memo: dict[tuple[int, int], bool] = {}
+
+    def completes(offset: int, remaining: int) -> bool:
+        key = (offset, remaining)
+        if key in memo:
+            return memo[key]
+        try:
+            _, _, next_offset = _parse_equipped_item(b, offset, end, refs)
+        except (KeyError, ValueError, struct.error, IndexError):
+            memo[key] = False
+            return False
+        result = (
+            next_offset == end
+            if remaining == 1
+            else completes(next_offset, remaining - 1)
+        )
+        memo[key] = result
+        return result
+
+    last_start = end - 5
+    for candidate in range(start, last_start + 1):
+        if b[candidate] <= 6 and completes(candidate, count):
+            return candidate
+    return None
+
+
+def parse_brother_equipment(
+    b: bytes,
+    stats_end: int,
+    circle_offset: int,
+    refs: dict,
+    *,
+    diagnostics: dict | None = None,
+    brother_name: str = "",
+) -> tuple[dict, dict]:
+    """Decode equipped slots and bags without making roster parsing fragile."""
+    equipment = empty_equipment()
+    fatigue = empty_gear_fatigue()
+    cursor = stats_end + 6
+    if cursor + 2 > circle_offset or cursor + 2 > len(b):
+        return equipment, fatigue
+    item_count = b[cursor + 1]
+    cursor += 2
+
+    for item_index in range(item_count):
+        item_start = cursor
+        try:
+            slot, item, cursor = _parse_equipped_item(b, cursor, circle_offset, refs)
+        except (KeyError, ValueError, struct.error, IndexError) as exc:
+            item_id = (
+                b[item_start + 1:item_start + 5].hex().upper()
+                if item_start + 5 <= circle_offset else ""
+            )
+            if item_start < circle_offset:
+                slot = b[item_start]
+                unknown = {
+                    "Name": ref_name(refs, item_id) if item_id else "Unknown Item",
+                    "ItemID": item_id,
+                    "Type": _public_item_type(refs.get(item_id, {}), slot),
+                }
+                key = EQUIPMENT_SLOT_NAMES.get(slot)
+                if slot == 6:
+                    unknown["Slot"] = len(equipment["Bag"]) + 1
+                    equipment["Bag"].append(unknown)
+                elif key:
+                    equipment[key] = unknown
+            if diagnostics is not None:
+                diagnostics.setdefault("recoverable_failures", []).append({
+                    "scope": "roster",
+                    "kind": "equipment_item_unresolved",
+                    "name": brother_name,
+                    "item_index": item_index,
+                    "item_id": item_id,
+                    "reason": str(exc),
+                })
+            remaining = item_count - item_index - 1
+            recovery = _find_known_item_tail(
+                b, item_start + 5, circle_offset, refs, remaining
+            )
+            if recovery is None or remaining == 0:
+                break
+            cursor = recovery
+            continue
+
+        key = EQUIPMENT_SLOT_NAMES.get(slot)
+        if slot == 6:
+            item["Slot"] = len(equipment["Bag"]) + 1
+            equipment["Bag"].append(item)
+            key = "Bag"
+        elif key:
+            equipment[key] = item
+        else:
+            continue
+        penalty = item.get("Fatigue", 0)
+        if isinstance(penalty, (int, float)):
+            fatigue[key] += penalty
+
+    fatigue["Total"] = _number(sum(fatigue[key] for key in fatigue if key != "Total"))
+    return equipment, fatigue
+
+
 def _parse_tail_entries(
     b: bytes,
     o: int,
@@ -771,6 +1097,15 @@ def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Br
                 "TemporaryInjuryIDs": [],
             }
 
+        equipment, gear_fatigue = parse_brother_equipment(
+            b,
+            header["StatsEnd"],
+            circles.get("CircleOffset", ident["Offset"]),
+            refs,
+            diagnostics=diagnostics,
+            brother_name=ident["Name"],
+        )
+
         bro = Brother(
             Name=ident["Name"],
             Title=ident["Title"],
@@ -802,6 +1137,8 @@ def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Br
             TemporaryInjuryIDs=circles.get("TemporaryInjuryIDs", []),
             CurrentRolls=current_rolls or {},
             FutureRolls=future_rolls,
+            Equipment=equipment,
+            GearFatigue=gear_fatigue,
         )
 
         parsed.append(bro)

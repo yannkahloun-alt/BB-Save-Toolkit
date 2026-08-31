@@ -29,6 +29,11 @@ save bytes
 
 Read-only binary save parser. It extracts roster/recruit facts, serialized IDs, traits, injuries, perks, stars, current rolls, and quarantined future-roll validation data.
 
+Roster brothers also expose their current six equipped slots and ordered bag
+items. Item records are decoded conservatively from the source-derived
+reference dictionary; an unknown item is reported as partial data and never
+prevents the rest of the roster from being exported.
+
 `BrotherID = human:<HumanOffset>` is save-local. Names are display-only.
 
 ### `references/`
