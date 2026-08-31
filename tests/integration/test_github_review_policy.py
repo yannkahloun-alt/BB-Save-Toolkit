@@ -166,6 +166,17 @@ def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
     assert 'Exact commit: `%s`' in publish
     assert "issues/$PR_NUMBER/comments" in publish
     assert "issues/comments/$comment_id" in publish
+    comment_step = publish.index("Link the exact preview from its pull request")
+    comment_head_check = publish.index(
+        'current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .head.sha)',
+        comment_step,
+    )
+    comment_mutation = publish.index("gh api --method PATCH", comment_step)
+    assert comment_step < comment_head_check < comment_mutation
+    assert 'test "$state" = open' in publish[comment_head_check:comment_mutation]
+    assert 'test "$current_sha" = "$SOURCE_SHA"' in publish[
+        comment_head_check:comment_mutation
+    ]
 
     assert "Full-application previews" in docs
     assert "never" in docs and "source `.sav`" in docs
