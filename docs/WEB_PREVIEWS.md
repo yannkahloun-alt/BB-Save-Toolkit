@@ -69,6 +69,11 @@ reconstructs the allowlisted publication payload. Selected-revision code cannot
 declare or replace the published route or visible revision metadata.
 This workflow is deliberately not part of routine PR CI because a cold complete
 analysis is comparatively expensive and may prepare runtime references.
+The analysis job has a 30-minute hard timeout and records its elapsed time and
+public-dataset byte count in the run summary. Packaging and publication each
+have a 10-minute timeout. These limits are intentionally well above the
+reference run observed while introducing the fixture (12 brothers, 52 recruits,
+132 role projections) while still failing a stuck preview with a useful job log.
 
 Publication uses a second default-branch workflow with `contents: write`. It
 does not execute selected-revision code or logs. The unprivileged artifact is
@@ -92,3 +97,19 @@ included in either the publication artifact or the deployed site. Preview runs
 are retained as Actions artifacts for seven days; published routes are replaced
 by later runs for the same destination, and PR routes are removed when the PR
 closes through the existing preview cleanup lifecycle.
+
+For a pull-request source, the trusted publisher also creates or updates one
+bot comment on that PR. The comment links directly to the report and records the
+exact 40-character head SHA and approved fixture ID. Re-running the preview
+updates the same marked comment instead of creating duplicates. Before either
+publishing or commenting, the workflow verifies that the PR remains open and
+that its current head still equals the analyzed SHA; stale runs fail closed.
+
+To validate a PR manually, dispatch `Full application preview build`, enter the
+PR number as `source_ref`, keep `reference-save`, and optionally enable cache
+verification. Open the link added to the PR after both workflows succeed, then
+exercise the Roster, Level Up, Roster Management, and Recruits tabs along with
+filters, details, accordions, and links. Missing output, invalid JSON, unsafe or
+oversized publication data, analysis errors, stale PR heads, packaging errors,
+or publication errors fail the workflow. Diagnostic logs are retained for
+seven days separately from the public payload.

@@ -31,6 +31,7 @@ jobs:
   analyze:
     name: analyze approved save at selected revision
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       source_sha: ${{ steps.exact.outputs.sha }}
       source_label: ${{ steps.source.outputs.label }}
@@ -81,6 +82,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          started_at=$(date +%s)
           mkdir -p full-run full-preview-logs
           verify=()
           if [[ "${{ inputs.verify_cache }}" == "true" ]]; then
@@ -93,6 +95,14 @@ jobs:
           manifest=$(find full-run -name manifest.json -type f -print)
           test "$(printf '%s\n' "$manifest" | sed '/^$/d' | wc -l)" -eq 1
           python -c "from pathlib import Path; from bbtool.app.full_preview import load_approved_save,stage_full_preview_dataset; fixture=load_approved_save(Path('tests/fixtures/full_preview/catalog.json'),'${{ inputs.fixture }}'); stage_full_preview_dataset(Path('$manifest'),Path('preview-data'),fixture)"
+          elapsed_seconds=$(($(date +%s) - started_at))
+          dataset_bytes=$(du -sb preview-data | cut -f1)
+          {
+            echo "## Full application analysis"
+            printf '%s\n' "- Exact commit: \`${{ steps.exact.outputs.sha }}\`"
+            echo "- Elapsed: ${elapsed_seconds} seconds"
+            echo "- Public dataset: ${dataset_bytes} bytes"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload unprivileged public dataset only
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
@@ -113,6 +123,7 @@ jobs:
     name: reconstruct trusted publication payload
     needs: analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out trusted packager
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
