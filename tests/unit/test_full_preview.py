@@ -120,3 +120,40 @@ def test_publication_validator_rejects_self_declared_save_fingerprint(tmp_path):
     )
     with pytest.raises(FullPreviewError, match="not approved"):
         validate_full_preview_artifact(site, catalog)
+
+
+@pytest.mark.parametrize("asset", ["index.html", "report.css", "report.js"])
+def test_publication_validator_rejects_future_rolls_in_every_asset(tmp_path, asset):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = tmp_path / "site"
+    target = build_full_preview(_run_dataset(tmp_path), site, META, fixture)
+    (site / "preview-context.json").write_text(json.dumps({
+        "schema": "bbtool.full_preview_context.v1",
+        "destination": "pr-10/full",
+        "fixture": fixture.identifier,
+        "save_sha256": fixture.sha256,
+        "source_sha": "a" * 40,
+    }), encoding="utf-8")
+    with (target / asset).open("a", encoding="utf-8") as handle:
+        handle.write('\nconst leaked = {"FutureRolls": [1, 2, 3]};')
+    with pytest.raises(FullPreviewError, match="Forbidden.*content"):
+        validate_full_preview_artifact(site, catalog)
+
+
+def test_publication_validator_rejects_encoded_binary_blob(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = tmp_path / "site"
+    target = build_full_preview(_run_dataset(tmp_path), site, META, fixture)
+    (site / "preview-context.json").write_text(json.dumps({
+        "schema": "bbtool.full_preview_context.v1",
+        "destination": "pr-10/full",
+        "fixture": fixture.identifier,
+        "save_sha256": fixture.sha256,
+        "source_sha": "a" * 40,
+    }), encoding="utf-8")
+    with (target / "report.js").open("a", encoding="utf-8") as handle:
+        handle.write("\nconst encodedSave = '" + "A" * 4096 + "';")
+    with pytest.raises(FullPreviewError, match="Forbidden.*content"):
+        validate_full_preview_artifact(site, catalog)

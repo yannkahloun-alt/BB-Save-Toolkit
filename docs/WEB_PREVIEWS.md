@@ -70,7 +70,9 @@ Publication uses a second default-branch workflow with `contents: write`. It
 does not execute selected-revision code or logs. Before copying the static
 payload to `gh-pages`, it rejects unexpected paths and verifies that the save,
 FutureRolls, validation oracles, caches, debug bundles, logs, and archives are
-absent. The resulting route is:
+absent from every deployable JSON, HTML, CSS, and JavaScript asset. Binary,
+non-UTF-8, oversized, and long encoded-blob content also fails closed. The
+resulting route is:
 
 ```text
 /pr-123/full/reference-save/

@@ -21,6 +21,18 @@ _DESTINATION = re.compile(r"^(?:pr-[0-9]+|ref-[a-z0-9._-]+)/full$")
 _FORBIDDEN_PUBLICATION_NAMES = (
     ".sav", ".zip", "debug", "incremental", "validation", "cache", "log",
 )
+_FORBIDDEN_PUBLICATION_CONTENT = (
+    re.compile(r'"FutureRolls"\s*:'),
+    re.compile(r"bbtool\.projection_validation", re.IGNORECASE),
+    re.compile(r"bbtool\.incremental_manifest", re.IGNORECASE),
+    re.compile(r"validation-only oracle data", re.IGNORECASE),
+    re.compile(r'"roll_luck_to_level11"\s*:'),
+    re.compile(r"data:application/octet-stream;base64", re.IGNORECASE),
+    re.compile(r"[A-Za-z0-9+/]{4096,}={0,2}"),
+    re.compile(r"[0-9a-fA-F]{4096,}"),
+)
+_MAX_PUBLICATION_FILE_BYTES = 5 * 1024 * 1024
+_MAX_PUBLICATION_TOTAL_BYTES = 8 * 1024 * 1024
 
 
 class FullPreviewError(ValueError):
@@ -165,6 +177,7 @@ def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
     target = (root / fixture_id).resolve()
     if target.parent != root or not target.is_dir():
         raise FullPreviewError("Full-preview fixture directory is missing")
+    publication_bytes = 0
     for path in root.rglob("*"):
         if path.is_symlink():
             raise FullPreviewError("Full-preview artifact contains a symbolic link")
@@ -182,6 +195,24 @@ def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
             raise FullPreviewError(f"Forbidden full-preview publication file {path.name}")
         if path.suffix.lower() not in {".html", ".css", ".js", ".json"}:
             raise FullPreviewError(f"Unsupported full-preview publication file {path.name}")
+        payload = path.read_bytes()
+        publication_bytes += len(payload)
+        if len(payload) > _MAX_PUBLICATION_FILE_BYTES:
+            raise FullPreviewError(f"Full-preview publication file is too large: {path.name}")
+        try:
+            text = payload.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise FullPreviewError(
+                f"Full-preview publication file is not UTF-8 text: {path.name}"
+            ) from exc
+        if "\x00" in text or any(
+            pattern.search(text) for pattern in _FORBIDDEN_PUBLICATION_CONTENT
+        ):
+            raise FullPreviewError(
+                f"Forbidden full-preview publication content in {path.name}"
+            )
+    if publication_bytes > _MAX_PUBLICATION_TOTAL_BYTES:
+        raise FullPreviewError("Full-preview publication payload is too large")
     required = {"index.html", "manifest.json", "report.css", "report.js"}
     if not required.issubset({path.name for path in target.iterdir()}):
         raise FullPreviewError("Full-preview artifact is missing required report files")
@@ -189,8 +220,6 @@ def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
     html = (target / "index.html").read_text(encoding="utf-8")
     if "Full application preview" not in html or source_sha not in html or save_sha not in html:
         raise FullPreviewError("Full-preview HTML metadata does not match its context")
-    if any("FutureRolls" in path.read_text(encoding="utf-8") for path in dataset.files):
-        raise FullPreviewError("Full-preview public JSON contains FutureRolls")
     expected = {
         "index.html", "manifest.json", "report.css", "report.js",
         *(path.name for path in dataset.files),
