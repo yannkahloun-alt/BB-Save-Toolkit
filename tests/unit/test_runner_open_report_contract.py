@@ -13,6 +13,7 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     archive = tmp_path / "archive.zip"
     archive.write_bytes(b"archive")
     workspace = SimpleNamespace(root=tmp_path, source_save=tmp_path/"x.sav", base="x", generated_at="now")
+    workspace.source_save.write_bytes(b"save")
     opts = SimpleNamespace(
         save=tmp_path/"x.sav", targets=Path("targets"), classification=Path("classification"),
         out=tmp_path, no_projection=False, open_report=True
@@ -26,10 +27,28 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "create_workspace", lambda *a: workspace)
     monkeypatch.setattr(runner, "write_raw_inputs", lambda *a: None)
     monkeypatch.setattr(runner, "load_config", lambda *a: SimpleNamespace(roles=[], classification={}))
-    monkeypatch.setattr(runner, "configure_engine", lambda: None)
-    monkeypatch.setattr(runner, "reset_profile", lambda: None)
-    monkeypatch.setattr(runner, "analyze_brothers", lambda *a: SimpleNamespace(fits=[], summaries=[]))
-    monkeypatch.setattr(runner, "get_profile", lambda: {})
+    cache = SimpleNamespace(
+        stats=SimpleNamespace(
+            role_reused=0, role_computed=0, summary_reused=0,
+            advisor_reused=0, advisor_computed=0, summary_computed=0,
+        ),
+        miss_reasons={},
+        manifest_payload=lambda **kwargs: {},
+    )
+    monkeypatch.setattr(
+        runner,
+        "analyze_save",
+        lambda request: SimpleNamespace(
+            roster=[], recruits=[],
+            analysis=SimpleNamespace(fits=[], summaries=[]),
+            incremental_cache=cache,
+            diagnostics={
+                "parse": {"recoverable_failures": []},
+                "references": runner.ensure_references(verbose=False),
+                "projection_profile": {},
+            },
+        ),
+    )
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: None)
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)

@@ -1018,8 +1018,8 @@ class DuplicateBrotherNameError(RuntimeError):
         super().__init__(f"Duplicate company brother name: {name}")
 
 
-def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Brother]:
-    b = save_path.read_bytes()
+def parse_roster_bytes(b: bytes, *, diagnostics: dict | None = None) -> list[Brother]:
+    """Parse company brothers from supplied save content."""
     refs = load_reference_dictionary(Path(__file__).resolve().parent.parent)
 
     human_offsets, roster_debug = find_company_brother_human_offsets(b)
@@ -1150,6 +1150,11 @@ def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Br
         )
 
     return parsed
+
+
+def parse_roster(save_path: Path, *, diagnostics: dict | None = None) -> list[Brother]:
+    """Path adapter for :func:`parse_roster_bytes`."""
+    return parse_roster_bytes(save_path.read_bytes(), diagnostics=diagnostics)
 
 
 def _all_valid_human_offsets(b: bytes) -> list[int]:
@@ -1607,8 +1612,8 @@ def _compute_daily_wage(
     return max(0, int(math.floor(value + 1e-9)))
 
 
-def parse_recruits(
-    save_path: Path,
+def parse_recruits_bytes(
+    b: bytes,
     diagnostics: dict | None = None,
 ) -> list[dict]:
     """
@@ -1623,7 +1628,6 @@ def parse_recruits(
     equipment and exact vanilla item values. Unknown equipment yields null rather
     than an estimate.
     """
-    b = save_path.read_bytes()
     script_dir = Path(__file__).resolve().parent.parent
     refs = load_reference_dictionary(script_dir)
     economy = _load_background_economy(script_dir)
@@ -1670,3 +1674,11 @@ def parse_recruits(
             "DailyWage": daily_wage,
         })
     return recruits
+
+
+def parse_recruits(
+    save_path: Path,
+    diagnostics: dict | None = None,
+) -> list[dict]:
+    """Path adapter for :func:`parse_recruits_bytes`."""
+    return parse_recruits_bytes(save_path.read_bytes(), diagnostics=diagnostics)

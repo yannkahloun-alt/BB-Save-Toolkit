@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import time
 
 from references.update_references import ensure_references
 
-from ..projection import configure_engine, get_profile, reset_profile
 from ..save_parser import parse_recruits, parse_roster
-from .analysis import analyze_brothers
-from ..incremental import IncrementalCache, find_previous_manifest, first_difference, prune_manifests, write_manifest
+from .analysis_service import (
+    AnalysisServiceOptions,
+    AnalysisServiceRequest,
+    CompatibleCacheContext,
+    SaveSource,
+    analyze_save,
+)
+from ..incremental import find_previous_manifest, prune_manifests, write_manifest
 from .cli import CliOptions
 from .config import load_config
 from .health import build_run_health, print_run_health
@@ -57,35 +63,9 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
     run_metadata = build_run_metadata(options)
     print_run_header(run_metadata)
 
-    step = Step("Reference dictionary")
-    step.__enter__()
-    reference_status = ensure_references(verbose=False)
-    print_reference_status(reference_status)
-    generated = (
-        reference_status["generated_dictionary"]
-        or reference_status["generated_backgrounds"]
-        or reference_status.get("generated_perks", False)
-        or reference_status.get("generated_traits", False)
-        or reference_status.get("generated_permanent_injuries", False)
-    )
-    step.done("generated" if generated else "cached")
-
-    parse_diagnostics = {"recoverable_failures": []}
-
-    step = Step("Parse roster")
-    step.__enter__()
-    bros = parse_roster(options.save, diagnostics=parse_diagnostics)
-    step.done(f"{len(bros)} brothers")
-
-    step = Step("Parse recruits")
-    step.__enter__()
-    recruits = parse_recruits(options.save, diagnostics=parse_diagnostics)
-    step.done(f"{len(recruits)} candidates")
-
     step = Step("Prepare run output")
     step.__enter__()
     workspace = create_workspace(options.save, options.out)
-    write_raw_inputs(workspace, bros, recruits)
     step.done()
 
     report_path = None
@@ -99,7 +79,6 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         step = Step("Load configuration")
         step.__enter__()
         config = load_config(options.targets, options.classification)
-        configure_engine()
         step.done()
 
         full_recompute = bool(getattr(options, "full_recompute", False))
@@ -107,21 +86,38 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         previous_path, previous_manifest = (None, None)
         if not full_recompute:
             previous_path, previous_manifest = find_previous_manifest(options.out, exclude_root=workspace.root, source_save=options.save)
-        incremental_cache = IncrementalCache(previous_manifest, enabled=not full_recompute, previous_path=previous_path)
-
-        reset_profile()
         step = Step("Strategic classification")
         step.__enter__()
-        analysis = analyze_brothers(
-            bros, config.roles, config.classification, incremental_cache
+        service_result = analyze_save(
+            AnalysisServiceRequest(
+                source=SaveSource(
+                    Path(options.save).read_bytes(), Path(options.save).name
+                ),
+                roles=config.roles,
+                classification=config.classification,
+                options=AnalysisServiceOptions(verify_cache=verify_cache),
+                cache=CompatibleCacheContext(
+                    manifest=previous_manifest,
+                    previous_path=previous_path,
+                    enabled=not full_recompute,
+                ),
+            )
         )
+        bros = service_result.roster
+        recruits = service_result.recruits
+        analysis = service_result.analysis
+        incremental_cache = service_result.incremental_cache
+        parse_diagnostics = service_result.diagnostics["parse"]
+        reference_status = service_result.diagnostics["references"]
+        write_raw_inputs(workspace, bros, recruits)
+        print_reference_status(reference_status)
         step.done(
             f"{len(bros)} brothers × {len(config.roles)} archetypes · "
             f"reused {incremental_cache.stats.role_reused} · "
             f"computed {incremental_cache.stats.role_computed} · "
             f"summaries reused {incremental_cache.stats.summary_reused}"
         )
-        projection_profile = get_profile()
+        projection_profile = service_result.diagnostics["projection_profile"]
         print_projection_profile(projection_profile)
         if bool(getattr(options, "cache_debug", False)):
             print(
@@ -138,22 +134,6 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
                         for name, count in sorted(incremental_cache.miss_reasons.items())
                     )
                 )
-
-        if verify_cache and not full_recompute:
-            verify_step = Step("Verify incremental cache")
-            verify_step.__enter__()
-            clean = analyze_brothers(bros, config.roles, config.classification, None)
-            diff = first_difference(
-                {"fits": analysis.fits, "summaries": analysis.summaries},
-                {"fits": clean.fits, "summaries": clean.summaries},
-            )
-            if diff is not None:
-                path, incremental_value, full_value = diff
-                raise RuntimeError(
-                    "Incremental cache verification failed at "
-                    f"{path}: incremental={incremental_value!r} full={full_value!r}"
-                )
-            verify_step.done("incremental == full")
 
         write_manifest(
             workspace,
@@ -236,6 +216,19 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         step.done(debug_path.name)
 
     if options.no_projection:
+        step = Step("Reference dictionary")
+        step.__enter__()
+        reference_status = ensure_references(verbose=False)
+        generated = any(
+            value
+            for key, value in reference_status.items()
+            if key.startswith("generated_")
+        )
+        step.done("generated" if generated else "cached")
+        parse_diagnostics = {"recoverable_failures": []}
+        bros = parse_roster(options.save, diagnostics=parse_diagnostics)
+        recruits = parse_recruits(options.save, diagnostics=parse_diagnostics)
+        write_raw_inputs(workspace, bros, recruits)
         run_health = build_run_health(
             bros,
             recruits,
