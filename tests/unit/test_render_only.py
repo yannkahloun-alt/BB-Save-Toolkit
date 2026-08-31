@@ -223,3 +223,52 @@ def test_generated_manifest_is_self_contained_and_versioned(tmp_path):
         (workspace.root / entry["path"]).is_file()
         for entry in manifest["files"].values()
     )
+
+
+@pytest.mark.parametrize(
+    "label, mutate, message",
+    [
+        ("roster", lambda value: {"row": value[0]}, "roster root must be an array"),
+        ("recruits", lambda value: ["bad"], "recruit rows must be objects"),
+        ("role_fit", lambda value: ["bad"], "role_fit and classification rows must be objects"),
+        ("classification", lambda value: ["bad"], "role_fit and classification rows must be objects"),
+        ("archetypes", lambda value: [], "archetypes root must be an object"),
+        ("classification_config", lambda value: [], "classification_config root must be an object"),
+    ],
+)
+def test_render_dataset_rejects_invalid_payload_roots(tmp_path, label, mutate, message):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(source, label, lambda value: None)
+    manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+    payload_path = source / manifest["files"][label]["path"]
+    original = json.loads((FIXTURE / manifest["files"][label]["path"]).read_text(encoding="utf-8"))
+    payload_path.write_text(json.dumps(mutate(original)), encoding="utf-8")
+    manifest["files"][label]["sha256"] = hashlib.sha256(payload_path.read_bytes()).hexdigest()
+    (source / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match=message):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "label, mutate, message",
+    [
+        ("roster", lambda rows: rows.append(dict(rows[0])), "duplicate BrotherID"),
+        ("role_fit", lambda rows: rows.pop(), "exactly one row per brother and role"),
+        ("classification", lambda rows: rows.pop(), "BrotherID values do not match"),
+        ("classification", lambda rows: rows[0].update(BestRole="missing"), "BestRole values"),
+        ("archetypes", lambda value: value["roles"].append(dict(value["roles"][0])), "duplicate role names"),
+    ],
+)
+def test_render_dataset_rejects_inconsistent_relations(tmp_path, label, mutate, message):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(source, label, mutate)
+    with pytest.raises(RenderDatasetError, match=message):
+        load_render_dataset(source)
+
+
+def test_render_only_reports_browser_launch_failures(monkeypatch, tmp_path, capsys):
+    options = _options(FIXTURE, tmp_path / "out")
+    options = CliOptions(**{**options.__dict__, "open_report": True})
+    monkeypatch.setattr("bbtool.app.report_server.launch_report_server", lambda _root: False)
+    run_render_only(options)
+    assert "browser did not confirm" in capsys.readouterr().out

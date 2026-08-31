@@ -188,3 +188,83 @@ def test_trusted_package_overwrites_untrusted_routing_metadata(tmp_path):
     )
     assert context["destination"] == "pr-10/full"
     assert context["source_sha"] == "a" * 40
+
+
+@pytest.mark.parametrize(
+    "catalog, fixture_id, message",
+    [
+        ({"schema": "wrong", "fixtures": []}, "reference-save", "schema"),
+        ({"schema": "bbtool.approved_save_catalog.v1", "fixtures": []}, "reference-save", "contain fixtures"),
+        ({"schema": "bbtool.approved_save_catalog.v1", "fixtures": [{"id": "other"}]}, "reference-save", "Unknown or ambiguous"),
+    ],
+)
+def test_approved_save_rejects_invalid_catalog_contract(tmp_path, catalog, fixture_id, message):
+    path = tmp_path / "catalog.json"
+    path.write_text(json.dumps(catalog), encoding="utf-8")
+    with pytest.raises(FullPreviewError, match=message):
+        load_approved_save(path, fixture_id)
+
+
+@pytest.mark.parametrize(
+    "overrides, message",
+    [
+        ({"destination": "../escape"}, "destination"),
+        ({"fixture": "Bad ID"}, "fixture ID"),
+        ({"source_sha": "short"}, "source SHA"),
+        ({"save_sha256": "short"}, "save fingerprint"),
+        ({"source_label": ""}, "source_label"),
+        ({"generated_at": None}, "generated_at"),
+        ({"toolkit_version": ""}, "toolkit_version"),
+        ({"incremental_verified": "yes"}, "verification flag"),
+    ],
+)
+def test_trusted_rebuild_rejects_invalid_context_fields(tmp_path, overrides, message):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    context = _context(fixture)
+    context.update(overrides)
+    (site / "preview-context.json").write_text(
+        json.dumps(context), encoding="utf-8"
+    )
+    with pytest.raises(FullPreviewError, match=message):
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted", catalog)
+
+
+@pytest.mark.parametrize(
+    "name, payload, message",
+    [
+        ("secret.log", b"text", "Forbidden"),
+        ("payload.exe", b"text", "Unsupported"),
+        ("notes.json", b"bad\x00text", "NUL byte"),
+        ("binary.json", b"\xff", "not UTF-8"),
+    ],
+)
+def test_publication_validator_rejects_unsafe_files(tmp_path, name, payload, message):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    trusted = tmp_path / "trusted"
+    rebuild_trusted_full_preview_artifact(site, trusted, catalog)
+    (trusted / fixture.identifier / name).write_bytes(payload)
+    with pytest.raises(FullPreviewError, match=message):
+        validate_full_preview_artifact(trusted, catalog)
+
+
+def test_publication_validator_rejects_missing_and_mismatched_report(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    trusted = tmp_path / "trusted"
+    rebuild_trusted_full_preview_artifact(site, trusted, catalog)
+    index = trusted / fixture.identifier / "index.html"
+    index.unlink()
+    with pytest.raises(FullPreviewError, match="missing required"):
+        validate_full_preview_artifact(trusted, catalog)
+
+    rebuild = tmp_path / "rebuilt"
+    rebuild_trusted_full_preview_artifact(site, rebuild, catalog)
+    index = rebuild / fixture.identifier / "index.html"
+    index.write_text("<html><body>wrong metadata</body></html>", encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="metadata does not match"):
+        validate_full_preview_artifact(rebuild, catalog)
