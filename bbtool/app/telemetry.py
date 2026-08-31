@@ -16,7 +16,7 @@ from ..incremental.manifest import SCHEMA as INCREMENTAL_SCHEMA
 from .console import format_bytes, sha256_file
 
 
-TOOLKIT_VERSION = "3.87"
+TOOLKIT_VERSION = "3.88"
 DEBUG_BUNDLE_SCHEMA = "bbtool.debug_bundle.v1"
 PROJECTION_VALIDATION_SCHEMA = "bbtool.projection_validation.v3"
 
