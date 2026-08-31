@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 
 import pytest
+import bbtool.app.full_preview as full_preview
 
 from bbtool.app.full_preview import (
     FullPreviewError, FullPreviewMetadata, build_full_preview,
@@ -268,3 +269,91 @@ def test_publication_validator_rejects_missing_and_mismatched_report(tmp_path):
     index.write_text("<html><body>wrong metadata</body></html>", encoding="utf-8")
     with pytest.raises(FullPreviewError, match="metadata does not match"):
         validate_full_preview_artifact(rebuild, catalog)
+
+
+def test_approved_save_reports_malformed_catalog(tmp_path):
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text("{broken", encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="Invalid approved-save catalog"):
+        load_approved_save(catalog, "reference-save")
+
+
+@pytest.mark.parametrize(
+    "row_update, message",
+    [
+        ({"path": "../escape.sav"}, "unsafe path"),
+        ({"path": "missing.sav"}, "missing or escapes"),
+        ({"source": ""}, "lacks provenance"),
+    ],
+)
+def test_approved_save_rejects_unsafe_fixture_rows(tmp_path, row_update, message):
+    catalog = _catalog(tmp_path)
+    payload = json.loads(catalog.read_text(encoding="utf-8"))
+    payload["fixtures"][0].update(row_update)
+    catalog.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(FullPreviewError, match=message):
+        load_approved_save(catalog, "reference-save")
+
+
+def test_build_preview_requires_rendered_body(monkeypatch, tmp_path):
+    fixture = load_approved_save(_catalog(tmp_path), "reference-save")
+    monkeypatch.setattr(full_preview, "render_served_report", lambda _source: (tmp_path, "<html/>"))
+    with pytest.raises(FullPreviewError, match="has no body"):
+        build_full_preview(_run_dataset(tmp_path), tmp_path / "site", META, fixture)
+
+
+def test_stage_preview_rejects_another_save(tmp_path):
+    fixture = load_approved_save(_catalog(tmp_path), "reference-save")
+    run = _run_dataset(tmp_path)
+    manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+    manifest["source"] = "other.sav"
+    (run / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="does not match"):
+        stage_full_preview_dataset(run, tmp_path / "site", fixture)
+
+
+def test_trusted_rebuild_rejects_context_schema_and_root_entries(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    context_path = site / "preview-context.json"
+    context = json.loads(context_path.read_text(encoding="utf-8"))
+    context["schema"] = "wrong"
+    context_path.write_text(json.dumps(context), encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="context schema"):
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted-a", catalog)
+
+    context_path.write_text(json.dumps(_context(fixture)), encoding="utf-8")
+    (site / "extra.txt").write_text("unexpected", encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="unexpected root entries"):
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted-b", catalog)
+
+
+def test_publication_validator_rejects_directory_and_misplaced_file(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    trusted = tmp_path / "trusted"
+    rebuild_trusted_full_preview_artifact(site, trusted, catalog)
+    (trusted / fixture.identifier / "nested").mkdir()
+    with pytest.raises(FullPreviewError, match="unexpected directory"):
+        validate_full_preview_artifact(trusted, catalog)
+    (trusted / fixture.identifier / "nested").rmdir()
+    (trusted / "misplaced.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="misplaced file"):
+        validate_full_preview_artifact(trusted, catalog)
+
+
+def test_publication_validator_rejects_oversized_and_extra_json(monkeypatch, tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = _staged_input(tmp_path, fixture)
+    trusted = tmp_path / "trusted"
+    rebuild_trusted_full_preview_artifact(site, trusted, catalog)
+    extra = trusted / fixture.identifier / "extra.json"
+    extra.write_text("{}", encoding="utf-8")
+    with pytest.raises(FullPreviewError, match="unexpected files"):
+        validate_full_preview_artifact(trusted, catalog)
+    monkeypatch.setattr(full_preview, "_MAX_PUBLICATION_FILE_BYTES", 1)
+    with pytest.raises(FullPreviewError, match="too large"):
+        validate_full_preview_artifact(trusted, catalog)
