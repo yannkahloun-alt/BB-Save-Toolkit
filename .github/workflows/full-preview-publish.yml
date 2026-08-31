@@ -9,6 +9,7 @@ permissions:
   contents: write
   actions: read
   pull-requests: read
+  issues: write
 
 concurrency:
   group: full-preview-publish
@@ -18,6 +19,7 @@ jobs:
   publish:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out trusted validator
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -64,6 +66,10 @@ jobs:
           rm preview/preview-context.json
           echo "destination=$destination" >> "$GITHUB_OUTPUT"
           echo "fixture=$fixture" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          if [[ "$destination" =~ ^pr-([0-9]+)/full$ ]]; then
+            echo "pr_number=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Update persistent preview site
         shell: bash
         env:
@@ -98,3 +104,32 @@ jobs:
           repository=${GITHUB_REPOSITORY#*/}
           echo "## Full application preview" >> "$GITHUB_STEP_SUMMARY"
           echo "- [Open ${FIXTURE}](https://${owner}.github.io/${repository}/${DESTINATION}/${FIXTURE}/)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Link the exact preview from its pull request
+        if: steps.payload.outputs.pr_number != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.payload.outputs.pr_number }}
+          DESTINATION: ${{ steps.payload.outputs.destination }}
+          FIXTURE: ${{ steps.payload.outputs.fixture }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          repository=${GITHUB_REPOSITORY#*/}
+          url="https://${owner}.github.io/${repository}/${DESTINATION}/${FIXTURE}/"
+          marker='<!-- bbtool-full-application-preview -->'
+          body=$(printf '%s\n\n### Full application preview\n\n- [Open the report](%s)\n- Exact commit: `%s`\n- Approved fixture: `%s`\n\nThis comment is updated when a newer preview is published for this pull request.' \
+            "$marker" "$url" "$SOURCE_SHA" "$FIXTURE")
+          comment_id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- bbtool-full-application-preview -->"))) | .id' \
+            | tail -n 1)
+          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state)
+          current_sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .head.sha)
+          test "$state" = open
+          test "$current_sha" = "$SOURCE_SHA"
+          if [[ -n "$comment_id" ]]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" -f body="$body" >/dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" >/dev/null
+          fi
