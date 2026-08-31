@@ -85,7 +85,8 @@ def test_full_preview_rejects_run_from_another_save(tmp_path):
 
 
 def test_publication_validator_rejects_forbidden_run_artifacts(tmp_path):
-    fixture = load_approved_save(_catalog(tmp_path), "reference-save")
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
     site = tmp_path / "site"
     build_full_preview(_run_dataset(tmp_path), site, META, fixture)
     (site / "preview-context.json").write_text(json.dumps({
@@ -95,8 +96,27 @@ def test_publication_validator_rejects_forbidden_run_artifacts(tmp_path):
         "save_sha256": fixture.sha256,
         "source_sha": "a" * 40,
     }), encoding="utf-8")
-    assert validate_full_preview_artifact(site)["destination"] == "pr-10/full"
+    assert validate_full_preview_artifact(site, catalog)["destination"] == "pr-10/full"
 
     (site / fixture.identifier / "source.sav").write_bytes(b"forbidden")
     with pytest.raises(FullPreviewError, match="Forbidden"):
-        validate_full_preview_artifact(site)
+        validate_full_preview_artifact(site, catalog)
+
+
+def test_publication_validator_rejects_self_declared_save_fingerprint(tmp_path):
+    catalog = _catalog(tmp_path)
+    fixture = load_approved_save(catalog, "reference-save")
+    site = tmp_path / "site"
+    build_full_preview(_run_dataset(tmp_path), site, META, fixture)
+    context = {
+        "schema": "bbtool.full_preview_context.v1",
+        "destination": "pr-10/full",
+        "fixture": fixture.identifier,
+        "save_sha256": "f" * 64,
+        "source_sha": "a" * 40,
+    }
+    (site / "preview-context.json").write_text(
+        json.dumps(context), encoding="utf-8"
+    )
+    with pytest.raises(FullPreviewError, match="not approved"):
+        validate_full_preview_artifact(site, catalog)

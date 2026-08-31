@@ -143,6 +143,7 @@ def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
     assert "contents: write" in publish
     assert "ref: main" in publish
     assert "tools/validate_full_preview_artifact.py" in publish
+    assert "--catalog tests/fixtures/full_preview/catalog.json" in publish
     assert 'select(.name == "full-preview"' in publish
     assert "preview/preview-context.json" in publish
     assert 'test "$current_sha" = "$source_sha"' in publish

@@ -47,7 +47,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python tools/validate_full_preview_artifact.py preview > context.json
+          python tools/validate_full_preview_artifact.py preview \
+            --catalog tests/fixtures/full_preview/catalog.json > context.json
           destination=$(python -c 'import json; print(json.load(open("context.json"))["destination"])')
           fixture=$(python -c 'import json; print(json.load(open("context.json"))["fixture"])')
           source_sha=$(python -c 'import json; print(json.load(open("context.json"))["source_sha"])')

@@ -140,7 +140,7 @@ def build_full_preview(
     return target
 
 
-def validate_full_preview_artifact(root: Path) -> dict:
+def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
     """Fail closed on a publication artifact produced by unprivileged code."""
     root = root.resolve()
     context = _read_json(root / "preview-context.json", "full-preview context")
@@ -158,6 +158,9 @@ def validate_full_preview_artifact(root: Path) -> dict:
         raise FullPreviewError("Invalid full-preview source SHA")
     if not isinstance(save_sha, str) or not _SHA256.fullmatch(save_sha):
         raise FullPreviewError("Invalid full-preview save fingerprint")
+    approved = load_approved_save(catalog_path, fixture_id)
+    if save_sha != approved.sha256:
+        raise FullPreviewError("Full-preview save fingerprint is not approved")
 
     target = (root / fixture_id).resolve()
     if target.parent != root or not target.is_dir():

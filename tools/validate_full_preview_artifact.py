@@ -14,8 +14,12 @@ from bbtool.app.full_preview import validate_full_preview_artifact
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("artifact", type=Path)
+    parser.add_argument("--catalog", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(validate_full_preview_artifact(args.artifact), sort_keys=True))
+    print(json.dumps(
+        validate_full_preview_artifact(args.artifact, args.catalog),
+        sort_keys=True,
+    ))
 
 
 if __name__ == "__main__":
