@@ -43,6 +43,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         base="x",
         generated_at="now",
     )
+    workspace.source_save.write_bytes(b"save")
 
     calls = {
         "ensure_verbose": [],
@@ -73,18 +74,33 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "load_config",
         lambda *a: SimpleNamespace(roles=[SimpleNamespace(), SimpleNamespace(), SimpleNamespace()], classification={}),
     )
-    monkeypatch.setattr(runner, "configure_engine", lambda: None)
-    monkeypatch.setattr(runner, "reset_profile", lambda: None)
-    monkeypatch.setattr(
-        runner,
-        "analyze_brothers",
-        lambda *a: SimpleNamespace(fits=["fit"], summaries=["summary"]),
+    cache = SimpleNamespace(
+        stats=SimpleNamespace(
+            role_reused=0, role_computed=3, summary_reused=0,
+            advisor_reused=0, advisor_computed=1, summary_computed=1,
+        ),
+        miss_reasons={},
+        manifest_payload=lambda **kwargs: {},
     )
-    monkeypatch.setattr(runner, "get_profile", lambda: {"project_role_calls": 7})
+    def fake_analyze_save(request):
+        status = runner.ensure_references(verbose=False)
+        return SimpleNamespace(
+            roster=[SimpleNamespace()],
+            recruits=[SimpleNamespace(), SimpleNamespace()],
+            analysis=SimpleNamespace(fits=["fit"], summaries=["summary"]),
+            incremental_cache=cache,
+            diagnostics={
+                "parse": {"recoverable_failures": []},
+                "references": status,
+                "projection_profile": {"project_role_calls": 7},
+            },
+            projection_validation={"summary": {"roll_range_violations": 0}},
+        )
+    monkeypatch.setattr(runner, "analyze_save", fake_analyze_save)
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: calls["profile"].append(x))
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: debug)
     def archive_workspace(*args):
         calls["archive_calls"] += 1
@@ -137,8 +153,7 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
         "generated_dictionary": True,
         "generated_backgrounds": False,
     }]
-    assert FakeStep.instances[0].label == "Reference dictionary"
-    assert FakeStep.instances[0].details == ["generated"]
+    assert FakeStep.instances[0].label == "Prepare run output"
 
     out = capsys.readouterr().out
     assert "[DONE ] Total                            5.750s" in out
@@ -209,7 +224,8 @@ def test_runner_generated_background_and_perks_each_mark_generated(monkeypatch, 
 
         runner.run(_opts(tmp_path, no_projection=True))
 
-        assert FakeStep.instances[0].details == ["generated"]
+        reference_step = next(x for x in FakeStep.instances if x.label == "Reference dictionary")
+        assert reference_step.details == ["generated"]
 
 
 def test_runner_all_reference_flags_false_marks_cached(monkeypatch, tmp_path):
@@ -227,7 +243,8 @@ def test_runner_all_reference_flags_false_marks_cached(monkeypatch, tmp_path):
 
     runner.run(_opts(tmp_path, no_projection=True))
 
-    assert FakeStep.instances[0].details == ["cached"]
+    reference_step = next(x for x in FakeStep.instances if x.label == "Reference dictionary")
+    assert reference_step.details == ["cached"]
 
 
 def test_runner_open_report_true_opens_and_reports_success(monkeypatch, tmp_path, capsys):
@@ -328,7 +345,7 @@ def test_runner_reports_validation_failure_and_browser_exception(monkeypatch, tm
         json.dumps({"summary": {"roll_range_violations": 2}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(runner, "write_projection_validation", lambda *a: validation)
+    monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(
         runner,
         "launch_report_server",
@@ -360,4 +377,5 @@ def test_runner_missing_generated_perks_defaults_false(monkeypatch, tmp_path):
 
     runner.run(_opts(tmp_path, no_projection=True))
 
-    assert FakeStep.instances[0].details == ["cached"]
+    reference_step = next(x for x in FakeStep.instances if x.label == "Reference dictionary")
+    assert reference_step.details == ["cached"]

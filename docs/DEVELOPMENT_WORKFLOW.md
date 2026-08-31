@@ -89,6 +89,10 @@ html_report             -> presentation
 
 Do not put cache persistence into projection algorithms.
 
+New transports (for example a local HTTP API or hosted worker) must call the
+typed application service in `bbtool/app/analysis_service.py`. They must not
+recreate parser/projection orchestration or infer failures from CLI output.
+
 ### 5. Validate incrementally
 
 Run focused tests during iteration, then the applicable pre-merge gate in

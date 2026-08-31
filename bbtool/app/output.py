@@ -48,7 +48,7 @@ def create_workspace(save: Path, out_root: Path) -> RunWorkspace:
     )
 
 
-def _public_bro_dict(bro) -> dict:
+def public_brother_data(bro) -> dict:
     """Serialize only information the normal analysis is allowed to consume.
 
     FutureRolls are hidden save-state ground truth and belong exclusively in the
@@ -61,6 +61,9 @@ def _public_bro_dict(bro) -> dict:
     return data
 
 
+_public_bro_dict = public_brother_data
+
+
 def write_raw_inputs(workspace: RunWorkspace, bros, recruits) -> None:
     save_copy = (
         workspace.root
@@ -69,7 +72,7 @@ def write_raw_inputs(workspace: RunWorkspace, bros, recruits) -> None:
     shutil.copy2(workspace.source_save, save_copy)
 
     (workspace.root / f"{workspace.base}-roster.json").write_text(
-        json.dumps([_public_bro_dict(bro) for bro in bros], indent=2),
+        json.dumps([public_brother_data(bro) for bro in bros], indent=2),
         encoding="utf-8",
     )
     (workspace.root / f"{workspace.base}-recruits.json").write_text(
@@ -353,6 +356,14 @@ def write_projection_validation(
     This is the only JSON output allowed to expose FutureRolls / seeded choices.
     """
     validation = build_projection_validation(bros, fits, roles)
+    return write_projection_validation_payload(workspace, validation)
+
+
+def write_projection_validation_payload(
+    workspace: RunWorkspace,
+    validation: dict,
+) -> Path:
+    """Write validation data already computed by the analysis service."""
     payload = {
         "_meta": {
             "format": "bbtool.projection_validation.v3",

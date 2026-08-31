@@ -75,6 +75,25 @@ slots as Fit-neutral free picks.
 
 Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, advisor output, and summaries.
 
+### `bbtool/app/analysis_service.py`
+
+This is the transport-independent application boundary around parsing and
+analysis. A caller supplies immutable save bytes, already-normalized effective
+archetypes, classification configuration, bounded execution options, and an
+optional compatible incremental-cache context. The typed result contains the
+parsed public data, Fit/summary outputs, content and configuration fingerprints,
+structured warnings/diagnostics, timings, and progress events.
+
+The service does not invoke argument parsing, choose output paths, write reports,
+or use a filesystem path as save identity. CLI and future HTTP/worker entry
+points are adapters around this boundary. Generated reports consume the returned
+analysis directly; they do not recompute projections.
+
+Service failures carry stable `code`, `stage`, and `message` fields. Cache
+context remains disposable optimization state. This boundary intentionally does
+not define durable user-state storage or new invalidation semantics while the
+corresponding architecture studies remain open.
+
 Runtime profiling reports bounded slowest-projection samples plus aggregate time
 by brother and archetype. Trajectory-cache misses are categorized and their
 total reconciles with the miss counter. The former hypothetical structural-perk
