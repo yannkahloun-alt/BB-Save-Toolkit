@@ -61,6 +61,7 @@ python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis --out .
 
 Maintainers can also publish the approved JSON scenarios as browser-accessible
 render-only previews; see [docs/WEB_PREVIEWS.md](docs/WEB_PREVIEWS.md).
+Manual approved-save full-application previews are documented in the same guide.
 
 This mode validates the complete dataset before creating output, then writes
 the canonical public JSON contract, generates the same data-free HTML shell

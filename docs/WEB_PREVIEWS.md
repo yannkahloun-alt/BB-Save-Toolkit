@@ -47,3 +47,40 @@ release validation, release ZIPs, coverage, mutation testing, and full-save E2E
 work. The generated site contains only rendered public data and the selected
 revision's tracked report CSS/JavaScript; it contains no save, FutureRolls,
 runtime references, cache, or diagnostic artifacts.
+
+## Full-application previews
+
+`Full application preview build` is a separate, manually triggered workflow.
+It accepts a pull-request number, branch, tag, or exact commit plus an approved
+fixture identifier. The current allowlist contains `reference-save`, whose
+provenance, approval, and SHA-256 are recorded in
+`tests/fixtures/full_preview/catalog.json`. Pull-request numbers are resolved to
+their exact current head, and fork heads are refused. Branches, tags, and SHAs
+must resolve inside this repository.
+
+The build executes the selected revision's normal `bb_analyze.py` entry point
+from the approved `.sav`, with either a full recomputation or optional
+`--verify-cache --cache-debug`. It validates the resulting public manifest and
+JSON contract, renders the interactive HTML, and uploads two short-lived
+artifacts: an allowlisted publication payload and separate diagnostic logs.
+This workflow is deliberately not part of routine PR CI because a cold complete
+analysis is comparatively expensive and may prepare runtime references.
+
+Publication uses a second default-branch workflow with `contents: write`. It
+does not execute selected-revision code or logs. Before copying the static
+payload to `gh-pages`, it rejects unexpected paths and verifies that the save,
+FutureRolls, validation oracles, caches, debug bundles, logs, and archives are
+absent. The resulting route is:
+
+```text
+/pr-123/full/reference-save/
+/ref-branch-name/full/reference-save/
+```
+
+Every page visibly records full-application mode, exact commit SHA, approved
+fixture ID and safe fingerprint, toolkit/output-contract versions, generation
+time, and whether incremental verification ran. The source `.sav` is never
+included in either the publication artifact or the deployed site. Preview runs
+are retained as Actions artifacts for seven days; published routes are replaced
+by later runs for the same destination, and PR routes are removed when the PR
+closes through the existing preview cleanup lifecycle.

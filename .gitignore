@@ -24,6 +24,7 @@ tests/mutation/mutation-history.json
 # Local saves / fixtures not explicitly checked in
 *.sav
 *.sav.tmp
+!tests/fixtures/full_preview/reference-save.sav
 
 # Release artifacts
 /dist/

@@ -71,3 +71,27 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
         stats["scripts"]["decoded"] + stats["scripts"]["decode_failed"]
         == stats["scripts"]["scanned"]
     )
+
+
+def test_background_root_may_inherit_from_generic_skill_hierarchy(tmp_path):
+    archive = _background_archive(
+        {
+            "character": (
+                b'this.inherit("scripts/skills/skill");\n'
+                b'this.m.ID = "background.character";\n'
+                b"this.m.HiringCost = 100;\n"
+                b"this.m.DailyCost = 10;\n"
+            ),
+            "child": (
+                b'this.inherit('
+                b'"scripts/skills/backgrounds/character_background"'
+                b");\n"
+            ),
+        }
+    )
+
+    output = tmp_path / "backgrounds.json"
+    stats = build_background_dictionary(output_path=output, scripts_archive=archive)
+
+    assert stats["backgrounds"] == 2
+    assert stats["scripts"]["resolution_failed"] == 0

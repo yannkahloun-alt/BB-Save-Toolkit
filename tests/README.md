@@ -98,3 +98,17 @@ archetype/classification configuration, or covered analytical result changes.
 Update the JSON and this documentation together when the fixture contract
 changes. A digest change is expected only when its reviewed source or behavior
 changes; do not normalize away meaningful analytical differences.
+
+## Approved full-preview save
+
+`fixtures/full_preview/reference-save.sav` is the approved real-save input for
+the manually triggered full-application web preview. The repository owner
+supplied it publicly in GitHub issue #10 on 2026-08-31 and explicitly requested
+that it be used. Its immutable SHA-256, provenance, and approval record live in
+the adjacent `catalog.json`; changing the bytes requires updating all three and
+reviewing the public report output for save-local display names.
+
+The workflow runs the normal application from this save, but the publication
+allowlist excludes the save itself, hidden FutureRolls, projection-validation
+oracles, incremental caches, debug data, logs, and run archives. The save is a
+manual preview fixture, not an input to deterministic routine tests.

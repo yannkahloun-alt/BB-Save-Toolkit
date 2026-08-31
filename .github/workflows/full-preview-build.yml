@@ -1,0 +1,120 @@
+name: Full application preview build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Pull request number, branch, tag, or exact commit SHA
+        required: true
+        default: main
+      fixture:
+        description: Approved save fixture
+        required: true
+        type: choice
+        options:
+          - reference-save
+      verify_cache:
+        description: Verify incremental output against a full recomputation
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: full-preview-build-${{ inputs.source_ref }}-${{ inputs.fixture }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build approved-save full preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve trusted repository revision
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_REF: ${{ inputs.source_ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$REQUESTED_REF" =~ ^[0-9]+$ ]]; then
+            record=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$REQUESTED_REF")
+            repository=$(python -c 'import json,sys; print(json.load(sys.stdin)["head"]["repo"]["full_name"])' <<< "$record")
+            test "$repository" = "$GITHUB_REPOSITORY"
+            echo "ref=$(python -c 'import json,sys; print(json.load(sys.stdin)["head"]["sha"])' <<< "$record")" >> "$GITHUB_OUTPUT"
+            echo "label=PR #$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "destination=pr-$REQUESTED_REF/full" >> "$GITHUB_OUTPUT"
+          else
+            safe=$(printf '%s' "$REQUESTED_REF" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+|-+$//g')
+            test -n "$safe"
+            echo "ref=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "label=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+            echo "destination=ref-$safe/full" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.source.outputs.ref }}
+          persist-credentials: false
+          submodules: recursive
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Verify approved fixture
+        shell: bash
+        run: |
+          python -c "from pathlib import Path; from bbtool.app.full_preview import load_approved_save; load_approved_save(Path('tests/fixtures/full_preview/catalog.json'), '${{ inputs.fixture }}')"
+      - name: Run the complete application pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p full-run full-preview-logs
+          verify=()
+          if [[ "${{ inputs.verify_cache }}" == "true" ]]; then
+            verify=(--verify-cache --cache-debug)
+          else
+            verify=(--full-recompute)
+          fi
+          python bb_analyze.py "tests/fixtures/full_preview/${{ inputs.fixture }}.sav" \
+            --out full-run "${verify[@]}" 2>&1 | tee full-preview-logs/analysis.log
+          manifest=$(find full-run -name manifest.json -type f -print)
+          test "$(printf '%s\n' "$manifest" | sed '/^$/d' | wc -l)" -eq 1
+          echo "$manifest" > full-preview-logs/manifest-path.txt
+      - name: Build allowlisted publication payload
+        shell: bash
+        env:
+          SOURCE_LABEL: ${{ steps.source.outputs.label }}
+        run: |
+          generated_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          source_sha=$(git rev-parse HEAD)
+          manifest=$(cat full-preview-logs/manifest-path.txt)
+          verified=()
+          if [[ "${{ inputs.verify_cache }}" == "true" ]]; then verified=(--incremental-verified); fi
+          python tools/build_full_preview.py \
+            --catalog tests/fixtures/full_preview/catalog.json \
+            --fixture "${{ inputs.fixture }}" \
+            --run "$manifest" \
+            --output preview-site \
+            --source-label "$SOURCE_LABEL" \
+            --source-sha "$source_sha" \
+            --generated-at "$generated_at" \
+            --toolkit-version "$(python -c 'from bbtool.app.telemetry import TOOLKIT_VERSION; print(TOOLKIT_VERSION)')" \
+            --destination "${{ steps.source.outputs.destination }}" \
+            "${verified[@]}"
+      - name: Upload publication input
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: full-preview
+          path: preview-site
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload diagnostic logs separately
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: full-preview-logs
+          path: full-preview-logs
+          if-no-files-found: warn
+          retention-days: 7
