@@ -67,12 +67,14 @@ This workflow is deliberately not part of routine PR CI because a cold complete
 analysis is comparatively expensive and may prepare runtime references.
 
 Publication uses a second default-branch workflow with `contents: write`. It
-does not execute selected-revision code or logs. Before copying the static
-payload to `gh-pages`, it rejects unexpected paths and verifies that the save,
-FutureRolls, validation oracles, caches, debug bundles, logs, and archives are
-absent from every deployable JSON, HTML, CSS, and JavaScript asset. Binary,
-non-UTF-8, oversized, and long encoded-blob content also fails closed. The
-resulting route is:
+does not execute selected-revision code or logs. The unprivileged artifact is
+restricted to the validated public JSON dataset and carries no deployable
+HTML, CSS, or JavaScript. The privileged job loads that dataset through the
+trusted contract reader from `main`, independently binds it to the approved
+save catalog, and reconstructs every deployable HTML/CSS/JS asset with trusted
+default-branch code. Unexpected paths, non-dataset files, FutureRolls, binary,
+non-UTF-8, oversized, validation, cache, debug, log, save, and archive files
+fail closed. The resulting route is:
 
 ```text
 /pr-123/full/reference-save/

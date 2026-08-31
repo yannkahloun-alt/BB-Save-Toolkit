@@ -7,7 +7,8 @@ import pytest
 
 from bbtool.app.full_preview import (
     FullPreviewError, FullPreviewMetadata, build_full_preview,
-    load_approved_save, validate_full_preview_artifact,
+    load_approved_save, rebuild_trusted_full_preview_artifact,
+    stage_full_preview_dataset, validate_full_preview_artifact,
 )
 
 
@@ -40,6 +41,31 @@ def _run_dataset(tmp_path: Path) -> Path:
     shutil.copy2(ROOT / "bbtool" / "report.css", run / "report.css")
     shutil.copy2(ROOT / "bbtool" / "report.js", run / "report.js")
     return run
+
+
+def _context(fixture, **overrides) -> dict:
+    context = {
+        "schema": "bbtool.full_preview_context.v1",
+        "destination": "pr-10/full",
+        "fixture": fixture.identifier,
+        "save_sha256": fixture.sha256,
+        "source_sha": "a" * 40,
+        "source_label": "PR #10",
+        "generated_at": "2026-08-31T08:00:00Z",
+        "toolkit_version": "3.87",
+        "incremental_verified": True,
+    }
+    context.update(overrides)
+    return context
+
+
+def _staged_input(tmp_path: Path, fixture) -> Path:
+    site = tmp_path / "input"
+    stage_full_preview_dataset(_run_dataset(tmp_path), site, fixture)
+    (site / "preview-context.json").write_text(
+        json.dumps(_context(fixture)), encoding="utf-8"
+    )
+    return site
 
 
 def test_full_preview_publishes_only_validated_public_files(tmp_path):
@@ -87,73 +113,52 @@ def test_full_preview_rejects_run_from_another_save(tmp_path):
 def test_publication_validator_rejects_forbidden_run_artifacts(tmp_path):
     catalog = _catalog(tmp_path)
     fixture = load_approved_save(catalog, "reference-save")
-    site = tmp_path / "site"
-    build_full_preview(_run_dataset(tmp_path), site, META, fixture)
-    (site / "preview-context.json").write_text(json.dumps({
-        "schema": "bbtool.full_preview_context.v1",
-        "destination": "pr-10/full",
-        "fixture": fixture.identifier,
-        "save_sha256": fixture.sha256,
-        "source_sha": "a" * 40,
-    }), encoding="utf-8")
-    assert validate_full_preview_artifact(site, catalog)["destination"] == "pr-10/full"
-
+    site = _staged_input(tmp_path, fixture)
     (site / fixture.identifier / "source.sav").write_bytes(b"forbidden")
-    with pytest.raises(FullPreviewError, match="Forbidden"):
-        validate_full_preview_artifact(site, catalog)
+    with pytest.raises(FullPreviewError, match="non-dataset"):
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted", catalog)
 
 
 def test_publication_validator_rejects_self_declared_save_fingerprint(tmp_path):
     catalog = _catalog(tmp_path)
     fixture = load_approved_save(catalog, "reference-save")
-    site = tmp_path / "site"
-    build_full_preview(_run_dataset(tmp_path), site, META, fixture)
-    context = {
-        "schema": "bbtool.full_preview_context.v1",
-        "destination": "pr-10/full",
-        "fixture": fixture.identifier,
-        "save_sha256": "f" * 64,
-        "source_sha": "a" * 40,
-    }
+    site = _staged_input(tmp_path, fixture)
+    context = _context(fixture, save_sha256="f" * 64)
     (site / "preview-context.json").write_text(
         json.dumps(context), encoding="utf-8"
     )
     with pytest.raises(FullPreviewError, match="not approved"):
-        validate_full_preview_artifact(site, catalog)
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted", catalog)
 
 
 @pytest.mark.parametrize("asset", ["index.html", "report.css", "report.js"])
-def test_publication_validator_rejects_future_rolls_in_every_asset(tmp_path, asset):
+def test_trusted_rebuild_rejects_every_untrusted_deployable_asset(tmp_path, asset):
     catalog = _catalog(tmp_path)
     fixture = load_approved_save(catalog, "reference-save")
-    site = tmp_path / "site"
-    target = build_full_preview(_run_dataset(tmp_path), site, META, fixture)
-    (site / "preview-context.json").write_text(json.dumps({
-        "schema": "bbtool.full_preview_context.v1",
-        "destination": "pr-10/full",
-        "fixture": fixture.identifier,
-        "save_sha256": fixture.sha256,
-        "source_sha": "a" * 40,
-    }), encoding="utf-8")
-    with (target / asset).open("a", encoding="utf-8") as handle:
-        handle.write('\nconst leaked = {"FutureRolls": [1, 2, 3]};')
-    with pytest.raises(FullPreviewError, match="Forbidden.*content"):
-        validate_full_preview_artifact(site, catalog)
+    site = _staged_input(tmp_path, fixture)
+    (site / fixture.identifier / asset).write_text(
+        'const leak = "Future" + "Rolls";', encoding="utf-8"
+    )
+    with pytest.raises(FullPreviewError, match="non-dataset"):
+        rebuild_trusted_full_preview_artifact(site, tmp_path / "trusted", catalog)
 
 
-def test_publication_validator_rejects_encoded_binary_blob(tmp_path):
+def test_privileged_job_reconstructs_all_deployable_assets_from_trusted_code(tmp_path):
     catalog = _catalog(tmp_path)
     fixture = load_approved_save(catalog, "reference-save")
-    site = tmp_path / "site"
-    target = build_full_preview(_run_dataset(tmp_path), site, META, fixture)
-    (site / "preview-context.json").write_text(json.dumps({
-        "schema": "bbtool.full_preview_context.v1",
-        "destination": "pr-10/full",
-        "fixture": fixture.identifier,
-        "save_sha256": fixture.sha256,
-        "source_sha": "a" * 40,
-    }), encoding="utf-8")
-    with (target / "report.js").open("a", encoding="utf-8") as handle:
-        handle.write("\nconst encodedSave = '" + "A" * 4096 + "';")
-    with pytest.raises(FullPreviewError, match="Forbidden.*content"):
-        validate_full_preview_artifact(site, catalog)
+    site = _staged_input(tmp_path, fixture)
+    trusted = tmp_path / "trusted"
+
+    context = rebuild_trusted_full_preview_artifact(site, trusted, catalog)
+
+    target = trusted / fixture.identifier
+    assert context["source_sha"] == "a" * 40
+    assert (target / "report.js").read_bytes() == (
+        ROOT / "bbtool" / "report.js"
+    ).read_bytes()
+    assert (target / "report.css").read_bytes() == (
+        ROOT / "bbtool" / "report.css"
+    ).read_bytes()
+    html = (target / "index.html").read_text(encoding="utf-8")
+    assert "Full application preview" in html and "Aldric" in html
+    assert validate_full_preview_artifact(trusted, catalog)["fixture"] == fixture.identifier

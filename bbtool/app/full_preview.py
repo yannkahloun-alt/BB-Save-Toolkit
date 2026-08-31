@@ -21,18 +21,9 @@ _DESTINATION = re.compile(r"^(?:pr-[0-9]+|ref-[a-z0-9._-]+)/full$")
 _FORBIDDEN_PUBLICATION_NAMES = (
     ".sav", ".zip", "debug", "incremental", "validation", "cache", "log",
 )
-_FORBIDDEN_PUBLICATION_CONTENT = (
-    re.compile(r'"FutureRolls"\s*:'),
-    re.compile(r"bbtool\.projection_validation", re.IGNORECASE),
-    re.compile(r"bbtool\.incremental_manifest", re.IGNORECASE),
-    re.compile(r"validation-only oracle data", re.IGNORECASE),
-    re.compile(r'"roll_luck_to_level11"\s*:'),
-    re.compile(r"data:application/octet-stream;base64", re.IGNORECASE),
-    re.compile(r"[A-Za-z0-9+/]{4096,}={0,2}"),
-    re.compile(r"[0-9a-fA-F]{4096,}"),
-)
 _MAX_PUBLICATION_FILE_BYTES = 5 * 1024 * 1024
 _MAX_PUBLICATION_TOTAL_BYTES = 8 * 1024 * 1024
+_TRUSTED_PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
 class FullPreviewError(ValueError):
@@ -136,9 +127,9 @@ def build_full_preview(
     for path in dataset.files:
         shutil.copy2(path, target / path.name)
     for asset in ("report.css", "report.js"):
-        source = dataset.root / asset
+        source = _TRUSTED_PACKAGE_ROOT / asset
         if not source.is_file():
-            raise FullPreviewError(f"Run is missing required public asset {asset}")
+            raise FullPreviewError(f"Trusted package is missing required asset {asset}")
         shutil.copy2(source, target / asset)
     (target / "index.html").write_text(html, encoding="utf-8")
 
@@ -152,8 +143,24 @@ def build_full_preview(
     return target
 
 
-def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
-    """Fail closed on a publication artifact produced by unprivileged code."""
+def stage_full_preview_dataset(
+    run_source: Path,
+    output_root: Path,
+    fixture: ApprovedSave,
+) -> Path:
+    """Stage only the validated public JSON contract from an analysis run."""
+    dataset = load_render_dataset(run_source)
+    if dataset.manifest.get("source") != fixture.path.name:
+        raise FullPreviewError("Run manifest source does not match the approved save")
+    target = output_root / fixture.identifier
+    target.mkdir(parents=True, exist_ok=False)
+    shutil.copy2(dataset.manifest_path, target / "manifest.json")
+    for path in dataset.files:
+        shutil.copy2(path, target / path.name)
+    return target
+
+
+def _validated_context(root: Path, catalog_path: Path) -> tuple[dict, ApprovedSave]:
     root = root.resolve()
     context = _read_json(root / "preview-context.json", "full-preview context")
     if not isinstance(context, dict) or context.get("schema") != PREVIEW_CONTEXT_SCHEMA:
@@ -173,6 +180,63 @@ def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
     approved = load_approved_save(catalog_path, fixture_id)
     if save_sha != approved.sha256:
         raise FullPreviewError("Full-preview save fingerprint is not approved")
+    for field in ("source_label", "generated_at", "toolkit_version"):
+        if not isinstance(context.get(field), str) or not context[field].strip():
+            raise FullPreviewError(f"Invalid full-preview context field {field}")
+    if not isinstance(context.get("incremental_verified"), bool):
+        raise FullPreviewError("Invalid full-preview incremental verification flag")
+    return context, approved
+
+
+def rebuild_trusted_full_preview_artifact(
+    root: Path,
+    output_root: Path,
+    catalog_path: Path,
+) -> dict:
+    """Rebuild every deployable asset with trusted default-branch code."""
+    root = root.resolve()
+    context, approved = _validated_context(root, catalog_path)
+    target = (root / approved.identifier).resolve()
+    if target.parent != root or not target.is_dir():
+        raise FullPreviewError("Full-preview fixture directory is missing")
+    if any(path.is_symlink() for path in root.rglob("*")):
+        raise FullPreviewError("Full-preview input contains a symbolic link")
+    dataset = load_render_dataset(target / "manifest.json")
+    expected_input = {
+        "manifest.json", *(path.name for path in dataset.files),
+    }
+    if {path.name for path in target.iterdir()} != expected_input:
+        raise FullPreviewError("Full-preview input contains non-dataset files")
+    if {path.name for path in root.iterdir()} != {
+        "preview-context.json", approved.identifier,
+    }:
+        raise FullPreviewError("Full-preview input contains unexpected root entries")
+    built = build_full_preview(
+        dataset.manifest_path,
+        output_root,
+        FullPreviewMetadata(
+            context["source_label"],
+            context["source_sha"],
+            context["generated_at"],
+            context["toolkit_version"],
+            context["incremental_verified"],
+        ),
+        approved,
+    )
+    (output_root / "preview-context.json").write_text(
+        json.dumps(context, indent=2), encoding="utf-8"
+    )
+    validate_full_preview_artifact(output_root, catalog_path)
+    return {**context, "built": str(built)}
+
+
+def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
+    """Validate the trusted reconstruction immediately before publication."""
+    root = root.resolve()
+    context, approved = _validated_context(root, catalog_path)
+    fixture_id = approved.identifier
+    source_sha = context["source_sha"]
+    save_sha = approved.sha256
 
     target = (root / fixture_id).resolve()
     if target.parent != root or not target.is_dir():
@@ -205,12 +269,8 @@ def validate_full_preview_artifact(root: Path, catalog_path: Path) -> dict:
             raise FullPreviewError(
                 f"Full-preview publication file is not UTF-8 text: {path.name}"
             ) from exc
-        if "\x00" in text or any(
-            pattern.search(text) for pattern in _FORBIDDEN_PUBLICATION_CONTENT
-        ):
-            raise FullPreviewError(
-                f"Forbidden full-preview publication content in {path.name}"
-            )
+        if "\x00" in text:
+            raise FullPreviewError(f"NUL byte in full-preview publication file {path.name}")
     if publication_bytes > _MAX_PUBLICATION_TOTAL_BYTES:
         raise FullPreviewError("Full-preview publication payload is too large")
     required = {"index.html", "manifest.json", "report.css", "report.js"}

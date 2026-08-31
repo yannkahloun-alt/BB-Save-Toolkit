@@ -9,8 +9,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from bbtool.app.full_preview import (
-    FullPreviewMetadata, PREVIEW_CONTEXT_SCHEMA, build_full_preview,
-    load_approved_save,
+    PREVIEW_CONTEXT_SCHEMA, load_approved_save, stage_full_preview_dataset,
 )
 
 
@@ -29,24 +28,17 @@ def main() -> None:
     args = parser.parse_args()
 
     fixture = load_approved_save(args.catalog, args.fixture)
-    built = build_full_preview(
-        args.run,
-        args.output,
-        FullPreviewMetadata(
-            args.source_label,
-            args.source_sha,
-            args.generated_at,
-            args.toolkit_version,
-            args.incremental_verified,
-        ),
-        fixture,
-    )
+    built = stage_full_preview_dataset(args.run, args.output, fixture)
     context = {
         "schema": PREVIEW_CONTEXT_SCHEMA,
         "destination": args.destination,
         "fixture": fixture.identifier,
         "save_sha256": fixture.sha256,
         "source_sha": args.source_sha,
+        "source_label": args.source_label,
+        "generated_at": args.generated_at,
+        "toolkit_version": args.toolkit_version,
+        "incremental_verified": args.incremental_verified,
     }
     (args.output / "preview-context.json").write_text(
         json.dumps(context, indent=2), encoding="utf-8"

@@ -47,8 +47,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python tools/validate_full_preview_artifact.py preview \
-            --catalog tests/fixtures/full_preview/catalog.json > context.json
+          python tools/rebuild_full_preview_artifact.py preview \
+            --catalog tests/fixtures/full_preview/catalog.json \
+            --output trusted-preview > context.json
           destination=$(python -c 'import json; print(json.load(open("context.json"))["destination"])')
           fixture=$(python -c 'import json; print(json.load(open("context.json"))["fixture"])')
           source_sha=$(python -c 'import json; print(json.load(open("context.json"))["source_sha"])')
@@ -61,7 +62,7 @@ jobs:
           else
             gh api "repos/$GITHUB_REPOSITORY/commits/$source_sha" --silent
           fi
-          rm preview/preview-context.json
+          rm trusted-preview/preview-context.json
           echo "destination=$destination" >> "$GITHUB_OUTPUT"
           echo "fixture=$fixture" >> "$GITHUB_OUTPUT"
       - name: Update persistent preview site
@@ -80,7 +81,7 @@ jobs:
           fi
           rm -rf -- "$DESTINATION"
           mkdir -p -- "$DESTINATION"
-          cp -R ../preview/. "$DESTINATION/"
+          cp -R ../trusted-preview/. "$DESTINATION/"
           touch .nojekyll
           git add -A
           if git diff --cached --quiet; then exit 0; fi

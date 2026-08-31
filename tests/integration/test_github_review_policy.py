@@ -142,13 +142,13 @@ def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
     assert "workflow_run:" in publish
     assert "contents: write" in publish
     assert "ref: main" in publish
-    assert "tools/validate_full_preview_artifact.py" in publish
+    assert "tools/rebuild_full_preview_artifact.py" in publish
     assert "--catalog tests/fixtures/full_preview/catalog.json" in publish
-    assert "Full-preview publication file is not UTF-8 text" in _read(
-        "bbtool/app/full_preview.py"
-    )
+    assert "--output trusted-preview" in publish
+    assert "cp -R ../trusted-preview/." in publish
+    assert "cp -R ../preview/." not in publish
     assert 'select(.name == "full-preview"' in publish
-    assert "preview/preview-context.json" in publish
+    assert "trusted-preview/preview-context.json" in publish
     assert 'test "$current_sha" = "$source_sha"' in publish
     assert "rm -rf -- \"$DESTINATION\"" in publish
     assert "GITHUB_STEP_SUMMARY" in publish
