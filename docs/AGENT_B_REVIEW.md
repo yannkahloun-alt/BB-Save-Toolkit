@@ -1,5 +1,10 @@
 # Independent Agent B review
 
+The generic independent-review guarantees are defined in
+`.agent-workflow/REVIEW_AGENT.md`. This document specializes them with the
+Battle Brothers Save Toolkit's exact checks, verdict, trust boundary, and merge
+authority.
+
 ## Free single-account compromise
 
 The repository uses one human GitHub account. GitHub therefore cannot treat a

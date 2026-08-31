@@ -1,5 +1,9 @@
 # Development Workflow
 
+Generic role lifecycles and context-isolation rules come from the pinned shared
+workflow described in `docs/AGENT_WORKFLOW_DEPENDENCY.md`. This document defines
+the Battle Brothers Save Toolkit-specific implementation of those rules.
+
 ## Source of truth
 
 Git is the only development source of truth. Do not exchange modified source trees as numbered ZIPs during development.
