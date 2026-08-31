@@ -6,7 +6,7 @@
     },
     "classification": {
       "path": "reference-classification.json",
-      "sha256": "4259f477db4e068dbcfcb586b32f9efd02a2a8f23651c9ca4a098c66d5e63dd9"
+      "sha256": "803c95597b43e642a7afa9f277e3803eeb750da96fb4641112a4f8f7e9b53866"
     },
     "classification_config": {
       "path": "reference-classification-config.json",

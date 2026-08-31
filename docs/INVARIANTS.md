@@ -8,6 +8,9 @@ These are architectural contracts, not implementation suggestions.
 - Stars have no direct Fit value; they affect future roll ranges only.
 - Normal blind projection does not consume serialized hidden `FutureRolls`.
 - Level-Up Advisor uses the same trajectory/Fit engine as normal projection.
+- Level-Up Advisor recommendations use only positively weighted Fit stats for
+  the anchor role. If fewer than three are available, neutral slots are
+  explicitly reported as free picks rather than role recommendations.
 - Ground-truth validation may inject serialized rolls as degenerate ranges, but must not fork the simulation algorithm.
 - Optimizations must be mathematically/behaviorally equivalent to the reference semantics.
 

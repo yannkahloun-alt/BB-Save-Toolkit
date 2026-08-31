@@ -67,6 +67,9 @@ The normal projection never uses hidden serialized FutureRolls to make decisions
 ### `bbtool/levelup_advisor.py`
 
 Evaluates legal current 3-stat choices using the same trajectory/Fit model. Known current rolls are injected as exact ranges; later levels remain probabilistic.
+The current candidate pool contains only anchor-role stats with `fit: true` and
+`weight > 0`. Roles with fewer than three eligible stats expose the remaining
+slots as Fit-neutral free picks.
 
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`
 

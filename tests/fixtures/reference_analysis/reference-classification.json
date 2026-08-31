@@ -133,6 +133,18 @@
     "Injuries": "",
     "Level": 10,
     "LevelUpAdvice": {
+      "AdvisorEligibleStats": [
+        "HP",
+        "Fatigue",
+        "MAtk",
+        "MDef"
+      ],
+      "AdvisorExcludedStats": {
+        "Initiative": "role weight 0",
+        "RAtk": "role weight 0",
+        "RDef": "role weight 0",
+        "Resolve": "role weight 0"
+      },
       "AllRolls": {
         "Fatigue": {
           "Average": 3.0,
@@ -240,9 +252,12 @@
         ]
       },
       "AnchorRole": "Nimble Frontline DPS",
-      "CombinationsEvaluated": 56,
+      "CombinationsEvaluated": 4,
       "DistinctFitDecisionsEvaluated": 2,
-      "Method": "Fit-only advisor: score all legal current 3-pick combinations by expected final level-11 Fit using the shared blind trajectory engine; paired deterministic scenarios are used only for runner-up gamble diagnostics",
+      "FreePickCandidates": [],
+      "FreePickMode": false,
+      "FreePickStats": [],
+      "Method": "Fit-only advisor: score current 3-pick combinations drawn from positively weighted Fit stats using the shared blind trajectory engine; when fewer than three are available, remaining slots are explicit Fit-neutral free picks; paired deterministic scenarios are used only for runner-up gamble diagnostics",
       "PickReasons": {
         "HP": "Fit stat · weight 24 · current +4 is MAX",
         "MAtk": "Fit stat · weight 40 · current +3 is MAX",

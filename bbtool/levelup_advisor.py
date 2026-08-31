@@ -91,10 +91,11 @@ def _skipped_important_notes(
 def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
     """Recommend the current 3-pick line by expected final level-11 Fit.
 
-    All legal 3-pick combinations from the observed current rolls are applied to
-    a simulated brother. Each resulting state is then projected to level 11 by
-    the same blind trajectory engine used everywhere else. Hidden serialized
-    future rolls are never consulted.
+    Current picks are restricted to positively weighted Fit stats for the
+    anchor role. If fewer than three such stats are available, the remaining
+    slots are explicitly treated as Fit-neutral free picks. Each resulting
+    state is projected to level 11 by the same blind trajectory engine used
+    everywhere else. Hidden serialized future rolls are never consulted.
     """
     rolls = getattr(bro, "CurrentRolls", {}) or {}
     if int(getattr(bro, "LevelPoints", 0)) <= 0 or len(rolls) < 3:
@@ -104,21 +105,45 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
     role_by_name = {r["name"]: r for r in roles}
     anchor_role = role_by_name[baseline_best["Role"]]
     ranked = []
-    fit_stats_ordered = tuple(
+    role_stats = anchor_role.get("stats", {})
+    eligible_stats = tuple(
         stat for stat in STATS
-        if anchor_role.get("stats", {}).get(stat, {}).get("fit")
+        if stat in rolls
+        and bool(role_stats.get(stat, {}).get("fit"))
+        and float(role_stats.get(stat, {}).get("weight", 0.0) or 0.0) > 0.0
     )
-    # The advisor is Fit-only. Combinations that select the same Fit stats are
-    # exactly equivalent to the trajectory engine, regardless of which neutral
-    # stats occupy the remaining slots. Project one canonical representative
-    # per Fit decision instead of all C(8,3)=56 legal triples.
+    excluded_stats = {}
+    for stat in STATS:
+        if stat not in rolls or stat in eligible_stats:
+            continue
+        cfg = role_stats.get(stat, {})
+        weight = float(cfg.get("weight", 0.0) or 0.0)
+        if weight <= 0.0:
+            excluded_stats[stat] = f"role weight {weight:g}"
+        else:
+            excluded_stats[stat] = "not a Fit stat"
+
+    free_pick_mode = len(eligible_stats) < 3
+    free_pick_candidates = tuple(
+        stat for stat in STATS if stat in rolls and stat not in eligible_stats
+    ) if free_pick_mode else ()
+    free_slots = max(0, 3 - len(eligible_stats))
+    if free_pick_mode:
+        candidate_combos = (
+            tuple(eligible_stats) + tuple(free_stats)
+            for free_stats in itertools.combinations(free_pick_candidates, free_slots)
+        )
+    else:
+        candidate_combos = itertools.combinations(eligible_stats, 3)
+
+    # Fit-neutral free picks are equivalent. Project one canonical
+    # representative per Fit decision rather than allowing roll quality in a
+    # neutral stat to influence the role recommendation.
     groups = {}
     legal_combo_count = 0
-    for combo in itertools.combinations(STATS, 3):
-        if any(stat not in rolls for stat in combo):
-            continue
+    for combo in candidate_combos:
         legal_combo_count += 1
-        fit_key = tuple(stat for stat in fit_stats_ordered if stat in combo)
+        fit_key = tuple(stat for stat in eligible_stats if stat in combo)
         groups.setdefault(fit_key, []).append(combo)
 
     for fit_key, equivalent_combos in groups.items():
@@ -236,7 +261,6 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
     if alternative is not None:
         alternative.pop("_SimBro", None)
 
-    role_stats = anchor_role.get("stats", {})
     reasons = {}
     for stat in best["Stats"]:
         cfg = role_stats.get(stat, {})
@@ -264,8 +288,13 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
         "PickReasons": reasons,
         "AllRolls": all_rolls,
         "SkippedImportant": skipped_important,
+        "AdvisorEligibleStats": list(eligible_stats),
+        "AdvisorExcludedStats": excluded_stats,
+        "FreePickMode": free_pick_mode,
+        "FreePickCandidates": list(free_pick_candidates),
+        "FreePickStats": [stat for stat in best["Stats"] if stat not in eligible_stats],
         "CombinationsEvaluated": legal_combo_count,
         "DistinctFitDecisionsEvaluated": 2 if alternative else 1,
-        "Method": "Fit-only advisor: score all legal current 3-pick combinations by expected final level-11 Fit using the shared blind trajectory engine; paired deterministic scenarios are used only for runner-up gamble diagnostics",
+        "Method": "Fit-only advisor: score current 3-pick combinations drawn from positively weighted Fit stats using the shared blind trajectory engine; when fewer than three are available, remaining slots are explicit Fit-neutral free picks; paired deterministic scenarios are used only for runner-up gamble diagnostics",
     }
 

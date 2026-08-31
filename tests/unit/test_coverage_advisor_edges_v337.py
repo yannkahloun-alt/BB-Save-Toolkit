@@ -49,7 +49,9 @@ def test_advisor_equal_expected_uses_non_gamble_comparison(monkeypatch,bro_facto
         "expected_pct":75.0,"full_min_pct":70.0,"full_max_pct":80.0,
         "likely_min_pct":72.0,"likely_max_pct":78.0,"feasibility_pct":20.0})
     b=bro_factory(LevelPoints=1,CurrentRolls={"HP":4,"Fatigue":3,"MAtk":3,"MDef":3})
-    out=adv.advise_levelup(b,[role()],[base()])
+    r=role()
+    r["stats"]={stat:{"fit":True,"weight":1} for stat in ("HP","Fatigue","MAtk","MDef")}
+    out=adv.advise_levelup(b,[r],[base()])
     assert out["Alternative"] is not None
     assert out["Alternative"]["Gamble"]["Samples"]==0
     assert out["Alternative"]["Gamble"]["IsGamble"] is False
@@ -62,5 +64,6 @@ def test_pick_reason_fit_neutral_role_and_unconfigured(monkeypatch,bro_factory):
         "likely_min_pct":72.0,"likely_max_pct":78.0,"feasibility_pct":20.0})
     b=bro_factory(LevelPoints=1,CurrentRolls={"HP":4,"Fatigue":3,"Resolve":3})
     out=adv.advise_levelup(b,[role()],[base()])
+    assert out["FreePickMode"] is True
     assert "Fit-neutral role stat" in out["PickReasons"]["Fatigue"]
     assert "Fit-neutral" in out["PickReasons"]["Resolve"]

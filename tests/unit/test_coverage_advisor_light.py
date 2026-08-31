@@ -11,7 +11,7 @@ def _role(name='Anchor'):
             'MAtk': {'fit': True, 'weight': 5.0},
             'MDef': {'fit': True, 'weight': 4.0},
             'HP': {'fit': True, 'weight': 2.0},
-            'Fatigue': {'fit': False, 'weight': 1.0},
+            'Fatigue': {'fit': True, 'weight': 1.0},
         },
         'perks': {}, 'perk_affinity': {}, 'perk_conflicts': [],
     }
@@ -72,12 +72,58 @@ def test_advisor_fast_path_full_payload_and_no_gamble(monkeypatch,bro_factory):
     out=adv.advise_levelup(b,[_role()],[_base()])
     assert out['AnchorRole']=='Anchor'
     assert len(out['Recommended']['Stats'])==3
-    assert out['CombinationsEvaluated']==56
+    assert out['CombinationsEvaluated']==4
     assert out['DistinctFitDecisionsEvaluated']==2
     assert set(out['PickReasons'])==set(out['Recommended']['Stats'])
     assert set(out['AllRolls'])==set(_rolls())
     assert out['Alternative'] is not None
     assert out['Alternative']['Gamble']['Samples']==512
+
+
+def test_zero_weight_max_roll_is_excluded_from_role_recommendations(monkeypatch,bro_factory):
+    monkeypatch.setattr(adv,'project_fit_trajectory',fake_trajectory)
+    monkeypatch.setattr(adv,'compare_fit_trajectories',lambda *a,**k:{'alternative_beats_primary_pct':0.0,'tie_pct':0.0,'primary_beats_alternative_pct':100.0,'mean_delta_pct':-1.0,'avg_upside_when_wins_pct':0.0,'max_upside_pct':0.0,'avg_downside_when_loses_pct':1.0,'max_downside_pct':1.0,'sample_count':512})
+    role=_role()
+    role['stats']['Initiative']={'fit':True,'weight':0.0}
+    b=bro_factory(
+        Level=10,LevelPoints=1,InitiativeStars=3,
+        CurrentRolls=_rolls(),
+    )
+    out=adv.advise_levelup(b,[role],[_base()])
+    assert 'Initiative' not in out['Recommended']['Stats']
+    assert 'Initiative' not in out['Alternative']['Stats']
+    assert out['AdvisorExcludedStats']['Initiative']=='role weight 0'
+    assert out['AdvisorEligibleStats']==['HP','Fatigue','MAtk','MDef']
+    assert out['CombinationsEvaluated']==4
+
+
+def test_positive_weight_initiative_remains_eligible(monkeypatch,bro_factory):
+    monkeypatch.setattr(adv,'project_fit_trajectory',fake_trajectory)
+    monkeypatch.setattr(adv,'compare_fit_trajectories',lambda *a,**k:{'alternative_beats_primary_pct':0.0,'tie_pct':0.0,'primary_beats_alternative_pct':100.0,'mean_delta_pct':-1.0,'avg_upside_when_wins_pct':0.0,'max_upside_pct':0.0,'avg_downside_when_loses_pct':1.0,'max_downside_pct':1.0,'sample_count':512})
+    role=_role()
+    role['stats']['Initiative']={'fit':True,'weight':9.0}
+    out=adv.advise_levelup(
+        bro_factory(Level=10,LevelPoints=1,CurrentRolls=_rolls()),
+        [role],[_base()],
+    )
+    assert 'Initiative' in out['AdvisorEligibleStats']
+
+
+def test_fewer_than_three_fit_stats_reports_free_picks(monkeypatch,bro_factory):
+    monkeypatch.setattr(adv,'project_fit_trajectory',fake_trajectory)
+    role=_role()
+    role['stats']={
+        'MAtk':{'fit':True,'weight':5.0},
+        'Initiative':{'fit':True,'weight':0.0},
+    }
+    out=adv.advise_levelup(
+        bro_factory(Level=10,LevelPoints=1,CurrentRolls=_rolls()),
+        [role],[_base()],
+    )
+    assert out['FreePickMode'] is True
+    assert out['AdvisorEligibleStats']==['MAtk']
+    assert set(out['FreePickStats'])==set(out['Recommended']['Stats'])-{'MAtk'}
+    assert 'Initiative' in out['FreePickCandidates']
 
 
 def test_advisor_gamble_refines_512_to_2048(monkeypatch,bro_factory):

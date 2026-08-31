@@ -10,8 +10,8 @@ def test_no_current_or_no_points_none(cfg,bro_factory):
     # Both guards run before role projections are consumed.
     b=bro_factory(LevelPoints=1); assert advise_levelup(b,cfg.roles,[]) is None
     b=bro_factory(LevelPoints=0,CurrentRolls=current()); assert advise_levelup(b,cfg.roles,[]) is None
-def test_advisor_evaluates_8_choose_3(cfg,bro_factory):
-    b=bro_factory(Level=10,LevelPoints=1,CurrentRolls=current()); a=advise_levelup(b,cfg.roles,rows(b,cfg)); assert a['CombinationsEvaluated']==56; assert len(a['Recommended']['Stats'])==3; assert a['Recommended']['Stats']!=a['Alternative']['Stats']; assert a['Recommended']['AnchorFitAfterPct']>=a['Alternative']['AnchorFitAfterPct']
+def test_advisor_evaluates_only_eligible_combinations(cfg,bro_factory):
+    b=bro_factory(Level=10,LevelPoints=1,CurrentRolls=current()); a=advise_levelup(b,cfg.roles,rows(b,cfg)); eligible=a['AdvisorEligibleStats']; assert a['CombinationsEvaluated']==len(tuple(__import__('itertools').combinations(eligible,3))); assert len(a['Recommended']['Stats'])==3; assert set(a['Recommended']['Stats'])<=set(eligible); assert a['Recommended']['Stats']!=a['Alternative']['Stats']; assert a['Recommended']['AnchorFitAfterPct']>=a['Alternative']['AnchorFitAfterPct']
 def test_advisor_deterministic(cfg,bro_factory):
     b=bro_factory(Level=10,LevelPoints=1,CurrentRolls=current()); a=advise_levelup(b,cfg.roles,rows(b,cfg)); c=advise_levelup(b,cfg.roles,rows(b,cfg)); assert a['Recommended']['Stats']==c['Recommended']['Stats']
 def test_current_roll_change_can_change_advice(bro_factory,simple_role):
