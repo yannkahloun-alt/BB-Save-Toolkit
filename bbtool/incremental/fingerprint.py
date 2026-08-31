@@ -43,7 +43,7 @@ def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:
     })
 
 
-ADVISOR_ENGINE_VERSION = 3
+ADVISOR_ENGINE_VERSION = 4
 
 
 def advisor_fingerprint(bro, roles) -> str:
