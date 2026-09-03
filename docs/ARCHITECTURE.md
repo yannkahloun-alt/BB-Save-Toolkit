@@ -69,6 +69,8 @@ if the bounded download attempts cannot rebuild it.
 Pure computation layer where practical.
 
 - `context.py` compiles reusable brother projection context.
+- `sampling.py` owns deterministic low-discrepancy coordinate generation and
+  its bounded process-local memoization.
 - `perks.py` keeps natural projection effects (traits and permanent injuries)
   separate from perk-modified effective combat stats.
 - `trajectory.py` simulates legal future 3-stat level-up decisions and is the source of truth for development trajectories.
@@ -76,6 +78,12 @@ Pure computation layer where practical.
 - `planner.py` assembles role projection outputs.
 
 The normal projection never uses hidden serialized FutureRolls to make decisions.
+The trajectory hot path consumes a named, recursively read-only
+`TrajectoryContext` rather
+than an anonymous positional tuple. Trajectory, compiled-context, lookahead-policy,
+diagnostic, and sampling caches have one explicit reset lifecycle through
+`reset_trajectory_cache()`; callers must not rely on state surviving that reset
+or being shared across worker processes.
 
 ### `bbtool/levelup_advisor.py`
 
