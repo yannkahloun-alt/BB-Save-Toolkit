@@ -1,3 +1,11 @@
+## Unreleased
+
+- Make costly Python heap allocation tracing opt-in with
+  `--measure-python-heap`, removing its roughly 5× observer overhead from normal
+  cold Fit analysis while retaining the diagnostic when explicitly requested.
+- Add bounded per-projection policy diagnostics and a sanitized deterministic
+  representative-state benchmark for cold performance investigations.
+
 ## v3.88.1 — Faster analysis and shared analysis service
 
 - Add a transport-independent analysis service boundary so CLI, report generation,

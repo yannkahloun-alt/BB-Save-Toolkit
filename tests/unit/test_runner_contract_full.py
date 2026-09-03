@@ -121,7 +121,10 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     return workspace, archive, report, calls
 
 
-def _opts(tmp_path, *, no_projection=False, open_report=False):
+def _opts(
+    tmp_path, *, no_projection=False, open_report=False,
+    measure_python_heap=False,
+):
     return SimpleNamespace(
         save=tmp_path / "x.sav",
         targets=Path("targets"),
@@ -129,6 +132,7 @@ def _opts(tmp_path, *, no_projection=False, open_report=False):
         out=tmp_path,
         no_projection=no_projection,
         open_report=open_report,
+        measure_python_heap=measure_python_heap,
     )
 
 
@@ -189,7 +193,9 @@ def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_pa
 
 
 def test_runner_stops_resource_monitor_after_failure(monkeypatch, tmp_path):
-    options = _opts(tmp_path, no_projection=True)
+    options = _opts(
+        tmp_path, no_projection=True, measure_python_heap=True
+    )
     stopped = []
     monkeypatch.setattr(runner, "start_resource_monitoring", lambda: True)
     monkeypatch.setattr(
@@ -211,6 +217,25 @@ def test_runner_stops_resource_monitor_after_failure(monkeypatch, tmp_path):
         raise AssertionError("expected run failure")
 
     assert stopped == [True]
+
+
+def test_runner_does_not_start_heap_monitor_by_default(monkeypatch, tmp_path):
+    options = _opts(tmp_path, no_projection=True)
+    monkeypatch.setattr(
+        runner,
+        "start_resource_monitoring",
+        lambda: (_ for _ in ()).throw(AssertionError("unexpected heap tracing")),
+    )
+    monkeypatch.setattr(runner, "build_run_metadata", lambda options: {})
+    monkeypatch.setattr(runner, "print_run_header", lambda metadata: None)
+    monkeypatch.setattr(
+        runner,
+        "ensure_references",
+        lambda verbose=False: (_ for _ in ()).throw(RuntimeError("stop")),
+    )
+
+    with pytest.raises(RuntimeError, match="stop"):
+        runner.run(options)
 
 
 def test_runner_generated_background_and_perks_each_mark_generated(monkeypatch, tmp_path):

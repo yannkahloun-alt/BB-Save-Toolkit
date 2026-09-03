@@ -114,7 +114,7 @@ def resource_snapshot() -> dict:
         return {
             "python_heap_current_bytes": None,
             "python_heap_peak_bytes": None,
-            "status": "unavailable",
+            "status": "disabled",
         }
     current, peak = tracemalloc.get_traced_memory()
     return {
@@ -159,5 +159,5 @@ def print_run_header(metadata: dict) -> None:
 def print_resource_summary(metadata: dict) -> None:
     resources = metadata["resources"]
     peak = resources["python_heap_peak_bytes"]
-    value = format_bytes(peak) if peak is not None else "unavailable"
+    value = format_bytes(peak) if peak is not None else "not measured"
     print(f"Peak Python memory: {value}")

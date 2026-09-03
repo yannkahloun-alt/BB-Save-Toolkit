@@ -51,7 +51,11 @@ from .output import (
 
 
 def run(options: CliOptions) -> tuple:
-    resource_monitor_started = start_resource_monitoring()
+    resource_monitor_started = (
+        start_resource_monitoring()
+        if bool(getattr(options, "measure_python_heap", False))
+        else False
+    )
     try:
         return _run(options, resource_monitor_started)
     finally:

@@ -20,6 +20,7 @@ class CliOptions:
     full_recompute: bool = False
     verify_cache: bool = False
     cache_debug: bool = False
+    measure_python_heap: bool = False
     render_only: Path | None = None
     serve_report: Path | None = None
 
@@ -61,6 +62,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--full-recompute", action="store_true", help="Disable incremental role-projection reuse for this run")
     parser.add_argument("--verify-cache", action="store_true", help="Compare incremental output with an independent full recomputation")
     parser.add_argument("--cache-debug", action="store_true", help="Print incremental cache invalidation/reuse diagnostics")
+    parser.add_argument(
+        "--measure-python-heap",
+        action="store_true",
+        help=(
+            "Measure peak Python heap allocation (diagnostic only; materially "
+            "slows projection-heavy runs)"
+        ),
+    )
     return parser
 
 
@@ -86,6 +95,7 @@ def parse_args(argv=None) -> CliOptions:
                 ("--full-recompute", ns.full_recompute),
                 ("--verify-cache", ns.verify_cache),
                 ("--cache-debug", ns.cache_debug),
+                ("--measure-python-heap", ns.measure_python_heap),
             ) if enabled
         ]
         if incompatible:
@@ -103,6 +113,7 @@ def parse_args(argv=None) -> CliOptions:
                 ("--full-recompute", ns.full_recompute),
                 ("--verify-cache", ns.verify_cache),
                 ("--cache-debug", ns.cache_debug),
+                ("--measure-python-heap", ns.measure_python_heap),
             ) if enabled
         ]
         if incompatible:
@@ -119,6 +130,7 @@ def parse_args(argv=None) -> CliOptions:
         full_recompute=ns.full_recompute,
         verify_cache=ns.verify_cache,
         cache_debug=ns.cache_debug,
+        measure_python_heap=ns.measure_python_heap,
         render_only=ns.render_only,
         serve_report=ns.serve_report,
     )

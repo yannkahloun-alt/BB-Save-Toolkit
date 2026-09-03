@@ -99,6 +99,10 @@ by brother and archetype. Trajectory-cache misses are categorized and their
 total reconciles with the miss counter. The former hypothetical structural-perk
 alternatives are retired: profiling therefore reports zero structural
 alternatives rather than implying a second projection model.
+Slowest-projection entries also carry bounded policy-complexity counters and
+phase timings. Python heap allocation tracing is disabled during normal runs
+because it materially perturbs the allocation-heavy trajectory engine; it is
+available explicitly through `--measure-python-heap` for diagnostic runs.
 
 ### `bbtool/incremental/`
 

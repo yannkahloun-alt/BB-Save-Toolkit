@@ -3,7 +3,7 @@ import pytest
 pytestmark=pytest.mark.unit
 from bbtool.models import STATS
 import bbtool.projection.trajectory as trajectory
-from bbtool.projection.trajectory import project_fit_trajectory, project_seeded_fit_trajectory, reset_trajectory_cache, _needs_refinement
+from bbtool.projection.trajectory import project_fit_trajectory, project_seeded_fit_trajectory, reset_trajectory_cache, _needs_refinement, trajectory_complexity
 from bbtool.projection.runtime import reset_profile_values, get_profile_values
 
 def exact(stats, vals, rounds=1): return [{s:(vals.get(s,2),vals.get(s,2)) for s in stats} for _ in range(rounds)]
@@ -84,6 +84,44 @@ def test_cache_miss_dimensions(change,bro_factory,simple_role):
 
 def test_refinement_predicate():
     assert not _needs_refinement({'expected_pct':50,'likely_min_pct':40,'likely_max_pct':60,'full_max_pct':70,'feasibility_pct':0}); assert _needs_refinement({'expected_pct':100,'likely_min_pct':90,'likely_max_pct':110,'full_max_pct':120,'feasibility_pct':50})
+
+
+def test_projection_complexity_diagnostics_are_bounded_and_json_safe(
+    bro_factory, simple_role
+):
+    import json
+
+    result = project_fit_trajectory(
+        bro_factory(Level=10),
+        simple_role(("HP", "Fatigue", "MAtk", "MDef")),
+        samples=8,
+    )
+    complexity = trajectory_complexity(result)
+
+    assert complexity["level"] == 10
+    assert complexity["rounds_remaining"] == 1
+    assert complexity["fit_stat_count"] == 4
+    assert complexity["initial_sample_count"] == 8
+    assert complexity["refined_sample_count"] == 0
+    assert complexity["choose_calls"] > 0
+    assert complexity["memo_state_count"] > 0
+    assert complexity["memo_hits"] + complexity["memo_misses"] > 0
+    assert complexity["best_average_future_evaluations"] == complexity["memo_misses"]
+    json.dumps(complexity)
+
+
+def test_cached_adaptive_complexity_does_not_accumulate(
+    bro_factory, simple_role
+):
+    bro = bro_factory(MAtk=100)
+    role = simple_role(("MAtk",))
+    reset_trajectory_cache()
+
+    first = project_fit_trajectory(bro, role, rounds=0)
+    first_complexity = dict(trajectory_complexity(first))
+    second = project_fit_trajectory(bro, role, rounds=0)
+
+    assert trajectory_complexity(second) == first_complexity
 
 @pytest.mark.parametrize('field,value', [('weight',2.0),('target',120.0),('baseline',10.0)])
 def test_cache_miss_for_each_role_fit_parameter(field,value,bro_factory,simple_role):

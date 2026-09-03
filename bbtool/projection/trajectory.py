@@ -26,6 +26,7 @@ _CONTEXT_CACHE: dict[tuple, tuple] = {}
 _CONTEXT_CACHE_MAX = 1024
 _POLICY_CACHE: dict[tuple, object] = {}
 _POLICY_CACHE_MAX = 1024
+_COMPLEXITY_BY_RESULT_ID: dict[int, dict] = {}
 
 
 def reset_trajectory_cache() -> None:
@@ -33,6 +34,7 @@ def reset_trajectory_cache() -> None:
     _TRAJECTORY_CACHE_IDENTITIES.clear()
     _CONTEXT_CACHE.clear()
     _POLICY_CACHE.clear()
+    _COMPLEXITY_BY_RESULT_ID.clear()
 
 
 def _fit_stats(role: dict) -> tuple[str, ...]:
@@ -193,6 +195,11 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
     avg_rolls = tuple((float(normal_ranges[s][0]) + float(normal_ranges[s][1])) / 2.0 for s in fit_stats)
     utilities = tuple(utility_lookup[s] for s in fit_stats)
     combos = tuple(itertools.combinations(range(n), 3))
+    metrics = {
+        "choose_calls": 0,
+        "best_average_future_evaluations": 0,
+        "policy_seconds": 0.0,
+    }
 
     def util(i, raw_value):
         # Utility curves are piecewise linear in raw space between integer
@@ -237,6 +244,7 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
 
         @cache
         def best_average_future(rounds_left, raw_tuple):
+            metrics["best_average_future_evaluations"] += 1
             if rounds_left <= 0:
                 return terminal(raw_tuple)
             r = int(rounds_left)
@@ -274,6 +282,8 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
             return terminal(raw_tuple)
 
     def choose(round_index, raw_tuple, rolls_tuple, total_rounds):
+        started = time.perf_counter()
+        metrics["choose_calls"] += 1
         future_rounds = total_rounds - round_index - 1
         best_key = None; best = None
         for picks in combos:
@@ -284,9 +294,52 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
             key = (value, tuple(ties[i] for i in picks))
             if best_key is None or key > best_key:
                 best_key = key; best = picks
+        metrics["policy_seconds"] += time.perf_counter() - started
         return best
 
+    def snapshot():
+        cache_info = best_average_future.cache_info()
+        return {
+            **metrics,
+            "memo_hits": cache_info.hits,
+            "memo_misses": cache_info.misses,
+            "memo_state_count": cache_info.currsize,
+        }
+
+    choose.complexity_snapshot = snapshot
+
     return choose
+
+
+def _policy_snapshot(policy) -> dict:
+    if policy is None or not hasattr(policy, "complexity_snapshot"):
+        return {
+            "choose_calls": 0,
+            "best_average_future_evaluations": 0,
+            "policy_seconds": 0.0,
+            "memo_hits": 0,
+            "memo_misses": 0,
+            "memo_state_count": 0,
+        }
+    return policy.complexity_snapshot()
+
+
+def trajectory_complexity(result: dict) -> dict | None:
+    """Return private runtime diagnostics without changing trajectory output."""
+    return _COMPLEXITY_BY_RESULT_ID.get(id(result))
+
+
+def _policy_delta(before: dict, after: dict) -> dict:
+    return {
+        key: after[key] - before[key]
+        for key in (
+            "choose_calls",
+            "best_average_future_evaluations",
+            "policy_seconds",
+            "memo_hits",
+            "memo_misses",
+        )
+    } | {"memo_state_count": after["memo_state_count"]}
 
 
 def _projection_policy(bro, role, rounds, ctx):
@@ -511,16 +564,21 @@ def _project_fit_trajectory_fixed(
     reasons = PROFILE["trajectory_cache_miss_reasons"]
     reasons[miss_reason if miss_reason in reasons else "other_fallback"] += 1
     _trajectory_started = time.perf_counter()
+    context_started = time.perf_counter()
     ctx = _projection_context(bro, role, rounds, normalized_ranges)
+    context_seconds = time.perf_counter() - context_started
     (fit_stats, effects, raw_start, normal_ranges, range_plan, selection_cfg,
      effective_lookup, utility_lookup, static_effective, total_weight) = ctx
     dimensions = max(1, rounds * max(1, len(fit_stats)))
+    sampling_started = time.perf_counter()
     coordinate_rows = _sample_coordinates(samples, dimensions)
+    sampling_seconds = time.perf_counter() - sampling_started
     # The final-Fit policy contains memoized lookahead states. It depends only
     # on this projection context, not on the sampled scenario, so build it once
     # and share it across every deterministic sampled path. Rebuilding it per path was
     # functionally identical but discarded the cache hundreds of times.
     policy = _projection_policy(bro, role, rounds, ctx)
+    policy_before = _policy_snapshot(policy)
 
     outcomes = []
     sums = {s: 0.0 for s in STATS}
@@ -528,6 +586,7 @@ def _project_fit_trajectory_fixed(
     maxs = {s: float("-inf") for s in STATS}
     selected_trace = [] if include_trace else None
 
+    simulation_started = time.perf_counter()
     for scenario, coordinates in enumerate(coordinate_rows):
         scenario_trace = selected_trace if include_trace and scenario == 0 else None
         fit, values = _simulate_one(
@@ -542,6 +601,7 @@ def _project_fit_trajectory_fixed(
             sums[s] += v
             if v < mins[s]: mins[s] = v
             if v > maxs[s]: maxs[s] = v
+    scenario_seconds = time.perf_counter() - simulation_started
 
     dummy = (0.0,) * dimensions
     min_fit, min_values = _simulate_one(
@@ -592,6 +652,17 @@ def _project_fit_trajectory_fixed(
     if len(_TRAJECTORY_CACHE) >= _TRAJECTORY_CACHE_MAX:
         _TRAJECTORY_CACHE.clear()
         _TRAJECTORY_CACHE_IDENTITIES.clear()
+        _COMPLEXITY_BY_RESULT_ID.clear()
+    _COMPLEXITY_BY_RESULT_ID[id(result)] = {
+        "level": int(bro.Level),
+        "rounds_remaining": rounds,
+        "fit_stat_count": len(fit_stats),
+        "sample_count": n,
+        "context_seconds": context_seconds,
+        "sampling_seconds": sampling_seconds,
+        "scenario_simulation_seconds": scenario_seconds,
+        **_policy_delta(policy_before, _policy_snapshot(policy)),
+    }
     _TRAJECTORY_CACHE[key] = result
     _TRAJECTORY_CACHE_IDENTITIES[key] = {logical_identity}
     PROFILE["trajectory_s"] += time.perf_counter() - _trajectory_started
@@ -632,6 +703,11 @@ def project_fit_trajectory(
         )
         result["adaptive_refined"] = False
         result["initial_sample_count"] = int(samples)
+        trajectory_complexity(result).update(
+            initial_sample_count=int(samples),
+            refined_sample_count=0,
+            adaptive_refinement_seconds=0.0,
+        )
         return result
 
     initial = 512
@@ -642,6 +718,8 @@ def project_fit_trajectory(
     )
     if _needs_refinement(result):
         PROFILE["trajectory_adaptive_refinements"] += 1
+        initial_complexity = dict(trajectory_complexity(result))
+        refinement_started = time.perf_counter()
         refined = _project_fit_trajectory_fixed(
             bro, role, rounds=rounds, first_round_ranges=first_round_ranges,
             round_ranges=round_ranges, forced_first_combo=forced_first_combo,
@@ -649,9 +727,33 @@ def project_fit_trajectory(
         )
         refined["adaptive_refined"] = True
         refined["initial_sample_count"] = initial
+        refinement_seconds = time.perf_counter() - refinement_started
+        refined_complexity = trajectory_complexity(refined)
+        if "initial_sample_count" not in refined_complexity:
+            for key in (
+                "choose_calls",
+                "best_average_future_evaluations",
+                "policy_seconds",
+                "memo_hits",
+                "memo_misses",
+                "context_seconds",
+                "sampling_seconds",
+                "scenario_simulation_seconds",
+            ):
+                refined_complexity[key] += initial_complexity[key]
+            refined_complexity.update(
+                initial_sample_count=initial,
+                refined_sample_count=2048,
+                adaptive_refinement_seconds=refinement_seconds,
+            )
         return refined
     result["adaptive_refined"] = False
     result["initial_sample_count"] = initial
+    trajectory_complexity(result).update(
+        initial_sample_count=initial,
+        refined_sample_count=0,
+        adaptive_refinement_seconds=0.0,
+    )
     return result
 
 def compare_fit_trajectories(

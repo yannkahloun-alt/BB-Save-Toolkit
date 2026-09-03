@@ -7,7 +7,7 @@ from ..models import STATS, Brother
 from .context import bro_projection_context
 from .runtime import PROFILE, record_projection
 from .scoring import weighted_role_score
-from .trajectory import project_fit_trajectory
+from .trajectory import project_fit_trajectory, trajectory_complexity
 
 
 def _first_round_ranges(bro: Brother):
@@ -52,7 +52,8 @@ def project_role_fast(bro: Brother, role: dict) -> dict:
     trajectory, values, components = _project_role_common(bro, role)
     record_projection(
         getattr(bro, "BrotherID", "unknown"), getattr(bro, "Name", "unknown"),
-        role["name"], "fast", time.perf_counter() - started
+        role["name"], "fast", time.perf_counter() - started,
+        trajectory_complexity(trajectory),
     )
     return _base_projection_payload(role, trajectory, values, components)
 
@@ -65,7 +66,8 @@ def project_role(bro: Brother, role: dict) -> dict:
     trajectory, values, components = _project_role_common(bro, role)
     record_projection(
         getattr(bro, "BrotherID", "unknown"), getattr(bro, "Name", "unknown"),
-        role["name"], "full", time.perf_counter() - started
+        role["name"], "full", time.perf_counter() - started,
+        trajectory_complexity(trajectory),
     )
     return {
         **_base_projection_payload(role, trajectory, values, components),

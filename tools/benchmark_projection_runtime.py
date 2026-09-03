@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 import time
+import tracemalloc
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -39,17 +40,66 @@ def _brother(index: int) -> Brother:
     return Brother(**values)
 
 
+def _representative_brothers() -> list[Brother]:
+    """Sanitized real-state shapes from issue #131's public diagnostic bundle."""
+    shapes = [
+        {
+            "Level": 1, "HP": 52, "Fatigue": 94, "Resolve": 32,
+            "Initiative": 105, "MAtk": 57, "RAtk": 48, "MDef": 5,
+            "RDef": 4, "HPStars": 0, "FatigueStars": 0,
+            "ResolveStars": 0, "InitiativeStars": 0, "MAtkStars": 1,
+            "RAtkStars": 0, "MDefStars": 1, "RDefStars": 2,
+        },
+        {
+            "Level": 3, "HP": 61, "Fatigue": 101, "Resolve": 41,
+            "Initiative": 109, "MAtk": 53, "RAtk": 63, "MDef": 1,
+            "RDef": 1, "HPStars": 0, "FatigueStars": 0,
+            "ResolveStars": 0, "InitiativeStars": 1, "MAtkStars": 0,
+            "RAtkStars": 2, "MDefStars": 0, "RDefStars": 1,
+        },
+    ]
+    brothers = []
+    for index, shape in enumerate(shapes):
+        brother = _brother(index)
+        values = {**brother.__dict__, **shape}
+        values.update(
+            Name=f"Representative {index + 1}",
+            Background="Sanitized issue-131 shape",
+            HumanOffset=10_000 + index,
+        )
+        values["FutureRolls"] = {
+            stat: [sum(gain_range(stat, values[stat + "Stars"])) // 2] * 10
+            for stat in STATS
+        }
+        brothers.append(Brother(**values))
+    return brothers
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--brothers", type=int, default=10)
+    parser.add_argument(
+        "--workload", choices=("synthetic", "representative"),
+        default="synthetic",
+    )
+    parser.add_argument(
+        "--measure-python-heap", action="store_true",
+        help="Reproduce the costly allocation tracing that issue #131 identified",
+    )
     args = parser.parse_args()
     config = load_config(
         ROOT / "config" / "archetypes.json",
         ROOT / "config" / "classification.json",
     )
-    brothers = [_brother(index) for index in range(args.brothers)]
+    brothers = (
+        _representative_brothers()
+        if args.workload == "representative"
+        else [_brother(index) for index in range(args.brothers)]
+    )
     configure_engine()
     reset_profile()
+    if args.measure_python_heap:
+        tracemalloc.start()
     started = time.perf_counter()
     analysis_started = time.perf_counter()
     analysis = analyze_brothers(
@@ -63,7 +113,8 @@ def main() -> int:
     )
     validation_seconds = time.perf_counter() - validation_started
     final_profile = get_profile()
-    print(json.dumps({
+    payload = {
+        "workload": args.workload,
         "brothers": len(brothers),
         "archetypes": len(config.roles),
         "analysis_seconds": round(analysis_seconds, 3),
@@ -75,6 +126,7 @@ def main() -> int:
         "total_seconds": round(time.perf_counter() - started, 3),
         "analysis_projection_calls": after_analysis["project_role_calls"],
         "validation_seeded_projection_calls": validation["summary"]["comparisons"],
+        "validation_summary": validation["summary"],
         "validation_cache_hits": (
             final_profile["trajectory_cache_hits"]
             - after_analysis["trajectory_cache_hits"]
@@ -83,7 +135,16 @@ def main() -> int:
             final_profile["trajectory_cache_misses"]
             - after_analysis["trajectory_cache_misses"]
         ),
-    }, indent=2))
+        "slowest_projection": (
+            after_analysis["slowest_projections"][0]
+            if after_analysis["slowest_projections"] else None
+        ),
+        "python_heap_tracing": args.measure_python_heap,
+    }
+    if args.measure_python_heap:
+        payload["python_heap_peak_bytes"] = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+    print(json.dumps(payload, indent=2))
     return 0
 
 
