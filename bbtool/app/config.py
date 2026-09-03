@@ -1,11 +1,14 @@
 """Loading and normalization of editable analyzer configuration."""
 from __future__ import annotations
 
+from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 import json
 import math
 from pathlib import Path
+
+from ..build_identity import build_identity
 
 
 @dataclass(frozen=True)
@@ -34,6 +37,7 @@ def _fit_curve(target: float, baseline: float | None) -> list[list[float]]:
 def _normalize_role(role: dict) -> dict:
     """Add engine-only derived fields without polluting the editable JSON."""
     role = deepcopy(role)
+    build_identity(role)
     for stat, cfg in role.get("stats", {}).items():
         target = cfg.get("target")
         baseline = cfg.get("baseline")
@@ -73,7 +77,14 @@ def load_config(targets_path: Path, classification_path: Path) -> AnalyzerConfig
         raise ValueError(f"No roles found in {targets_path}")
     if not isinstance(classification, dict):
         raise ValueError(f"Invalid classification config: {classification_path}")
+    normalized_roles = [_normalize_role(role) for role in roles]
+    explicit_ids = [identity for role in normalized_roles if (identity := build_identity(role)) is not None]
+    duplicate_ids = sorted(
+        identity for identity, count in Counter(explicit_ids).items() if count > 1
+    )
+    if duplicate_ids:
+        raise ValueError(f"Duplicate archetype id(s): {', '.join(duplicate_ids)}")
     return AnalyzerConfig(
-        roles=[_normalize_role(role) for role in roles],
+        roles=normalized_roles,
         classification=classification,
     )

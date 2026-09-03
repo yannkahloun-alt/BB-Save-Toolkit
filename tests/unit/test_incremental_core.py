@@ -13,6 +13,12 @@ def test_projection_fingerprint_ignores_name_and_local_offset(bro_factory):
 def test_projection_fingerprint_changes_for_relevant_state(bro_factory):
     assert brother_projection_fingerprint(bro_factory(HP=60))!=brother_projection_fingerprint(bro_factory(HP=61))
 
+def test_stable_build_id_alone_does_not_validate_role_cache(simple_role):
+    original = {**simple_role(("HP",)), "id": "durable_build"}
+    changed = {**original, "stats": {"HP": {**original["stats"]["HP"], "weight": 2.0}}}
+    assert original["id"] == changed["id"]
+    assert role_fingerprint(original) != role_fingerprint(changed)
+
 def _manifest(bro,role,result):
     state=brother_projection_fingerprint(bro)
     return {"schema":"bb-incremental-v1","brothers":{state:{"projection_state_hash":state,"roles":{role["name"]:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":result}}}}}

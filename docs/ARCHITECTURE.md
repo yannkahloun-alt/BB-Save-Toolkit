@@ -195,6 +195,10 @@ recompute trajectory or Fit semantics in the presentation layer.
 
 ## Fit semantics
 
+Stable archetype identity and semantic definition versioning are specified in
+[`BUILD_IDENTITY.md`](BUILD_IDENTITY.md). They remain separate from current
+name-keyed v1 report joins and artifact-specific cache fingerprints.
+
 A configured Fit stat may contain:
 
 ```text

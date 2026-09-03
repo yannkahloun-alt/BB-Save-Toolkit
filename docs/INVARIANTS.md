@@ -16,6 +16,10 @@ These are architectural contracts, not implementation suggestions.
 
 ## Archetypes and scoring
 
+- Shipped archetypes have explicit immutable BuildIdentity IDs; display names
+  are never durable identity, and id-less legacy roles remain non-authoritative.
+- BuildDefinitionHash excludes identity, display, and engine-derived fields; it
+  supplements rather than replaces artifact-specific cache fingerprints.
 - Only stats marked as Fit stats contribute to role Fit.
 - `target`, `baseline`, `weight`, and optional `ceiling` are archetype-local inputs.
 - `baseline` is the neutral point of a bounded signed contribution; one
