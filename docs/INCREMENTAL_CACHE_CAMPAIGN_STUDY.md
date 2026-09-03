@@ -146,7 +146,7 @@ interpretation or source-derived values must continue to bump the affected
 semantic engine version; generated cache file identity itself should not become
 a per-run result key.
 
-## Post-#79 campaign-aware behavior
+## Implemented campaign-aware behavior
 
 #79 established the game's serialized signed 32-bit `CampaignID` as the exact
 native campaign/run token in the product contract. It is assigned independently
@@ -154,9 +154,9 @@ of `SeedString`, serialized and restored, and remains stable across renamed,
 copied, autosave, quicksave, manual-save, rollback, and cross-machine copies.
 Campaign membership still proves neither snapshot equality nor lineage.
 
-#123 owns parsing and exposing that value. After it lands, a new manifest
-schema should record an explicit versioned `CampaignIdentity` based on the
-native `CampaignID`:
+#123 added parsing and exposure of that value, and #125 records an explicit
+versioned `CampaignIdentity` based on the native `CampaignID` in the manifest
+schema:
 
 - discover the newest compatible manifest within the same CampaignIdentity;
 - treat path only as provenance and an optional lookup optimization;
@@ -176,11 +176,11 @@ campaign-scoped "previous manifest" should not silently perform that role.
 
 ## Follow-up ownership
 
-- #123: parse and expose native CampaignID; prerequisite for changing manifest
-  discovery.
-- #125: migrate manifest discovery and pruning to CampaignIdentity after #123,
-  including schema compatibility and missing-identity fallback. This is
-  intentionally separate from the parser.
+- #123: completed native CampaignID parsing and exposure as the prerequisite
+  for campaign-aware manifest discovery.
+- #125: implements CampaignIdentity-scoped manifest discovery and pruning,
+  including schema compatibility and missing-identity fallback, separately
+  from the parser.
 - #80: define ancestry/rollback semantics only for history-sensitive state.
 - #81: include `AssignedBuild` in the Advisor cache contract if it affects the
   anchor/recommendation; leave intrinsic Fit and `BestRole` independent.
