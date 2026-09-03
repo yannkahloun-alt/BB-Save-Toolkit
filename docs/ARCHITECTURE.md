@@ -128,6 +128,12 @@ Slowest-projection entries also carry bounded policy-complexity counters and
 phase timings. Python heap allocation tracing is disabled during normal runs
 because it materially perturbs the allocation-heavy trajectory engine; it is
 available explicitly through `--measure-python-heap` for diagnostic runs.
+The debug bundle also owns a versioned `bbtool.performance_diagnostics.v1`
+runtime section. It persists CLI stage timings, workload and incremental reuse
+counts, service-stage timings, cache miss reasons, and projection-validation
+cache/oracle diagnostics used by the console. Late total and archive timings
+are finalized before the run archive is rebuilt, keeping internal performance
+evidence out of the public report contract.
 
 ### `bbtool/incremental/`
 

@@ -414,6 +414,7 @@ def write_debug_bundle(
     projection_profile: dict,
     run_health: dict | None = None,
     run_metadata: dict | None = None,
+    performance_diagnostics: dict | None = None,
 ) -> Path:
     """
     Single-file support bundle intended to be dropped into ChatGPT instead of
@@ -440,6 +441,7 @@ def write_debug_bundle(
             "references": reference_status,
             "projection_profile": projection_profile,
             "run_health": run_health or {},
+            "performance": performance_diagnostics or {},
         },
     }
 
@@ -451,10 +453,17 @@ def write_debug_bundle(
     return path
 
 
-def finalize_debug_bundle_metadata(path: Path, run_metadata: dict) -> None:
-    """Persist the final resource snapshot after the monitored run is complete."""
+def finalize_debug_bundle_metadata(
+    path: Path,
+    run_metadata: dict,
+    performance_diagnostics: dict | None = None,
+) -> None:
+    """Persist runtime data that is only complete near the end of the run."""
     payload = json.loads(path.read_text(encoding="utf-8"))
-    payload.setdefault("runtime", {})["run_metadata"] = run_metadata
+    runtime = payload.setdefault("runtime", {})
+    runtime["run_metadata"] = run_metadata
+    if performance_diagnostics is not None:
+        runtime["performance"] = performance_diagnostics
     path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False, default=str),
         encoding="utf-8",

@@ -92,13 +92,14 @@ def _analysis_request(
 
 def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
     total_started = time.perf_counter()
+    stage_timings = {}
     run_metadata = build_run_metadata(options)
     print_run_header(run_metadata)
 
     step = Step("Prepare run output")
     step.__enter__()
     workspace = create_workspace(options.save, options.out)
-    step.done()
+    stage_timings["prepare_run_output"] = step.done()
 
     report_path = None
     validation_path = None
@@ -111,7 +112,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         step = Step("Load configuration")
         step.__enter__()
         config = load_config(options.targets, options.classification)
-        step.done()
+        stage_timings["load_configuration"] = step.done()
 
         full_recompute = bool(getattr(options, "full_recompute", False))
         source_content = Path(options.save).read_bytes()
@@ -143,7 +144,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         reference_status = service_result.diagnostics["references"]
         write_raw_inputs(workspace, bros, recruits)
         print_reference_status(reference_status)
-        step.done(
+        stage_timings["strategic_classification"] = step.done(
             f"{len(bros)} brothers × {len(config.roles)} archetypes · "
             f"reused {incremental_cache.stats.role_reused} · "
             f"computed {incremental_cache.stats.role_computed} · "
@@ -208,7 +209,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             analysis.fits,
             analysis.summaries,
         )
-        step.done()
+        stage_timings["write_analysis_outputs"] = step.done()
 
         step = Step("Generate HTML report")
         step.__enter__()
@@ -221,7 +222,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             config.roles,
             config.classification,
         )
-        step.done()
+        stage_timings["generate_html_report"] = step.done()
 
         step = Step("Write projection validation")
         step.__enter__()
@@ -233,7 +234,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         validation_passed = not validation_payload.get("summary", {}).get(
             "roll_range_violations", 0
         )
-        step.done(
+        stage_timings["write_projection_validation"] = step.done(
             f"{'PASS' if validation_passed else 'FAIL'} — {validation_path}"
         )
 
@@ -246,6 +247,28 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             validation_payload=validation_payload,
         )
         refresh_resources(run_metadata)
+
+        performance_diagnostics = {
+            "format": "bbtool.performance_diagnostics.v1",
+            "total_seconds": None,
+            "stage_seconds": stage_timings,
+            "analysis": {
+                "brothers": len(bros),
+                "archetypes": len(config.roles),
+                "role_workload": len(bros) * len(config.roles),
+                "role_reused": incremental_cache.stats.role_reused,
+                "role_computed": incremental_cache.stats.role_computed,
+                "summary_reused": incremental_cache.stats.summary_reused,
+                "summary_computed": incremental_cache.stats.summary_computed,
+                "advisor_reused": incremental_cache.stats.advisor_reused,
+                "advisor_computed": incremental_cache.stats.advisor_computed,
+                "service_stage_seconds": dict(service_timings or {}),
+                "cache_miss_reasons": dict(
+                    sorted(incremental_cache.miss_reasons.items())
+                ),
+            },
+            "validation": dict(validation_profile or {}),
+        }
 
         step = Step("Write debug bundle")
         step.__enter__()
@@ -261,8 +284,9 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             projection_profile,
             run_health,
             run_metadata,
+            performance_diagnostics,
         )
-        step.done(debug_path.name)
+        stage_timings["write_debug_bundle"] = step.done(debug_path.name)
 
     if options.no_projection:
         step = Step("Reference dictionary")
@@ -288,18 +312,27 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
     step = Step("Create run archive")
     step.__enter__()
     archive_path = archive_workspace(workspace, options.out)
+    stage_timings["create_run_archive"] = step.done()
+    total_elapsed = time.perf_counter() - total_started
     refresh_resources(run_metadata)
     stop_resource_monitoring(resource_monitor_started)
     if debug_path is not None:
-        finalize_debug_bundle_metadata(debug_path, run_metadata)
+        performance_diagnostics["total_seconds"] = total_elapsed
+        performance_diagnostics["stage_seconds"] = dict(stage_timings)
+        finalize_debug_bundle_metadata(
+            debug_path, run_metadata, performance_diagnostics
+        )
         # Rebuild so the archive contains the final, post-archive measurement.
         archive_path = archive_workspace(workspace, options.out)
     archive_size = archive_path.stat().st_size
     archive_sha256 = sha256_file(archive_path)
     prune_outputs(options.out, workspace.source_save.stem, archive_path)
-    step.done(f"{format_bytes(archive_size)} — SHA-256 {archive_sha256}")
-
-    total_elapsed = time.perf_counter() - total_started
+    # The timed archive operation was already printed before final metadata was
+    # embedded. Keep the completion detail without reporting a second duration.
+    print(
+        "        archive artifact            "
+        f"{format_bytes(archive_size)} — SHA-256 {archive_sha256}"
+    )
     print(f"[DONE ] Total                          {total_elapsed:>7.3f}s")
     print(f"Output: {workspace.root}")
     print_generated_files(workspace.root)
