@@ -2,6 +2,8 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
+from .manifest import SCHEMA, campaign_identity_payload
+
 from .fingerprint import (
     ADVISOR_ENGINE_VERSION,
     BROTHER_SUMMARY_ENGINE_VERSION,
@@ -252,13 +254,15 @@ class IncrementalCache:
         self.stats.summary_computed += 1
 
     def manifest_payload(
-        self, *, generated_at, source_save, source_save_path=None
+        self, *, generated_at, source_save, campaign_identity=None,
+        source_save_path=None
     ):
         return {
-            "schema": "bb-incremental-v1",
+            "schema": SCHEMA,
             "generated_at": generated_at,
             "source_save": source_save,
             "source_save_path": source_save_path,
+            "campaign_identity": campaign_identity_payload(campaign_identity),
             "engine": {
                 "role_projection": ROLE_PROJECTION_ENGINE_VERSION,
                 "advisor": ADVISOR_ENGINE_VERSION,

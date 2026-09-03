@@ -151,6 +151,14 @@ included in public analysis/report data.
 
 Conservative exact-state reuse is production-safe. Cross-save progression identity remains an open roadmap item; experimental FutureRoll continuity helpers are diagnostic only until validated on real before/after progression saves.
 
+Incremental manifests use `bb-incremental-v2` and carry a versioned native
+`CampaignIdentity` namespace. Discovery selects the newest compatible manifest
+with the same exact serialized `CampaignID`, independent of save filename or
+path, and retention is scoped by that identity. The path remains provenance
+only. Missing, invalid, contradictory, or legacy-v1 identity evidence disables
+history discovery and pruning; exact artifact fingerprints remain authoritative
+for numerical reuse within a selected campaign manifest.
+
 ### `bbtool/app/`
 
 CLI, orchestration, console diagnostics, output writing, and runtime workspace management.

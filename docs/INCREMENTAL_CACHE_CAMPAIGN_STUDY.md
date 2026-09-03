@@ -1,14 +1,30 @@
-# Incremental cache campaign-boundary study (#83)
+# Incremental cache campaign-boundary study (#83, implemented by #125)
 
-## Conclusion
+## Implemented campaign namespace
 
-The current manifest lookup uses an absolute save path as a discovery scope,
+Incremental manifests now use `bb-incremental-v2` and serialize
+`bbtool.campaign_identity.v1` evidence derived only from the native signed
+32-bit `CampaignID`. Discovery and pruning require an exact matching identity;
+save path and filename are provenance only. Renames, copies, and transitions
+between manual, autosave, and quicksave paths therefore retain warm reuse.
+
+Schema-v1 manifests remain readable when explicitly supplied to the cache for
+compatibility, but they cannot prove campaign membership and are not eligible
+for automatic discovery or campaign-scoped pruning. Missing, malformed,
+negative, ambiguous, or contradictory identity evidence similarly disables
+those history-dependent operations without a substitute heuristic. Artifact
+fingerprints remain authoritative for reuse, including deterministic matching
+across rollback or branch snapshots; lineage rules remain deferred to #80.
+
+## Historical findings before #125
+
+Before #125, manifest lookup used an absolute save path as a discovery scope,
 not as an analytical cache key. A manifest from an unrelated campaign can be
 selected when a slot such as `quicksave.sav` is reused. Its artifacts are
 accepted only when normalized brother state, role/configuration inputs, and
 semantic engine versions match.
 
-That makes present cross-campaign artifact reuse content-addressed
+That made the former cross-campaign artifact reuse content-addressed
 memoization, not brother-identity reuse. The study found no numerical
 counterexample: equal cache inputs imply equal current role, Advisor, and
 summary calculations. It did find one current-output defect. Temporary injury
@@ -17,34 +33,34 @@ do not enter the long-term projection fingerprint. An otherwise reusable
 summary could therefore show an old injury. The fix rehydrates current-save
 display fields while retaining the analytical artifact.
 
-The current risk classification is:
+The pre-#125 risk classification was:
 
 - numerical correctness: protected by the audited fingerprints and ambiguity
   fallback;
 - current display correctness: the stale injury defect was fixed in #83;
 - observability: a selected manifest can be described as "previous" despite
   belonging to another campaign;
-- performance: path scoping can miss reusable content after a rename/copy and
+- performance: path scoping could miss reusable content after a rename/copy and
   can examine an unrelated manifest before rejecting its entries;
 - history semantics: unsupported by this cache and must not be inferred from
   selection order.
 
 The invariant remains `incremental == independent full recomputation`.
 
-## Current selection and reuse flow
+## Historical selection and reuse flow before #125
 
-1. `find_previous_manifest()` recursively lists schema-v1 manifests outside
-   the new run directory, orders them by filesystem mtime, and returns the
+1. `find_previous_manifest()` recursively listed schema-v1 manifests outside
+   the new run directory, ordered them by filesystem mtime, and returned the
    newest manifest whose `source_save_path` equals the resolved current path.
-2. `IncrementalCache` indexes that one manifest by
+2. `IncrementalCache` indexed that one manifest by
    `brother_projection_fingerprint()`. Exactly one state match is required;
    zero recomputes and more than one is ambiguous and recomputes.
-3. A role artifact additionally requires the complete normalized role hash and
+3. A role artifact additionally required the complete normalized role hash and
    `ROLE_PROJECTION_ENGINE_VERSION`.
-4. Advisor and summary artifacts require their own full input hashes and
+4. Advisor and summary artifacts required their own full input hashes and
    engine versions. A reused summary carries its Advisor artifact into the new
    manifest so an immediate successor remains complete.
-5. The newest run writes a fresh manifest. Pruning removes only manifests for
+5. The newest run wrote a fresh manifest. Pruning removed only manifests for
    the same source path beyond the newest ten; output/archive retention is a
    separate operation and does not remove those retained manifest sources.
 
@@ -56,10 +72,11 @@ lost. A healthy identical warm run should reuse persisted role/summary
 artifacts and consequently perform no trajectory lookup at all: zero hits and
 zero misses is expected, rather than a trajectory hit.
 
-## Deterministic reproductions
+## Historical deterministic reproductions
 
 `tests/unit/test_incremental_campaign_boundaries.py` constructs all inputs and
-manifests locally; it is network-free and independent of clock resolution.
+manifests locally; the study's pre-#125 reproductions were network-free and
+independent of clock resolution.
 
 ### Same input, same configuration, same path
 
@@ -129,7 +146,7 @@ interpretation or source-derived values must continue to bump the affected
 semantic engine version; generated cache file identity itself should not become
 a per-run result key.
 
-## Post-#79 campaign-aware behavior
+## Implemented campaign-aware behavior
 
 #79 established the game's serialized signed 32-bit `CampaignID` as the exact
 native campaign/run token in the product contract. It is assigned independently
@@ -137,9 +154,9 @@ of `SeedString`, serialized and restored, and remains stable across renamed,
 copied, autosave, quicksave, manual-save, rollback, and cross-machine copies.
 Campaign membership still proves neither snapshot equality nor lineage.
 
-#123 owns parsing and exposing that value. After it lands, a new manifest
-schema should record an explicit versioned `CampaignIdentity` based on the
-native `CampaignID`:
+#123 added parsing and exposure of that value, and #125 records an explicit
+versioned `CampaignIdentity` based on the native `CampaignID` in the manifest
+schema:
 
 - discover the newest compatible manifest within the same CampaignIdentity;
 - treat path only as provenance and an optional lookup optimization;
@@ -159,11 +176,11 @@ campaign-scoped "previous manifest" should not silently perform that role.
 
 ## Follow-up ownership
 
-- #123: parse and expose native CampaignID; prerequisite for changing manifest
-  discovery.
-- #125: migrate manifest discovery and pruning to CampaignIdentity after #123,
-  including schema compatibility and missing-identity fallback. This is
-  intentionally separate from the parser.
+- #123: completed native CampaignID parsing and exposure as the prerequisite
+  for campaign-aware manifest discovery.
+- #125: implements CampaignIdentity-scoped manifest discovery and pruning,
+  including schema compatibility and missing-identity fallback, separately
+  from the parser.
 - #80: define ancestry/rollback semantics only for history-sensitive state.
 - #81: include `AssignedBuild` in the Advisor cache contract if it affects the
   anchor/recommendation; leave intrinsic Fit and `BestRole` independent.

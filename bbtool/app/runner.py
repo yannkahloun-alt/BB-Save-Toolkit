@@ -8,7 +8,7 @@ import time
 
 from references.update_references import ensure_references
 
-from ..save_parser import parse_recruits, parse_roster
+from ..save_parser import parse_campaign_identity_bytes, parse_recruits, parse_roster
 from .analysis_service import (
     AnalysisServiceOptions,
     AnalysisServiceRequest,
@@ -68,11 +68,15 @@ def _analysis_request(
     *,
     previous_manifest: dict | None,
     previous_path,
+    source_content: bytes | None = None,
 ) -> AnalysisServiceRequest:
     """Translate CLI concerns into the transport-independent service contract."""
     full_recompute = bool(getattr(options, "full_recompute", False))
     return AnalysisServiceRequest(
-        source=SaveSource(Path(options.save).read_bytes(), Path(options.save).name),
+        source=SaveSource(
+            source_content if source_content is not None else Path(options.save).read_bytes(),
+            Path(options.save).name,
+        ),
         roles=config.roles,
         classification=config.classification,
         options=AnalysisServiceOptions(
@@ -110,9 +114,16 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         step.done()
 
         full_recompute = bool(getattr(options, "full_recompute", False))
+        source_content = Path(options.save).read_bytes()
+        campaign_identity = parse_campaign_identity_bytes(source_content)
         previous_path, previous_manifest = (None, None)
         if not full_recompute:
-            previous_path, previous_manifest = find_previous_manifest(options.out, exclude_root=workspace.root, source_save=options.save)
+            previous_path, previous_manifest = find_previous_manifest(
+                options.out,
+                campaign_identity=campaign_identity,
+                exclude_root=workspace.root,
+                source_save=options.save,
+            )
         step = Step("Strategic classification")
         step.__enter__()
         service_result = analyze_save(
@@ -121,6 +132,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
                 config,
                 previous_manifest=previous_manifest,
                 previous_path=previous_path,
+                source_content=source_content,
             )
         )
         bros = service_result.roster
@@ -178,12 +190,13 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             incremental_cache.manifest_payload(
                 generated_at=workspace.generated_at,
                 source_save=workspace.source_save.name,
+                campaign_identity=campaign_identity,
                 source_save_path=str(workspace.source_save.resolve()),
             ),
         )
         prune_manifests(
             options.out,
-            source_save_path=str(workspace.source_save.resolve()),
+            campaign_identity=campaign_identity,
             keep=10,
             exclude_root=workspace.root,
         )

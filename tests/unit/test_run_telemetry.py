@@ -29,7 +29,7 @@ def test_run_metadata_records_reproducible_environment_and_hashes(tmp_path):
 
     assert metadata["format"] == "bbtool.run_metadata.v1"
     assert metadata["toolkit_version"] == "3.88"
-    assert metadata["schemas"]["incremental_cache"] == "bb-incremental-v1"
+    assert metadata["schemas"]["incremental_cache"] == "bb-incremental-v2"
     assert metadata["engines"] == {
         "role_projection": 6,
         "advisor": 4,
