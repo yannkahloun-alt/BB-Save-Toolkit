@@ -51,7 +51,7 @@ def test_run_metadata_records_reproducible_environment_and_hashes(tmp_path):
     assert metadata["resources"]["python_heap_peak_bytes"] is not None
 
 
-def test_run_metadata_explicitly_marks_missing_files_and_memory_unavailable(
+def test_run_metadata_explicitly_marks_missing_files_and_memory_disabled(
     tmp_path, monkeypatch
 ):
     options = SimpleNamespace(
@@ -70,7 +70,7 @@ def test_run_metadata_explicitly_marks_missing_files_and_memory_unavailable(
     assert metadata["resources"] == {
         "python_heap_current_bytes": None,
         "python_heap_peak_bytes": None,
-        "status": "unavailable",
+        "status": "disabled",
     }
 
 

@@ -39,7 +39,14 @@ def get_profile_values() -> dict:
     return deepcopy(PROFILE)
 
 
-def record_projection(brother_id: str, brother_name: str, role_name: str, kind: str, seconds: float) -> None:
+def record_projection(
+    brother_id: str,
+    brother_name: str,
+    role_name: str,
+    kind: str,
+    seconds: float,
+    complexity: dict | None = None,
+) -> None:
     """Record bounded, JSON-safe projection timings for diagnostics."""
     seconds = float(seconds)
     brother_key = f"{brother_name} [{brother_id}]"
@@ -49,14 +56,17 @@ def record_projection(brother_id: str, brother_name: str, role_name: str, kind: 
     PROFILE["archetype_projection_s"][role_name] = (
         PROFILE["archetype_projection_s"].get(role_name, 0.0) + seconds
     )
-    PROFILE["slowest_projections"].append({
+    item = {
         "brother_id": brother_id,
         "brother": brother_name,
         "archetype": role_name,
         "kind": kind,
         "seconds": seconds,
         "structural_alternatives": 0,
-    })
+    }
+    if complexity:
+        item["complexity"] = deepcopy(complexity)
+    PROFILE["slowest_projections"].append(item)
     PROFILE["slowest_projections"] = sorted(
         PROFILE["slowest_projections"], key=lambda item: item["seconds"], reverse=True
     )[:10]
