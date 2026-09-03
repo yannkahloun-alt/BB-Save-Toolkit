@@ -43,17 +43,34 @@ def test_daily_wage_known_unknown_and_greedy():
 
 def test_equipment_value_resolved_unknown_and_exact_circle_boundary():
     header={'StatsEnd':0} # p=6, pouches at6, count at7, item starts8
-    meta={'AABBCCDD':{'SerializedLength':5,'Value':100}}
-    b=bytearray(b'\0'*20); b[6]=0; b[7]=1; b[8]=0; b[9:13]=bytes.fromhex('AABBCCDD')
-    assert sp._parse_recruit_equipment_value(bytes(b),header,13,meta)==100
+    meta={'AABBCCDD':{'type':'genericWeapon','slot':'weapon','Value':100}}
+    b=bytearray(b'\0'*40); b[6]=0; b[7]=1; b[8]=0; b[9:13]=bytes.fromhex('AABBCCDD')
+    b[13:27] = b'\0\0\0' + struct.pack('<f', 40) + b'\0' * 7
+    b[27:29] = b'\0\0'
+    assert sp._parse_recruit_equipment_value(bytes(b),header,29,meta)==100
     diagnostics=[]
-    assert sp._parse_recruit_equipment_value(bytes(b),header,13,{},diagnostics) is None
+    assert sp._parse_recruit_equipment_value(bytes(b),header,29,{},diagnostics) is None
     assert diagnostics == [{
         'scope':'recruits',
         'kind':'unresolved_recruit_equipment',
         'reference_hash':'AABBCCDD',
     }]
-    assert sp._parse_recruit_equipment_value(bytes(b),header,14,meta) is None
+    assert sp._parse_recruit_equipment_value(bytes(b),header,30,meta) is None
+
+    name = b"Famed Blade"
+    named_state = (
+        struct.pack("<H", len(name)) + name
+        + struct.pack("<fbHHfBHHfhH", 80, -9, 45, 50, .9, 10, 16, 5, .25, 3, 0)
+        + b"\0" * 8
+        + b"\0\0\0" + struct.pack("<f", 40) + b"\0" * 7
+        + b"\0\0"
+    )
+    named = bytearray(b"\0" * 8 + b"\0" + bytes.fromhex("AABBCCDD") + named_state)
+    named[7] = 1
+    named_meta = {'AABBCCDD': {'type': 'namedWeapon', 'slot': 'weapon', 'Value': 500}}
+    assert sp._parse_recruit_equipment_value(
+        bytes(named), header, len(named), named_meta
+    ) == 500
 
 
 def test_parse_recruits_public_fields_tryout_traits_and_costs(monkeypatch,tmp_path):

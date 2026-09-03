@@ -19,9 +19,9 @@ def _generic_state(condition):
     return (
         b"\x00"
         + struct.pack("<Hf", 1, condition)
-        + b"\x00" * 8
-        + b"\x64"
         + b"\x00" * 4
+        + b"\x64"
+        + b"\x00" * 2
     )
 
 

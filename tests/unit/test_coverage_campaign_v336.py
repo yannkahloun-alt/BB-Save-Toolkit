@@ -90,9 +90,9 @@ def test_load_item_economy_filters_unresolved_and_validates_format(tmp_path):
     refs=tmp_path/"references"; refs.mkdir()
     p=refs/"dictionary.json"
     p.write_text(json.dumps({"_meta":{"format":"bbtool.enriched_dictionary.v1"},"entries":{
-        "abcd":{"Value":250,"SerializedLength":12,"name":"Sword","slot":"weapon"},
-        "skip":{"Value":None,"SerializedLength":12},
-        "skip2":{"Value":20,"SerializedLength":0},
+        "abcd":{"Value":250,"SerializedLength":12,"name":"Sword","slot":"weapon","type":"genericWeapon"},
+        "skip":{"Value":None,"SerializedLength":12,"type":"genericWeapon"},
+        "skip2":{"Value":20,"SerializedLength":0,"type":"unknown"},
     }}),encoding="utf-8")
     got=sp._load_item_economy(tmp_path)
     assert list(got)==["ABCD"] and got["ABCD"]["Value"]==250
@@ -148,6 +148,21 @@ def test_find_circle_metadata_minimal_valid_and_no_background():
     assert got["Perks"]==["Colossus"]
     assert got["Traits"]==[]
     assert sp.find_circle_metadata(bytes(block),0,identity,{}) is None
+
+
+def test_find_circle_metadata_rejects_known_equipment_before_background():
+    refs={
+        "A1B2C3D4":{"type":"background","name":"Farmhand"},
+        "01020304":{"type":"genericHelmet","name":"Ancient Helmet"},
+    }
+    block=bytearray()
+    block+=struct.pack("<H",2)
+    block+=bytes.fromhex("01020304")+b"\x00"
+    block+=bytes.fromhex("A1B2C3D4")+b"\x00"
+    block+=_lp("desc")+_lp("templ")
+    block+=bytes([1,0])+struct.pack("<f",1.0)
+
+    assert sp.find_circle_metadata(bytes(block),0,len(block),refs) is None
 
 
 def test_html_helpers_cover_edges():

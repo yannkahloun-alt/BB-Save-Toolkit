@@ -514,12 +514,15 @@ def _read_item_string(b: bytes, offset: int, end: int) -> tuple[str, int]:
 
 
 def _parse_generic_item_state(b: bytes, offset: int, end: int) -> tuple[dict, int]:
-    if offset + 20 > end:
+    # Vanilla 1.5.x serializes the common item state in 14 bytes:
+    # repair (1), icon (2), condition (4), quantity marker (4), magic (1),
+    # and padding (2). Weapon ammunition follows as a separate uint16.
+    if offset + 14 > end:
         raise ValueError("truncated generic item state")
     condition = f32(b, offset + 3)
     if not math.isfinite(condition) or condition < 0:
         raise ValueError("invalid item condition")
-    return {"Condition": _number(condition)}, offset + 20
+    return {"Condition": _number(condition)}, offset + 14
 
 
 def _parse_armor_attachment(b: bytes, offset: int, end: int) -> tuple[dict, int]:
@@ -550,6 +553,12 @@ def _public_item_type(record: dict, slot: int) -> str:
     if slot == 5:
         return "ammo"
     return str(record.get("subType") or record.get("type") or "item")
+
+
+_SUPPORTED_SERIALIZED_ITEM_TYPES = frozenset({
+    "genericWeapon", "genericShield", "genericArmor", "genericHelmet",
+    "namedWeapon", "namedShield", "namedArmor", "namedHelmet", "auxiliary",
+})
 
 
 def _parse_equipped_item(
@@ -612,9 +621,7 @@ def _parse_equipped_item(
         item["ConditionMax"] = _finite_number(f32(b, cursor), "maximum condition")
         cursor += 4
 
-    elif typ not in {
-        "genericWeapon", "genericShield", "genericArmor", "genericHelmet", "auxiliary"
-    }:
+    elif typ not in _SUPPORTED_SERIALIZED_ITEM_TYPES:
         raise ValueError(f"unsupported item type {typ!r}")
 
     if typ in {"genericArmor", "namedArmor"} and subtype == "nobleArmor":
@@ -958,13 +965,22 @@ def find_circle_metadata(
         if tail is None:
             continue
 
-        # Before background should primarily be perks. A stale dictionary may
-        # leave unknowns, but known non-perk types lower confidence.
+        # Every known entry before the background must be a perk. Merely
+        # lowering confidence lets a longer inventory-byte coincidence beat
+        # the real circle block (observed when an item hash appears in `pre`).
+        # Unknown entries remain eligible so stale/modded perk dictionaries
+        # continue to degrade explicitly rather than abort parsing.
         bad_pre = sum(
             1 for x in pre
             if refs.get(x, {}).get("type") not in ("perk", None)
         )
-        score = (len(pre) - bad_pre * 3, -abs(identity_offset - start))
+        if bad_pre:
+            continue
+        known_perks = sum(
+            1 for x in pre if refs.get(x, {}).get("type") == "perk"
+        )
+        unknown_pre = len(pre) - known_perks
+        score = (known_perks, -unknown_pre, -abs(identity_offset - start))
         candidates.append((score, {
             "CircleOffset": start,
             "Count": total,
@@ -1545,14 +1561,14 @@ def _load_item_economy(script_dir: Path) -> dict:
 
     out = {}
     for ref_id, rec in raw["entries"].items():
-        if rec.get("Value") is None or not rec.get("SerializedLength"):
+        if (
+            rec.get("Value") is None
+            or rec.get("type") not in _SUPPORTED_SERIALIZED_ITEM_TYPES
+        ):
             continue
-        out[str(ref_id).upper()] = {
-            "Name": rec.get("name"),
-            "Kind": rec.get("slot") or rec.get("type"),
-            "Value": rec.get("Value"),
-            "SerializedLength": rec.get("SerializedLength"),
-        }
+        # Keep the parsing metadata needed by the same item decoder used for
+        # roster equipment. Named-item strings make static lengths unsafe.
+        out[str(ref_id).upper()] = {**rec, "Value": rec["Value"]}
     return out
 
 
@@ -1595,12 +1611,22 @@ def _parse_recruit_equipment_value(
                 })
             return None
 
-        length = int(meta.get("SerializedLength", 0))
-        if length <= 0 or p + length > circle_offset:
+        try:
+            _, _, next_offset = _parse_equipped_item(
+                b, p, circle_offset, item_economy
+            )
+        except (ValueError, struct.error, IndexError) as exc:
+            if diagnostics is not None:
+                diagnostics.append({
+                    "scope": "recruits",
+                    "kind": "recruit_equipment_parse_failure",
+                    "reference_hash": item_hash,
+                    "reason": str(exc),
+                })
             return None
 
         total_value += int(meta["Value"])
-        p += length
+        p = next_offset
 
     if p != circle_offset:
         return None
