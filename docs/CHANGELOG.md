@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Scope incremental manifest discovery and retention to exact native campaign
+  identity, preserving reuse across renamed/copied saves while preventing
+  same-path cross-campaign selection.
 - Make costly Python heap allocation tracing opt-in with
   `--measure-python-heap`, removing its roughly 5× observer overhead from normal
   cold Fit analysis while retaining the diagnostic when explicitly requested.

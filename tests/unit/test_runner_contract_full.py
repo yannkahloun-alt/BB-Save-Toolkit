@@ -5,6 +5,7 @@ import json
 import pytest
 
 import bbtool.app.runner as runner
+from bbtool.models import CampaignIdentity
 
 
 class FakeStep:
@@ -169,6 +170,40 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
     assert calls["archive_calls"] == 2
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
+
+
+def test_runner_scopes_manifest_lifecycle_by_campaign(monkeypatch, tmp_path):
+    workspace, _, _, _ = _patch_runner(
+        monkeypatch, tmp_path,
+        reference_status={"generated_dictionary": False},
+    )
+    identity = CampaignIdentity(125, confidence="exact")
+    observed = {}
+    monkeypatch.setattr(runner, "parse_campaign_identity_bytes", lambda data: identity)
+
+    def find(out, **kwargs):
+        observed["find"] = (out, kwargs)
+        return None, None
+
+    monkeypatch.setattr(runner, "find_previous_manifest", find)
+    monkeypatch.setattr(
+        runner, "write_manifest",
+        lambda run_workspace, payload: observed.setdefault(
+            "write", (run_workspace, payload)
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "prune_manifests",
+        lambda out, **kwargs: observed.setdefault("prune", (out, kwargs)),
+    )
+    ticks = iter([1.0, 2.0])
+    monkeypatch.setattr(runner.time, "perf_counter", lambda: next(ticks))
+
+    runner.run(_opts(tmp_path))
+
+    assert observed["find"][1]["campaign_identity"] is identity
+    assert observed["find"][1]["source_save"] == workspace.source_save
+    assert observed["prune"][1]["campaign_identity"] is identity
 
 
 def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_path):

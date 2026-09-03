@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from bbtool.incremental.cache import IncrementalCache
 from bbtool.incremental.fingerprint import ROLE_PROJECTION_ENGINE_VERSION, brother_projection_fingerprint, role_fingerprint, stable_hash
 from bbtool.incremental.manifest import find_previous_manifest, write_manifest
+from bbtool.models import CampaignIdentity
 
 def test_stable_hash_is_order_independent():
     assert stable_hash({"a":1,"b":2})==stable_hash({"b":2,"a":1})
@@ -32,11 +33,12 @@ def test_ambiguous_identical_state_is_not_reused(bro_factory,simple_role):
     cache=IncrementalCache({"schema":"bb-incremental-v1","brothers":{"x":entry,"y":dict(entry)}});assert cache.get_role_row(bro,role) is None;assert cache.stats.ambiguous_states==1
 
 def test_manifest_atomic_write_and_discovery(tmp_path):
-    root=tmp_path/"output";run=root/"run";run.mkdir(parents=True);ws=SimpleNamespace(root=run,base="save-1");payload={"schema":"bb-incremental-v1","brothers":{}}
-    path=write_manifest(ws,payload);found_path,found=find_previous_manifest(root);assert found_path==path;assert found==payload
+    root=tmp_path/"output";run=root/"run";run.mkdir(parents=True);ws=SimpleNamespace(root=run,base="save-1")
+    payload=IncrementalCache().manifest_payload(generated_at="x",source_save="x",campaign_identity=CampaignIdentity(7,confidence="exact"))
+    path=write_manifest(ws,payload);found_path,found=find_previous_manifest(root,campaign_identity=CampaignIdentity(7,confidence="exact"));assert found_path==path;assert found==payload
 
 def test_corrupt_manifest_is_ignored(tmp_path):
-    root=tmp_path/"output";root.mkdir();(root/"bad-incremental-manifest.json").write_text("{",encoding="utf-8");assert find_previous_manifest(root)==(None,None)
+    root=tmp_path/"output";root.mkdir();(root/"bad-incremental-manifest.json").write_text("{",encoding="utf-8");assert find_previous_manifest(root,campaign_identity=CampaignIdentity(7,confidence="exact"))==(None,None)
 
 
 def test_manifest_keeps_duplicate_states_as_separate_brothers(bro_factory,simple_role):
@@ -54,11 +56,11 @@ def test_manifest_keeps_duplicate_states_as_separate_brothers(bro_factory,simple
     assert next_cache.stats.ambiguous_states==1
 
 
-def test_manifest_from_other_save_slot_is_not_reused(tmp_path):
+def test_legacy_manifest_is_not_selected_by_path(tmp_path):
     root=tmp_path/"output";run=root/"run";run.mkdir(parents=True);ws=SimpleNamespace(root=run,base="save-1")
     a=tmp_path/"a.sav";b=tmp_path/"b.sav";a.write_bytes(b"a");b.write_bytes(b"b")
     write_manifest(ws,{"schema":"bb-incremental-v1","source_save_path":str(a.resolve()),"brothers":{}})
-    assert find_previous_manifest(root,source_save=b)==(None,None)
+    assert find_previous_manifest(root,campaign_identity=CampaignIdentity(7,confidence="exact"),source_save=b)==(None,None)
 
 
 def test_reused_role_row_is_rehydrated_with_current_display_identity(bro_factory,simple_role):

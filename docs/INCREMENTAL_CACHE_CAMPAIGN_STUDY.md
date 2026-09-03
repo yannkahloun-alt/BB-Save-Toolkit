@@ -1,4 +1,20 @@
-# Incremental cache campaign-boundary study (#83)
+# Incremental cache campaign-boundary study (#83, implemented by #125)
+
+## Implemented campaign namespace
+
+Incremental manifests now use `bb-incremental-v2` and serialize
+`bbtool.campaign_identity.v1` evidence derived only from the native signed
+32-bit `CampaignID`. Discovery and pruning require an exact matching identity;
+save path and filename are provenance only. Renames, copies, and transitions
+between manual, autosave, and quicksave paths therefore retain warm reuse.
+
+Schema-v1 manifests remain readable when explicitly supplied to the cache for
+compatibility, but they cannot prove campaign membership and are not eligible
+for automatic discovery or campaign-scoped pruning. Missing, malformed,
+negative, ambiguous, or contradictory identity evidence similarly disables
+those history-dependent operations without a substitute heuristic. Artifact
+fingerprints remain authoritative for reuse, including deterministic matching
+across rollback or branch snapshots; lineage rules remain deferred to #80.
 
 ## Conclusion
 

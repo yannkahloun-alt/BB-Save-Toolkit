@@ -150,7 +150,7 @@ must call only the second and third operations.
 |---|---|---|
 | Editable archetypes/classification | none | Structural checks in `load_config`; missing/invalid values fail locally. |
 | Normal roster/recruits/role-fit/classification | none | Consumers infer fields; there is no dataset-level compatibility check. |
-| Incremental manifest | `bb-incremental-v1` plus per-artifact engine integers | Unsupported/corrupt manifests are ignored and recomputed. |
+| Incremental manifest | `bb-incremental-v2`, versioned native CampaignIdentity, plus per-artifact engine integers | Unsupported/corrupt manifests and manifests without exact campaign evidence are ignored and recomputed. Legacy v1 remains explicitly readable but is not auto-discovered. |
 | Projection validation | `bbtool.projection_validation.v3` | Diagnostic writer owns the format; no general reader exists. |
 | Debug bundle | `bbtool.debug_bundle.v1` | Support artifact only; no general reader exists. |
 | HTML | no machine-readable report contract | Generated from live objects and same-run config. |
