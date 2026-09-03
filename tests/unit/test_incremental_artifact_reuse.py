@@ -68,3 +68,30 @@ def test_projection_range_schema_change_rejects_old_downstream_artifacts(bro_fac
     assert cache.get_summary(bro,roles,cfg) is None
     assert cache.miss_reasons["summary_engine_changed"]==1
     assert cache.get_advisor(bro,roles)=={"Recommended":{"Stats":["HP","MAtk","MDef"]}}
+
+
+def test_reused_summary_rehydrates_non_projection_display_state(bro_factory,simple_role):
+    old=bro_factory(
+        Name="Old name", HumanOffset=10, Background="Old background",
+        Perks=["Old perk"], Traits=["Old trait"], Injuries=["Cut leg"],
+    )
+    current=bro_factory(
+        Name="Current name", HumanOffset=20, Background="Current background",
+        Perks=["Old perk"], Traits=["Old trait"], Injuries=["Fresh wound"],
+    )
+    roles=[simple_role(("HP","MAtk","MDef"))]
+    cfg={"invest":0.8}
+    manifest=manifest_with_downstream(old,roles,cfg)
+    result=manifest["brothers"]["previous"]["summary"]["result"]
+    result.update({
+        "Perks":"Old perk", "Traits":"Old trait", "Injuries":"Cut leg",
+    })
+
+    summary=IncrementalCache(manifest).get_summary(current,roles,cfg)
+
+    assert summary["BrotherID"]==current.BrotherID
+    assert summary["Name"]=="Current name"
+    assert summary["Background"]=="Current background"
+    assert summary["Perks"]=="Old perk"
+    assert summary["Traits"]=="Old trait"
+    assert summary["Injuries"]=="Fresh wound"

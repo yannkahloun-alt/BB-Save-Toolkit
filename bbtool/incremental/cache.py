@@ -173,6 +173,13 @@ class IncrementalCache:
         summary["Name"] = bro.Name
         summary["Level"] = bro.Level
         summary["Background"] = bro.Background
+        # These fields are current-save display data, not long-term projection
+        # inputs.  In particular, temporary injuries deliberately do not enter
+        # the projection fingerprint, so never carry their old display value
+        # forward from a reusable analytical summary.
+        summary["Perks"] = "; ".join(getattr(bro, "Perks", []) or [])
+        summary["Traits"] = "; ".join(getattr(bro, "Traits", []) or [])
+        summary["Injuries"] = "; ".join(getattr(bro, "Injuries", []) or [])
         return summary
 
     def store_summary(self, bro, roles, classification_cfg, summary):
