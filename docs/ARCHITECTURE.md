@@ -112,6 +112,14 @@ advisor
 summary
 ```
 
+Each role-projection artifact also carries a private validation oracle: the
+exact deterministic blind Fit outcome distribution used to calibrate serialized
+future rolls. The oracle has its own engine version and an input fingerprint
+covering brother projection state, archetype semantics, and role-projection
+semantics. Missing, incompatible, or malformed oracle data is recomputed through
+the shared trajectory engine and repaired in the next manifest; it is never
+included in public analysis/report data.
+
 Conservative exact-state reuse is production-safe. Cross-save progression identity remains an open roadmap item; experimental FutureRoll continuity helpers are diagnostic only until validated on real before/after progression saves.
 
 ### `bbtool/app/`

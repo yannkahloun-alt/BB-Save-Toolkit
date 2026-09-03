@@ -6,10 +6,12 @@ from .fingerprint import (
     ADVISOR_ENGINE_VERSION,
     BROTHER_SUMMARY_ENGINE_VERSION,
     ROLE_PROJECTION_ENGINE_VERSION,
+    VALIDATION_ORACLE_ENGINE_VERSION,
     advisor_fingerprint,
     brother_projection_fingerprint,
     brother_summary_fingerprint,
     role_fingerprint,
+    validation_oracle_fingerprint,
 )
 
 
@@ -92,6 +94,7 @@ class IncrementalCache:
             self.miss_reasons["role_artifact_invalid"] += 1
             return None
         self.stats.role_reused += 1
+        self._current_entry(bro)["roles"][role["name"]] = dict(prior)
         row = dict(result)
         row["BrotherID"] = bro.BrotherID
         row["Name"] = bro.Name
@@ -99,12 +102,59 @@ class IncrementalCache:
         row["Background"] = bro.Background
         return row
 
-    def store_role_row(self, bro, role, row):
+    def store_role_row(self, bro, role, row, validation_oracle=None):
         entry = self._current_entry(bro)
-        entry["roles"][role["name"]] = {
+        existing = (entry.get("roles") or {}).get(role["name"])
+        artifact = {
             "role_hash": role_fingerprint(role),
             "engine_version": ROLE_PROJECTION_ENGINE_VERSION,
             "result": dict(row),
+        }
+        if isinstance(validation_oracle, dict):
+            artifact["validation_oracle"] = dict(validation_oracle)
+            artifact["validation_oracle"]["engine_version"] = VALIDATION_ORACLE_ENGINE_VERSION
+            artifact["validation_oracle"]["input_hash"] = validation_oracle_fingerprint(bro, role)
+        elif isinstance(existing, dict) and "validation_oracle" in existing:
+            artifact["validation_oracle"] = existing["validation_oracle"]
+        entry["roles"][role["name"]] = artifact
+
+    def get_validation_oracle(self, bro, role):
+        entry = self._current_entry(bro)
+        artifact = (entry.get("roles") or {}).get(role["name"])
+        oracle = artifact.get("validation_oracle") if isinstance(artifact, dict) else None
+        if not isinstance(oracle, dict):
+            self.miss_reasons["validation_oracle_missing"] += 1
+            return None
+        if oracle.get("engine_version") != VALIDATION_ORACLE_ENGINE_VERSION:
+            self.miss_reasons["validation_oracle_engine_changed"] += 1
+            return None
+        if oracle.get("input_hash") != validation_oracle_fingerprint(bro, role):
+            self.miss_reasons["validation_oracle_inputs_changed"] += 1
+            return None
+        outcomes = oracle.get("outcomes_pct")
+        sample_count = oracle.get("sample_count")
+        if (
+            not isinstance(outcomes, list)
+            or not isinstance(sample_count, int)
+            or sample_count <= 0
+            or len(outcomes) != sample_count
+            or any(not isinstance(value, (int, float)) or not 0 <= value <= 100 for value in outcomes)
+        ):
+            self.miss_reasons["validation_oracle_corrupt"] += 1
+            return None
+        return {"_outcomes_pct": tuple(float(value) for value in outcomes)}
+
+    def store_validation_oracle(self, bro, role, trajectory):
+        outcomes = list(trajectory.get("_outcomes_pct", ()))
+        entry = self._current_entry(bro)
+        artifact = (entry.get("roles") or {}).get(role["name"])
+        if not isinstance(artifact, dict) or not outcomes:
+            return
+        artifact["validation_oracle"] = {
+            "engine_version": VALIDATION_ORACLE_ENGINE_VERSION,
+            "input_hash": validation_oracle_fingerprint(bro, role),
+            "outcomes_pct": outcomes,
+            "sample_count": len(outcomes),
         }
 
     def mark_computed(self):
@@ -207,6 +257,7 @@ class IncrementalCache:
                 "role_projection": ROLE_PROJECTION_ENGINE_VERSION,
                 "advisor": ADVISOR_ENGINE_VERSION,
                 "summary": BROTHER_SUMMARY_ENGINE_VERSION,
+                "validation_oracle": VALIDATION_ORACLE_ENGINE_VERSION,
             },
             "brothers": self._current,
             "stats": {

@@ -4,7 +4,12 @@ from dataclasses import dataclass
 import time
 from ..classification import classify_bro, fit_label, perk_compatibility, role_sort_key
 from ..levelup_advisor import advise_levelup
-from ..projection import effective_stat_profile, project_role, project_role_fast
+from ..projection import (
+    effective_stat_profile,
+    project_role,
+    project_role_fast,
+    project_validation_oracle,
+)
 from ..projection.runtime import PROFILE
 
 @dataclass
@@ -17,6 +22,7 @@ def _role_row(bro, role: dict, *, fast: bool=False) -> dict:
     compat, compat_score, compat_signals = perk_compatibility(bro, role)
     return {"BrotherID":bro.BrotherID,"Name":bro.Name,"Level":bro.Level,"Background":bro.Background,**projection,
             "PerkCompatibility":compat,"PerkCompatibilityScore":compat_score,"PerkSignals":compat_signals}
+
 
 def _best(rows): return max(rows, key=role_sort_key)
 
@@ -46,10 +52,19 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
             row = incremental_cache.get_role_row(bro, role) if incremental_cache is not None else None
             if row is None:
                 row=_role_row(bro,role)
+                validation_oracle = (
+                    project_validation_oracle(bro, role)
+                    if incremental_cache is not None else None
+                )
                 if incremental_cache is not None:
                     incremental_cache.mark_computed()
+            else:
+                validation_oracle = None
             if incremental_cache is not None:
-                incremental_cache.store_role_row(bro, role, row)
+                if validation_oracle is None:
+                    incremental_cache.store_role_row(bro, role, row)
+                else:
+                    incremental_cache.store_role_row(bro, role, row, validation_oracle)
             rows.append(row)
         PROFILE['base_matrix_s']+=time.perf_counter()-t
         fits.extend(rows); best=_best(rows)

@@ -11,6 +11,7 @@ from ..incremental.fingerprint import (
     ADVISOR_ENGINE_VERSION,
     BROTHER_SUMMARY_ENGINE_VERSION,
     ROLE_PROJECTION_ENGINE_VERSION,
+    VALIDATION_ORACLE_ENGINE_VERSION,
 )
 from ..incremental.manifest import SCHEMA as INCREMENTAL_SCHEMA
 from .console import format_bytes, sha256_file
@@ -75,6 +76,7 @@ def build_run_metadata(options) -> dict:
             "role_projection": ROLE_PROJECTION_ENGINE_VERSION,
             "advisor": ADVISOR_ENGINE_VERSION,
             "summary": BROTHER_SUMMARY_ENGINE_VERSION,
+            "validation_oracle": VALIDATION_ORACLE_ENGINE_VERSION,
         },
         "environment": {
             "python_version": platform.python_version(),

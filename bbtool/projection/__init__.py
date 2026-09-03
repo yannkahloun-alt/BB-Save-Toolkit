@@ -11,7 +11,7 @@ from .progression import (
     development_rounds_to_11,
     gain_range,
 )
-from .planner import project_role, project_role_fast
+from .planner import project_role, project_role_fast, project_validation_oracle
 from .runtime import (
     get_profile_values,
     reset_profile_values,
@@ -49,6 +49,7 @@ __all__ = [
     "project_fit_trajectory",
     "project_role",
     "project_role_fast",
+    "project_validation_oracle",
     "project_seeded_fit_trajectory",
     "reset_profile",
 ]
