@@ -56,7 +56,8 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: Path("debug.json"))
     monkeypatch.setattr(runner, "finalize_debug_bundle_metadata", lambda *a: None)
-    monkeypatch.setattr(runner, "archive_workspace", lambda *a: archive)
+    monkeypatch.setattr(runner, "archive_workspace", lambda *a, **k: archive)
+    monkeypatch.setattr(runner, "append_file_to_archive", lambda *a: None)
     opened = []
     monkeypatch.setattr(
         runner, "launch_report_server", lambda source: opened.append(source) or True

@@ -494,15 +494,31 @@ def write_html(
     return report_path
 
 
-def archive_workspace(workspace: RunWorkspace, out_root: Path) -> Path:
+def archive_workspace(
+    workspace: RunWorkspace,
+    out_root: Path,
+    *,
+    exclude: set[Path] | None = None,
+) -> Path:
     archive_path = out_root / f"{workspace.base}.zip"
+    excluded = {path.resolve() for path in (exclude or set())}
     with zipfile.ZipFile(
         archive_path, "w", zipfile.ZIP_DEFLATED
     ) as archive:
         for item in workspace.root.rglob("*"):
-            if item.is_file():
+            if item.is_file() and item.resolve() not in excluded:
                 archive.write(item, item.relative_to(out_root))
     return archive_path
+
+
+def append_file_to_archive(
+    archive_path: Path,
+    item: Path,
+    out_root: Path,
+) -> None:
+    """Append one late-finalized file without rebuilding the completed archive."""
+    with zipfile.ZipFile(archive_path, "a", zipfile.ZIP_DEFLATED) as archive:
+        archive.write(item, item.relative_to(out_root))
 
 
 def prune_outputs(

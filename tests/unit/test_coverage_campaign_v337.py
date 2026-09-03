@@ -113,3 +113,16 @@ def test_archive_workspace_includes_files(tmp_path):
     (ws.root/"x.txt").write_text("x",encoding="utf-8")
     path=out.archive_workspace(ws,tmp_path)
     assert path.is_file()
+
+
+def test_archive_workspace_can_append_late_finalized_debug_file(tmp_path):
+    ws=workspace(tmp_path)
+    debug=ws.root/"debug.json"
+    debug.write_text("before",encoding="utf-8")
+    path=out.archive_workspace(ws,tmp_path,exclude={debug})
+    debug.write_text("after",encoding="utf-8")
+    out.append_file_to_archive(path,debug,tmp_path)
+    with out.zipfile.ZipFile(path) as archive:
+        names=archive.namelist()
+        assert names.count(str(debug.relative_to(tmp_path)).replace("\\","/"))==1
+        assert archive.read(names[-1])==b"after"

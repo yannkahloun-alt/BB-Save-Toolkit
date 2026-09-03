@@ -52,6 +52,8 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "reference_status": [],
         "profile": [],
         "archive_calls": 0,
+        "archive_excludes": [],
+        "archive_appends": [],
         "prune_calls": [],
         "debug_args": [],
     }
@@ -118,11 +120,17 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "write_debug_bundle",
         lambda *a: calls["debug_args"].append(a) or debug,
     )
-    def archive_workspace(*args):
+    def archive_workspace(*args, exclude=None):
         calls["archive_calls"] += 1
+        calls["archive_excludes"].append(exclude)
         return archive
 
     monkeypatch.setattr(runner, "archive_workspace", archive_workspace)
+    monkeypatch.setattr(
+        runner,
+        "append_file_to_archive",
+        lambda *args: calls["archive_appends"].append(args),
+    )
     monkeypatch.setattr(
         runner,
         "prune_outputs",
@@ -183,7 +191,11 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert f"Validation: PASS — {tmp_path / 'validation.json'}" in out
     assert "SHA-256" in out
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
-    assert calls["archive_calls"] == 2
+    assert calls["archive_calls"] == 1
+    assert calls["archive_excludes"] == [{tmp_path / "debug.json"}]
+    assert calls["archive_appends"] == [
+        (tmp_path / "archive.zip", tmp_path / "debug.json", tmp_path)
+    ]
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
     performance = calls["debug_args"][0][-1]
     assert performance["format"] == "bbtool.performance_diagnostics.v1"
@@ -245,7 +257,7 @@ def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_pa
     monkeypatch.setattr(
         runner,
         "archive_workspace",
-        lambda *args: (_ for _ in ()).throw(OSError("archive failed")),
+        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("archive failed")),
     )
 
     with pytest.raises(OSError, match="archive failed"):

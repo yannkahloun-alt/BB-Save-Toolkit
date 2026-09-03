@@ -38,6 +38,7 @@ from .console import (
     sha256_file,
 )
 from .output import (
+    append_file_to_archive,
     archive_workspace,
     create_workspace,
     finalize_debug_bundle_metadata,
@@ -311,7 +312,11 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
 
     step = Step("Create run archive")
     step.__enter__()
-    archive_path = archive_workspace(workspace, options.out)
+    archive_path = archive_workspace(
+        workspace,
+        options.out,
+        exclude={debug_path} if debug_path is not None else None,
+    )
     stage_timings["create_run_archive"] = step.done()
     total_elapsed = time.perf_counter() - total_started
     refresh_resources(run_metadata)
@@ -322,8 +327,10 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         finalize_debug_bundle_metadata(
             debug_path, run_metadata, performance_diagnostics
         )
-        # Rebuild so the archive contains the final, post-archive measurement.
-        archive_path = archive_workspace(workspace, options.out)
+        # Persist the final snapshot as the archive's last member. The measured
+        # run includes the expensive archive build; only writing the timing
+        # record itself remains outside its necessarily self-referential total.
+        append_file_to_archive(archive_path, debug_path, options.out)
     archive_size = archive_path.stat().st_size
     archive_sha256 = sha256_file(archive_path)
     prune_outputs(options.out, workspace.source_save.stem, archive_path)
