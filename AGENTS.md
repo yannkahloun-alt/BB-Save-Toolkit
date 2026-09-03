@@ -11,6 +11,16 @@ This file specializes that workflow for Battle Brothers Save Toolkit. Explicit
 user instructions still take precedence. The repository is the development
 source of truth; ZIP files are release artifacts only.
 
+## Shared workflow dependency
+
+- Workflow submodule path: `.agent-workflow`
+- Workflow upstream: `yannkahloun-alt/codex-agent-workflow`
+- Approved stable selector: greatest non-prerelease SemVer tag in the `v1.x`
+  series
+
+The selector permits dedicated workflow-bump lifecycle updates within `v1.x`.
+A new major series requires an explicit project-policy change and review.
+
 ## Mission and non-negotiable rules
 
 Maintain a read-only save-analysis toolkit centered on level-11 Fit to configured
