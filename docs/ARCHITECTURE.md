@@ -36,6 +36,13 @@ prevents the rest of the roster from being exported.
 
 `BrotherID = human:<HumanOffset>` is save-local. Names are display-only.
 
+The parser also exposes the native asset-manager `CampaignID` through a typed
+`CampaignIdentity`. It validates the source-defined post-stash serialization
+sequence and requires a unique, non-negative signed 32-bit value. The map seed,
+save path, filename, and timestamps do not participate. This identity means
+"same campaign" only; the SHA-256 source fingerprint means exact snapshot
+equality, while lineage remains a separate contract.
+
 ### `references/`
 
 Contains tracked seed/catalog data plus generators for runtime vanilla references. Generated references are derived from source scripts/save-hash semantics and are disposable caches.
@@ -89,6 +96,10 @@ archetypes, classification configuration, bounded execution options, and an
 optional compatible incremental-cache context. The typed result contains the
 parsed public data, Fit/summary outputs, content and configuration fingerprints,
 structured warnings/diagnostics, timings, and progress events.
+
+The typed result includes `campaign_identity` for downstream durable-state
+consumers, but `public_data` intentionally omits it while the public report v1
+schema remains unchanged.
 
 The service does not invoke argument parsing, choose output paths, write reports,
 or use a filesystem path as save identity. CLI and future HTTP/worker entry

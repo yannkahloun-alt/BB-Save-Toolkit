@@ -1,10 +1,11 @@
 import struct
 import pytest
 pytestmark=pytest.mark.unit
-from bbtool.save_parser import u16,i16,u32,f32,lp_string,printable_ascii,_squirrel_round
+from bbtool.save_parser import u16,i16,u32,i32,f32,lp_string,printable_ascii,_squirrel_round
 
 def test_numeric_primitives():
     b=struct.pack('<HhIf',65530,-123,4000000000,1.25); assert u16(b,0)==65530; assert i16(b,2)==-123; assert u32(b,4)==4000000000; assert f32(b,8)==pytest.approx(1.25)
+    assert i32(struct.pack('<i', -987654321), 0) == -987654321
 def test_short_buffer_raises():
     for fn in (u16,i16,u32,f32):
         with pytest.raises(struct.error): fn(b'\x00',0)

@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
 
 STATS = ("HP", "Fatigue", "Resolve", "Initiative", "MAtk", "RAtk", "MDef", "RDef")
 STAR_FIELDS = tuple(f"{s}Stars" for s in STATS)
+
+
+@dataclass(frozen=True)
+class CampaignIdentity:
+    """Conservative campaign-membership evidence from serialized game state."""
+
+    value: int | None
+    basis: Literal["native_campaign_id"] = "native_campaign_id"
+    confidence: Literal["exact", "unavailable", "invalid"] = "unavailable"
+    reason: str | None = None
 
 
 def empty_equipment() -> dict:

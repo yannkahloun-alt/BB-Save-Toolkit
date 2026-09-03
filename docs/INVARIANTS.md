@@ -34,6 +34,16 @@ These are architectural contracts, not implementation suggestions.
 - Ambiguity always disables reuse.
 - Experimental `FutureRolls` continuity helpers are not production identity until real progression saves validate them.
 
+## Campaign identity
+
+- `CampaignIdentity` is the exact non-negative signed 32-bit `CampaignID`
+  serialized by vanilla `asset_manager`; map seed and filesystem provenance
+  are never substitutes.
+- Campaign identity proves membership in one Battle Brothers run. It proves
+  neither exact snapshot equality nor save ancestry.
+- Missing, malformed, negative, or ambiguous native evidence is explicit and
+  disables campaign-dependent behavior rather than triggering a heuristic.
+
 ## Traits and injuries
 
 - Serialized trait IDs are Battle Brothers 4-byte save hashes.
