@@ -186,6 +186,13 @@ After a run archive is written successfully, output retention keeps the 10
 newest timestamped ZIP archives for that source-save filename. Retention does
 not rename outputs, remove run directories, or act on unrelated files.
 
+`bbtool/app/user_state.py` owns the versioned durable per-user state substrate.
+Its OS-appropriate `UserStateRoot` is outside repository, installation, output,
+manifest, and reference-cache trees. Bounded feature files use typed validation,
+atomic replacement, feature locks, optimistic revisions, explicit migrations,
+and feature-scoped recovery. See [`USER_STATE.md`](USER_STATE.md). Domain
+semantics for user archetypes and assigned builds remain downstream concerns.
+
 ### `bbtool/html_report.py`, `report.js`, `report.css`
 
 Presentation layer. Report/UI-only changes should not invalidate numerical caches.
