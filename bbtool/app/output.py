@@ -470,6 +470,19 @@ def finalize_debug_bundle_metadata(
     )
 
 
+def write_performance_diagnostics(
+    workspace: RunWorkspace,
+    performance_diagnostics: dict,
+) -> Path:
+    """Write the final small timing record appended after measured ZIP work."""
+    path = workspace.root / f"{workspace.base}-performance.json"
+    path.write_text(
+        json.dumps(performance_diagnostics, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return path
+
+
 
 def write_html(
     workspace: RunWorkspace,

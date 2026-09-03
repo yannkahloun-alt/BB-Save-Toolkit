@@ -132,10 +132,12 @@ The debug bundle also owns a versioned `bbtool.performance_diagnostics.v1`
 runtime section. It persists CLI stage timings, workload and incremental reuse
 counts, service-stage timings, cache miss reasons, and projection-validation
 cache/oracle diagnostics used by the console. The debug file is excluded from
-the main archive pass, finalized after that expensive work is measured, and
-then appended once; only persistence of the necessarily self-referential final
-timing snapshot remains outside the reported total. Internal performance
-evidence stays out of the public report contract.
+the main archive pass and appended before the archive timer stops, so its
+compression is part of both archive and total time. The loose debug file is
+then finalized with those timings; the ZIP receives the same final data in a
+small `*-performance.json` member. Only persistence of that necessarily
+self-referential stopwatch record remains outside the reported total. Internal
+performance evidence stays out of the public report contract.
 
 ### `bbtool/incremental/`
 

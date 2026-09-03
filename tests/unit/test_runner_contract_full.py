@@ -56,6 +56,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "archive_appends": [],
         "prune_calls": [],
         "debug_args": [],
+        "performance_args": [],
     }
 
     monkeypatch.setattr(runner, "Step", FakeStep)
@@ -119,6 +120,12 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         runner,
         "write_debug_bundle",
         lambda *a: calls["debug_args"].append(a) or debug,
+    )
+    performance_path = tmp_path / "performance.json"
+    monkeypatch.setattr(
+        runner,
+        "write_performance_diagnostics",
+        lambda *a: calls["performance_args"].append(a) or performance_path,
     )
     def archive_workspace(*args, exclude=None):
         calls["archive_calls"] += 1
@@ -194,10 +201,12 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert calls["archive_calls"] == 1
     assert calls["archive_excludes"] == [{tmp_path / "debug.json"}]
     assert calls["archive_appends"] == [
-        (tmp_path / "archive.zip", tmp_path / "debug.json", tmp_path)
+        (tmp_path / "archive.zip", tmp_path / "debug.json", tmp_path),
+        (tmp_path / "archive.zip", tmp_path / "performance.json", tmp_path),
     ]
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
     performance = calls["debug_args"][0][-1]
+    assert calls["performance_args"][0][1] is performance
     assert performance["format"] == "bbtool.performance_diagnostics.v1"
     assert performance["analysis"]["role_workload"] == 3
     assert performance["analysis"]["role_computed"] == 3

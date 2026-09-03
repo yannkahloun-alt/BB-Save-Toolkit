@@ -126,3 +126,9 @@ def test_archive_workspace_can_append_late_finalized_debug_file(tmp_path):
         names=archive.namelist()
         assert names.count(str(debug.relative_to(tmp_path)).replace("\\","/"))==1
         assert archive.read(names[-1])==b"after"
+
+
+def test_write_performance_diagnostics(tmp_path):
+    ws=workspace(tmp_path)
+    path=out.write_performance_diagnostics(ws,{"total_seconds":1.25})
+    assert json.loads(path.read_text(encoding="utf-8"))=={"total_seconds":1.25}
