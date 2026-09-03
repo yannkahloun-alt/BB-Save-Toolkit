@@ -136,9 +136,15 @@ class IncrementalCache:
         if (
             not isinstance(outcomes, list)
             or not isinstance(sample_count, int)
+            or isinstance(sample_count, bool)
             or sample_count <= 0
             or len(outcomes) != sample_count
-            or any(not isinstance(value, (int, float)) or not 0 <= value <= 100 for value in outcomes)
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not 0 <= value <= 100
+                for value in outcomes
+            )
         ):
             self.miss_reasons["validation_oracle_corrupt"] += 1
             return None

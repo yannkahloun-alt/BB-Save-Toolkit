@@ -67,6 +67,18 @@ def test_fresh_process_warm_role_and_validation_reuse(
             lambda artifact: artifact["validation_oracle"].update(sample_count=-1),
             "validation_oracle_corrupt",
         ),
+        (
+            lambda artifact: artifact["validation_oracle"].update(
+                sample_count=True, outcomes_pct=[True]
+            ),
+            "validation_oracle_corrupt",
+        ),
+        (
+            lambda artifact: artifact["validation_oracle"].update(
+                sample_count=1, outcomes_pct=[False]
+            ),
+            "validation_oracle_corrupt",
+        ),
     ],
 )
 def test_missing_stale_incompatible_or_corrupt_oracle_conservatively_recomputes(
