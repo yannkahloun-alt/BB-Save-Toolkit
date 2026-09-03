@@ -52,7 +52,11 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "reference_status": [],
         "profile": [],
         "archive_calls": 0,
+        "archive_excludes": [],
+        "archive_appends": [],
         "prune_calls": [],
+        "debug_args": [],
+        "performance_args": [],
     }
 
     monkeypatch.setattr(runner, "Step", FakeStep)
@@ -94,7 +98,17 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
                 "parse": {"recoverable_failures": []},
                 "references": status,
                 "projection_profile": {"project_role_calls": 7},
+                "validation_projection": {
+                    "seeded_projection_calls": 3,
+                    "blind_cache_lookups": 3,
+                    "trajectory_cache_hits": 3,
+                    "trajectory_cache_misses": 0,
+                    "trajectory_seconds": 0.0,
+                    "oracle_reused": 3,
+                    "oracle_recomputed": 0,
+                },
             },
+            timings={"analysis": 0.25, "validation": 0.05, "total": 0.4},
             projection_validation={"summary": {"roll_range_violations": 0}},
         )
     monkeypatch.setattr(runner, "analyze_save", fake_analyze_save)
@@ -102,12 +116,28 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
     monkeypatch.setattr(runner, "write_html", lambda *a: report)
     monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
-    monkeypatch.setattr(runner, "write_debug_bundle", lambda *a: debug)
-    def archive_workspace(*args):
+    monkeypatch.setattr(
+        runner,
+        "write_debug_bundle",
+        lambda *a: calls["debug_args"].append(a) or debug,
+    )
+    performance_path = tmp_path / "performance.json"
+    monkeypatch.setattr(
+        runner,
+        "write_performance_diagnostics",
+        lambda *a: calls["performance_args"].append(a) or performance_path,
+    )
+    def archive_workspace(*args, exclude=None):
         calls["archive_calls"] += 1
+        calls["archive_excludes"].append(exclude)
         return archive
 
     monkeypatch.setattr(runner, "archive_workspace", archive_workspace)
+    monkeypatch.setattr(
+        runner,
+        "append_file_to_archive",
+        lambda *args: calls["archive_appends"].append(args),
+    )
     monkeypatch.setattr(
         runner,
         "prune_outputs",
@@ -168,8 +198,26 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
     assert f"Validation: PASS — {tmp_path / 'validation.json'}" in out
     assert "SHA-256" in out
     assert "Report opening: requested=no · attempted=no · successful=unavailable" in out
-    assert calls["archive_calls"] == 2
+    assert calls["archive_calls"] == 1
+    assert calls["archive_excludes"] == [{tmp_path / "debug.json"}]
+    assert calls["archive_appends"] == [
+        (tmp_path / "archive.zip", tmp_path / "debug.json", tmp_path),
+        (tmp_path / "archive.zip", tmp_path / "performance.json", tmp_path),
+    ]
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
+    performance = calls["debug_args"][0][-1]
+    assert calls["performance_args"][0][1] is performance
+    assert performance["format"] == "bbtool.performance_diagnostics.v1"
+    assert performance["analysis"]["role_workload"] == 3
+    assert performance["analysis"]["role_computed"] == 3
+    assert performance["analysis"]["summary_computed"] == 1
+    assert performance["analysis"]["advisor_computed"] == 1
+    assert performance["analysis"]["service_stage_seconds"]["analysis"] == 0.25
+    assert performance["validation"]["oracle_reused"] == 3
+    assert performance["validation"]["trajectory_cache_misses"] == 0
+    assert performance["total_seconds"] == 5.75
+    assert "strategic_classification" in performance["stage_seconds"]
+    assert "create_run_archive" in performance["stage_seconds"]
 
 
 def test_runner_scopes_manifest_lifecycle_by_campaign(monkeypatch, tmp_path):
@@ -218,7 +266,7 @@ def test_runner_does_not_prune_when_archive_generation_fails(monkeypatch, tmp_pa
     monkeypatch.setattr(
         runner,
         "archive_workspace",
-        lambda *args: (_ for _ in ()).throw(OSError("archive failed")),
+        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("archive failed")),
     )
 
     with pytest.raises(OSError, match="archive failed"):

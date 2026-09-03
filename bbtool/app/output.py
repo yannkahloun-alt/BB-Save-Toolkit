@@ -414,6 +414,7 @@ def write_debug_bundle(
     projection_profile: dict,
     run_health: dict | None = None,
     run_metadata: dict | None = None,
+    performance_diagnostics: dict | None = None,
 ) -> Path:
     """
     Single-file support bundle intended to be dropped into ChatGPT instead of
@@ -440,6 +441,7 @@ def write_debug_bundle(
             "references": reference_status,
             "projection_profile": projection_profile,
             "run_health": run_health or {},
+            "performance": performance_diagnostics or {},
         },
     }
 
@@ -451,14 +453,34 @@ def write_debug_bundle(
     return path
 
 
-def finalize_debug_bundle_metadata(path: Path, run_metadata: dict) -> None:
-    """Persist the final resource snapshot after the monitored run is complete."""
+def finalize_debug_bundle_metadata(
+    path: Path,
+    run_metadata: dict,
+    performance_diagnostics: dict | None = None,
+) -> None:
+    """Persist runtime data that is only complete near the end of the run."""
     payload = json.loads(path.read_text(encoding="utf-8"))
-    payload.setdefault("runtime", {})["run_metadata"] = run_metadata
+    runtime = payload.setdefault("runtime", {})
+    runtime["run_metadata"] = run_metadata
+    if performance_diagnostics is not None:
+        runtime["performance"] = performance_diagnostics
     path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False, default=str),
         encoding="utf-8",
     )
+
+
+def write_performance_diagnostics(
+    workspace: RunWorkspace,
+    performance_diagnostics: dict,
+) -> Path:
+    """Write the final small timing record appended after measured ZIP work."""
+    path = workspace.root / f"{workspace.base}-performance.json"
+    path.write_text(
+        json.dumps(performance_diagnostics, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return path
 
 
 
@@ -485,15 +507,31 @@ def write_html(
     return report_path
 
 
-def archive_workspace(workspace: RunWorkspace, out_root: Path) -> Path:
+def archive_workspace(
+    workspace: RunWorkspace,
+    out_root: Path,
+    *,
+    exclude: set[Path] | None = None,
+) -> Path:
     archive_path = out_root / f"{workspace.base}.zip"
+    excluded = {path.resolve() for path in (exclude or set())}
     with zipfile.ZipFile(
         archive_path, "w", zipfile.ZIP_DEFLATED
     ) as archive:
         for item in workspace.root.rglob("*"):
-            if item.is_file():
+            if item.is_file() and item.resolve() not in excluded:
                 archive.write(item, item.relative_to(out_root))
     return archive_path
+
+
+def append_file_to_archive(
+    archive_path: Path,
+    item: Path,
+    out_root: Path,
+) -> None:
+    """Append one late-finalized file without rebuilding the completed archive."""
+    with zipfile.ZipFile(archive_path, "a", zipfile.ZIP_DEFLATED) as archive:
+        archive.write(item, item.relative_to(out_root))
 
 
 def prune_outputs(

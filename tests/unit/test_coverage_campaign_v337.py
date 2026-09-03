@@ -80,19 +80,23 @@ def test_write_debug_bundle(tmp_path):
         ws,[make_bro()],[],[{"Role":"x"}],[{"Name":"A"}],[{"name":"x"}],
         {"thresholds":{}},{"dictionary":True},{"calls":1},
         run_metadata={"format":"bbtool.run_metadata.v1"},
+        performance_diagnostics={"format":"bbtool.performance_diagnostics.v1"},
     )
     payload=json.loads(path.read_text(encoding="utf-8"))
     assert payload["_meta"]["format"]=="bbtool.debug_bundle.v1"
     assert payload["roster"][0]["Name"]=="A"
     assert payload["runtime"]["projection_profile"]=={"calls":1}
     assert payload["runtime"]["run_metadata"]=={"format":"bbtool.run_metadata.v1"}
+    assert payload["runtime"]["performance"]=={"format":"bbtool.performance_diagnostics.v1"}
 
     out.finalize_debug_bundle_metadata(
         path,
         {"format":"bbtool.run_metadata.v1","resources":{"python_heap_peak_bytes":123}},
+        {"format":"bbtool.performance_diagnostics.v1","total_seconds":4.5},
     )
     finalized=json.loads(path.read_text(encoding="utf-8"))
     assert finalized["runtime"]["run_metadata"]["resources"]["python_heap_peak_bytes"]==123
+    assert finalized["runtime"]["performance"]["total_seconds"]==4.5
 
 
 def test_write_html_copies_assets_and_writes_report(monkeypatch,tmp_path):
@@ -109,3 +113,22 @@ def test_archive_workspace_includes_files(tmp_path):
     (ws.root/"x.txt").write_text("x",encoding="utf-8")
     path=out.archive_workspace(ws,tmp_path)
     assert path.is_file()
+
+
+def test_archive_workspace_can_append_late_finalized_debug_file(tmp_path):
+    ws=workspace(tmp_path)
+    debug=ws.root/"debug.json"
+    debug.write_text("before",encoding="utf-8")
+    path=out.archive_workspace(ws,tmp_path,exclude={debug})
+    debug.write_text("after",encoding="utf-8")
+    out.append_file_to_archive(path,debug,tmp_path)
+    with out.zipfile.ZipFile(path) as archive:
+        names=archive.namelist()
+        assert names.count(str(debug.relative_to(tmp_path)).replace("\\","/"))==1
+        assert archive.read(names[-1])==b"after"
+
+
+def test_write_performance_diagnostics(tmp_path):
+    ws=workspace(tmp_path)
+    path=out.write_performance_diagnostics(ws,{"total_seconds":1.25})
+    assert json.loads(path.read_text(encoding="utf-8"))=={"total_seconds":1.25}
