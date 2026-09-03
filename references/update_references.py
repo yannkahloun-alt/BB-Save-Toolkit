@@ -5,6 +5,8 @@ import hashlib
 import io
 import json
 import re
+import socket
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -21,6 +23,9 @@ BB_SCRIPTS_ZIP_URL = (
 )
 
 REFERENCE_STATUS_SCHEMA = "bbtool.reference_status.v1"
+DOWNLOAD_MAX_ATTEMPTS = 3
+DOWNLOAD_RETRY_BACKOFF_SECONDS = 0.25
+_TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
 REFERENCE_CACHE_SCHEMAS = {
     "dictionary": "bbtool.enriched_dictionary.v1",
     "backgrounds": "legacy-unversioned",
@@ -220,13 +225,55 @@ def background_dictionary_is_present(
     )
 
 
-def _download_bytes(url: str, timeout: int = 30) -> bytes:
+def _download_once(url: str, timeout: int) -> bytes:
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "BB-Save-Toolkit/2.7"},
     )
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return response.read()
+
+
+def _is_transient_download_error(exc: BaseException) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in _TRANSIENT_HTTP_STATUS_CODES
+    return isinstance(
+        exc,
+        (
+            urllib.error.URLError,
+            TimeoutError,
+            ConnectionError,
+            socket.timeout,
+            ssl.SSLError,
+        ),
+    )
+
+
+def _download_bytes(url: str, timeout: int = 30) -> bytes:
+    for attempt in range(1, DOWNLOAD_MAX_ATTEMPTS + 1):
+        try:
+            payload = _download_once(url, timeout)
+        except Exception as exc:
+            if (
+                attempt == DOWNLOAD_MAX_ATTEMPTS
+                or not _is_transient_download_error(exc)
+            ):
+                raise
+            delay = DOWNLOAD_RETRY_BACKOFF_SECONDS * attempt
+            print(
+                "Reference download failed "
+                f"(attempt {attempt}/{DOWNLOAD_MAX_ATTEMPTS}): {exc}"
+            )
+            print(f"Retrying in {delay:g}s...")
+            time.sleep(delay)
+        else:
+            if attempt > 1:
+                print(
+                    "Reference download succeeded "
+                    f"(attempt {attempt}/{DOWNLOAD_MAX_ATTEMPTS})"
+                )
+            return payload
+    raise AssertionError("unreachable")
 
 
 def _download_with_provenance(

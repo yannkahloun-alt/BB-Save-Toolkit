@@ -50,6 +50,12 @@ final state and absolute path of every persisted cache file. The run-health
 summary separately identifies unresolved references that occur in the current
 save; unresolved upstream entries that are not used by that save remain
 informational and do not produce a result-affecting warning.
+Reference downloads retry transient transport, TLS-handshake, throttling, and
+server failures three times with bounded increasing backoff while preserving
+normal certificate verification. A valid complete local cache remains the
+preferred fallback: it is validated before any download and is used without a
+network refresh, while a missing or invalid required cache still fails cleanly
+if the bounded download attempts cannot rebuild it.
 
 ### `bbtool/projection/`
 
