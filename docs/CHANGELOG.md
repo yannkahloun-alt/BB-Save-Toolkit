@@ -1,3 +1,18 @@
+## v3.88.1 — Faster analysis and shared analysis service
+
+- Add a transport-independent analysis service boundary so CLI, report generation,
+  tests, and future HTTP/worker entry points consume one authoritative analysis
+  result without duplicating analytical orchestration.
+- Optimize the dominant four- and five-stat Fit trajectory reductions while
+  preserving projection, Fit, classification, Level-Up Advisor, and validation
+  semantics.
+- Reduce the documented cold one-brother × 11-archetype Fit benchmark from
+  9.424 s to 1.417 s (6.65× faster); the representative 10-brother
+  analysis + projection-validation benchmark completes in 9.707 s.
+- Keep seeded projection validation independent while safely reusing deterministic
+  choice-policy memoization; the documented validation stage is 0.093 s on the
+  representative benchmark.
+
 ## v3.88 — Application previews, calibrated archetypes, and run diagnostics
 
 - Add manually triggered full-application previews from an approved real save,
