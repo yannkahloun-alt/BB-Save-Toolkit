@@ -1,13 +1,28 @@
-## Unreleased
+## v3.88.2 — Performance and reliability hardening
 
 - Scope incremental manifest discovery and retention to exact native campaign
   identity, preserving reuse across renamed/copied saves while preventing
   same-path cross-campaign selection.
+- Parse and expose the exact native serialized `CampaignID` as versioned
+  `CampaignIdentity` evidence, with conservative fallback when that evidence is
+  missing, malformed, negative, or ambiguous.
+- Persist and reuse the private deterministic projection-validation oracle with
+  compatible role artifacts, so identical warm incremental runs avoid
+  rebuilding cold-sized Fit trajectories.
+- Rehydrate current-save display fields when reusing analytical summaries,
+  preventing stale temporary-injury text without broadening projection
+  fingerprints.
 - Make costly Python heap allocation tracing opt-in with
   `--measure-python-heap`, removing its roughly 5× observer overhead from normal
   cold Fit analysis while retaining the diagnostic when explicitly requested.
 - Add bounded per-projection policy diagnostics and a sanitized deterministic
   representative-state benchmark for cold performance investigations.
+- Retry transient reference downloads with bounded backoff while preserving TLS
+  verification, and prefer an already-valid complete local reference cache.
+- Correct save-visible parser/reference handling for false circle candidates,
+  roster item state, and variable-length recruit equipment; the validated
+  same-save reproduction now reports no unresolved references, recoverable
+  failures, or result-affecting warnings.
 - Refactor trajectory engine boundaries without changing projection semantics:
   deterministic sampling now has an independent module, hot paths use a named
   read-only context, and process-local cache/reset ownership is explicit.
