@@ -24,12 +24,15 @@ _TRAJECTORY_CACHE_IDENTITIES: dict[tuple, set[tuple[str, str]]] = {}
 _TRAJECTORY_CACHE_MAX = 4096
 _CONTEXT_CACHE: dict[tuple, tuple] = {}
 _CONTEXT_CACHE_MAX = 1024
+_POLICY_CACHE: dict[tuple, object] = {}
+_POLICY_CACHE_MAX = 1024
 
 
 def reset_trajectory_cache() -> None:
     _TRAJECTORY_CACHE.clear()
     _TRAJECTORY_CACHE_IDENTITIES.clear()
     _CONTEXT_CACHE.clear()
+    _POLICY_CACHE.clear()
 
 
 def _fit_stats(role: dict) -> tuple[str, ...]:
@@ -247,11 +250,24 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
                 for i in range(n)
             )
             best = float("-inf")
-            for drops in drop_compositions(r):
-                value = sum(contributions[i][drops[i]] for i in range(n)) / total_weight
-                if value > best:
-                    best = value
-            return best
+            if n == 4:
+                c0, c1, c2, c3 = contributions
+                for d0, d1, d2, d3 in drop_compositions(r):
+                    value = c0[d0] + c1[d1] + c2[d2] + c3[d3]
+                    if value > best:
+                        best = value
+            elif n == 5:
+                c0, c1, c2, c3, c4 = contributions
+                for d0, d1, d2, d3, d4 in drop_compositions(r):
+                    value = c0[d0] + c1[d1] + c2[d2] + c3[d3] + c4[d4]
+                    if value > best:
+                        best = value
+            else:
+                for drops in drop_compositions(r):
+                    value = sum(contributions[i][drops[i]] for i in range(n))
+                    if value > best:
+                        best = value
+            return best / total_weight
     else:
         @cache
         def best_average_future(rounds_left, raw_tuple):
@@ -271,6 +287,43 @@ def _make_final_fit_policy(fit_stats, normal_ranges, selection_cfg, utility_look
         return best
 
     return choose
+
+
+def _projection_policy(bro, role, rounds, ctx):
+    """Reuse blind lookahead state across equivalent in-run projections.
+
+    Supplied roll ranges affect the rolls replayed by the simulator, but the
+    choice policy deliberately values all later unknown rounds using vanilla
+    ranges.  Consequently a blind projection and its seeded validation replay
+    have the same policy whenever the seeded rolls stay inside those ranges.
+    """
+    fit_stats = ctx[0]
+    if len(fit_stats) <= 3:
+        return None
+    normal_ranges = ctx[3]
+    range_plan = ctx[4]
+    ranges_are_normal_bounded = all(
+        normal_ranges[stat][0] <= bounds[0] <= bounds[1] <= normal_ranges[stat][1]
+        for round_ranges in range_plan
+        for stat, bounds in zip(fit_stats, round_ranges, strict=True)
+    )
+    if not ranges_are_normal_bounded:
+        # Keep validation able to replay and report malformed serialized rolls;
+        # their expanded utility lookup cannot safely share a normal policy.
+        return _make_final_fit_policy(
+            fit_stats, normal_ranges, ctx[5], ctx[7], ctx[9]
+        )
+    key = (bro_fingerprint(bro), _role_fingerprint(role, fit_stats), int(rounds))
+    cached = _POLICY_CACHE.get(key)
+    if cached is not None:
+        return cached
+    policy = _make_final_fit_policy(
+        fit_stats, ctx[3], ctx[5], ctx[7], ctx[9]
+    )
+    if len(_POLICY_CACHE) >= _POLICY_CACHE_MAX:
+        _POLICY_CACHE.clear()
+    _POLICY_CACHE[key] = policy
+    return policy
 
 def _simulate_one_four(
     rounds, fit_stats, raw_start, normal_ranges,
@@ -467,9 +520,7 @@ def _project_fit_trajectory_fixed(
     # on this projection context, not on the sampled scenario, so build it once
     # and share it across every deterministic sampled path. Rebuilding it per path was
     # functionally identical but discarded the cache hundreds of times.
-    policy = _make_final_fit_policy(
-        fit_stats, normal_ranges, selection_cfg, utility_lookup, total_weight
-    ) if len(fit_stats) > 3 else None
+    policy = _projection_policy(bro, role, rounds, ctx)
 
     outcomes = []
     sums = {s: 0.0 for s in STATS}

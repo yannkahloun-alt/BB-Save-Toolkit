@@ -2,6 +2,7 @@ from dataclasses import replace
 import pytest
 pytestmark=pytest.mark.unit
 from bbtool.models import STATS
+import bbtool.projection.trajectory as trajectory
 from bbtool.projection.trajectory import project_fit_trajectory, project_seeded_fit_trajectory, reset_trajectory_cache, _needs_refinement
 from bbtool.projection.runtime import reset_profile_values, get_profile_values
 
@@ -93,3 +94,42 @@ def test_cache_miss_for_each_role_fit_parameter(field,value,bro_factory,simple_r
         changed['stats']['MAtk']['projected_curve']=_fit_curve(changed['stats']['MAtk']['target'],changed['stats']['MAtk']['baseline'])
     project_fit_trajectory(b,changed,rounds=1,samples=8)
     assert get_profile_values()['trajectory_cache_misses']>before
+
+
+def test_seeded_validation_reuses_blind_lookahead_policy(monkeypatch, bro_factory, simple_role):
+    role = simple_role(('HP', 'Fatigue', 'MAtk', 'MDef'))
+    bro = bro_factory(Level=9, FutureRolls={stat: [2, 2] for stat in STATS})
+    original = trajectory._make_final_fit_policy
+    builds = []
+
+    def counted(*args):
+        builds.append(1)
+        return original(*args)
+
+    monkeypatch.setattr(trajectory, '_make_final_fit_policy', counted)
+    reset_trajectory_cache()
+    project_fit_trajectory(bro, role, rounds=2, samples=8)
+    project_seeded_fit_trajectory(bro, role)
+
+    assert len(builds) == 1
+
+
+def test_out_of_range_seeded_roll_uses_expanded_policy(monkeypatch, bro_factory, simple_role):
+    role = simple_role(('HP', 'Fatigue', 'MAtk', 'MDef'))
+    future = {stat: [2] for stat in STATS}
+    future['MAtk'] = [99]
+    bro = bro_factory(Level=10, FutureRolls=future)
+    original = trajectory._make_final_fit_policy
+    builds = []
+
+    def counted(*args):
+        builds.append(1)
+        return original(*args)
+
+    monkeypatch.setattr(trajectory, '_make_final_fit_policy', counted)
+    reset_trajectory_cache()
+    project_fit_trajectory(bro, role, rounds=1, samples=8)
+    result = project_seeded_fit_trajectory(bro, role)
+
+    assert result is not None
+    assert len(builds) == 2

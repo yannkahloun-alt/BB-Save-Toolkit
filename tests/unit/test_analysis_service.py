@@ -82,6 +82,15 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
         {"schema": "test"}, True, "provenance-only"
     )
     assert result.diagnostics["cache_miss_reasons"] == {"role_hash": 2}
+    assert result.diagnostics["validation_projection"] == {
+        "seeded_projection_calls": 1,
+        "blind_cache_lookups": 1,
+        "trajectory_cache_hits": 0,
+        "trajectory_cache_misses": 0,
+        "trajectory_seconds": 0.0,
+    }
+    assert result.timings["analysis"] >= 0
+    assert result.timings["validation"] >= 0
 
     renamed = service.analyze_save(
         service.AnalysisServiceRequest(
