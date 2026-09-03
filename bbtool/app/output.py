@@ -261,7 +261,10 @@ def _empirical_percentile(outcomes, realized: float) -> tuple[float | None, int]
     return round(percentile, 1), n
 
 
-def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> dict:
+def build_projection_validation(
+    bros, fits: list[dict], roles: list[dict], validation_oracle_lookup=None,
+    validation_oracle_store=None,
+) -> dict:
     """Compare probabilistic Fit projections with rolls serialized in the save.
 
     This diagnostic is intentionally excluded from classification/advisor inputs.
@@ -273,6 +276,8 @@ def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> di
     role_by_name = {role["name"]: role for role in roles}
     rows = []
     roll_range_violations = []
+    oracle_reused = 0
+    oracle_recomputed = 0
     roll_luck_by_object = {id(bro): _roll_luck_to_level11(bro) for bro in bros}
     roll_luck_by_bro = {bro.BrotherID: roll_luck_by_object[id(bro)] for bro in bros}
     for bro in bros:
@@ -304,7 +309,14 @@ def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> di
         full_min = float(projected.get("ProjectedFitFullMinPct", expected))
         full_max = float(projected.get("ProjectedFitFullMaxPct", expected))
         realized = float(actual["fit_pct"])
-        blind = _blind_projection_for_validation(bro, role)
+        blind = validation_oracle_lookup(bro, role) if validation_oracle_lookup else None
+        if blind is None:
+            blind = _blind_projection_for_validation(bro, role)
+            oracle_recomputed += 1
+            if validation_oracle_store is not None:
+                validation_oracle_store(bro, role, blind)
+        else:
+            oracle_reused += 1
         actual_percentile, percentile_samples = _empirical_percentile(
             blind.get("_outcomes_pct"), realized
         )
@@ -334,6 +346,8 @@ def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> di
         "rows": rows,
         "summary": {
             "comparisons": n,
+            "oracle_reused": oracle_reused,
+            "oracle_recomputed": oracle_recomputed,
             "inside_likely": sum(bool(r["InsideLikelyRange"]) for r in rows),
             "inside_likely_pct": round(100.0 * sum(bool(r["InsideLikelyRange"]) for r in rows) / n, 1) if n else None,
             "inside_full": sum(bool(r["InsideFullRange"]) for r in rows),

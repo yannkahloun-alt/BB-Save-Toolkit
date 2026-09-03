@@ -17,6 +17,12 @@ class FakeCache:
         )
         self.miss_reasons = {"role_hash": 2}
 
+    def get_validation_oracle(self, bro, role):
+        return None
+
+    def store_validation_oracle(self, bro, role, trajectory):
+        return None
+
 
 def _patch_pipeline(monkeypatch):
     roster = [SimpleNamespace(Name="A")]
@@ -88,6 +94,8 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
         "trajectory_cache_hits": 0,
         "trajectory_cache_misses": 0,
         "trajectory_seconds": 0.0,
+        "oracle_reused": 0,
+        "oracle_recomputed": 0,
     }
     assert result.timings["analysis"] >= 0
     assert result.timings["validation"] >= 0

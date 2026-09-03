@@ -34,6 +34,7 @@ def test_run_metadata_records_reproducible_environment_and_hashes(tmp_path):
         "role_projection": 6,
         "advisor": 4,
         "summary": 6,
+        "validation_oracle": 1,
     }
     assert metadata["input_save"]["path"] == str(options.save.resolve())
     assert metadata["input_save"]["size_bytes"] == len(b"private-save-bytes")

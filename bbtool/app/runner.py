@@ -149,7 +149,9 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
                 f"{validation_profile['blind_cache_lookups']} blind lookups · "
                 f"{validation_profile['trajectory_cache_hits']} cache hits · "
                 f"{validation_profile['trajectory_cache_misses']} cache misses · "
-                f"{validation_profile['trajectory_seconds']:.3f}s compute"
+                f"{validation_profile['trajectory_seconds']:.3f}s compute · "
+                f"{validation_profile.get('oracle_reused', 0)} oracle reused · "
+                f"{validation_profile.get('oracle_recomputed', 0)} oracle rebuilt"
             )
         if bool(getattr(options, "cache_debug", False)):
             print(

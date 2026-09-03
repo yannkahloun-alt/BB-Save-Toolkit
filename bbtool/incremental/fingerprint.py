@@ -6,6 +6,7 @@ from ..models import STATS
 
 ROLE_PROJECTION_ENGINE_VERSION = 6
 BROTHER_SUMMARY_ENGINE_VERSION = 6
+VALIDATION_ORACLE_ENGINE_VERSION = 1
 
 def canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
@@ -32,6 +33,15 @@ def brother_projection_fingerprint(bro) -> str:
 
 def role_fingerprint(role: dict) -> str:
     return stable_hash(role)
+
+
+def validation_oracle_fingerprint(bro, role: dict) -> str:
+    return stable_hash({
+        "brother_state": brother_projection_state(bro),
+        "role": role_fingerprint(role),
+        "role_projection_engine": ROLE_PROJECTION_ENGINE_VERSION,
+        "validation_oracle_engine": VALIDATION_ORACLE_ENGINE_VERSION,
+    })
 
 
 def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:

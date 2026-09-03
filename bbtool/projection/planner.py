@@ -84,3 +84,12 @@ def project_role(bro: Brother, role: dict) -> dict:
         "FitTrajectoryStateCount": trajectory["state_count"],
         "FitTrajectoryPruned": trajectory["pruned"],
     }
+
+
+def project_validation_oracle(bro: Brother, role: dict) -> dict:
+    """Return the private blind distribution populated by role projection."""
+    trajectory, _values, _components = _project_role_common(bro, role)
+    return {
+        "outcomes_pct": list(trajectory.get("_outcomes_pct", ())),
+        "sample_count": int(trajectory.get("sample_count", 0)),
+    }

@@ -206,7 +206,8 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         pre_validation_projection_profile = get_profile()
         tick = time.perf_counter()
         projection_validation = build_projection_validation(
-            roster, analysis.fits, request.roles
+            roster, analysis.fits, request.roles, cache.get_validation_oracle,
+            cache.store_validation_oracle,
         )
         timings[stage] = time.perf_counter() - tick
         final_projection_profile = get_profile()
@@ -226,6 +227,8 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
                 - pre_validation_projection_profile.get("trajectory_s", 0.0),
                 6,
             ),
+            "oracle_reused": projection_validation["summary"].get("oracle_reused", 0),
+            "oracle_recomputed": projection_validation["summary"].get("oracle_recomputed", 0),
         }
         emit(
             stage,
@@ -264,7 +267,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
                 "parse": parse_diagnostics,
                 "references": reference_status,
                 "run_health": health,
-                "projection_profile": final_projection_profile,
+                "projection_profile": pre_validation_projection_profile,
                 "validation_projection": validation_projection_diagnostics,
                 "cache_miss_reasons": dict(sorted(cache.miss_reasons.items())),
             },
