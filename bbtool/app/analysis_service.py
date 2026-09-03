@@ -11,8 +11,13 @@ from references.update_references import ensure_references
 
 from ..incremental import IncrementalCache, first_difference
 from ..incremental.fingerprint import stable_hash
+from ..models import CampaignIdentity
 from ..projection import configure_engine, get_profile, reset_profile
-from ..save_parser import parse_recruits_bytes, parse_roster_bytes
+from ..save_parser import (
+    parse_campaign_identity_bytes,
+    parse_recruits_bytes,
+    parse_roster_bytes,
+)
 from .analysis import AnalysisResult, analyze_brothers
 from .health import build_run_health
 from .output import build_projection_validation, public_brother_data
@@ -60,6 +65,7 @@ class AnalysisServiceRequest:
 
 @dataclass
 class AnalysisServiceResult:
+    campaign_identity: CampaignIdentity
     roster: list
     recruits: list[dict]
     analysis: AnalysisResult
@@ -144,6 +150,17 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         emit(stage, "completed", tick, reference_status=reference_status)
 
         parse_diagnostics = {"recoverable_failures": []}
+        stage = "campaign_identity"
+        tick = time.perf_counter()
+        campaign_identity = parse_campaign_identity_bytes(request.source.content)
+        timings[stage] = time.perf_counter() - tick
+        emit(
+            stage,
+            "completed",
+            tick,
+            confidence=campaign_identity.confidence,
+        )
+
         stage = "roster"
         tick = time.perf_counter()
         roster = parse_roster_bytes(request.source.content, diagnostics=parse_diagnostics)
@@ -251,6 +268,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         warnings = _structured_warnings(health)
         timings["total"] = time.perf_counter() - started
         return AnalysisServiceResult(
+            campaign_identity=campaign_identity,
             roster=roster,
             recruits=recruits,
             analysis=analysis,

@@ -5,7 +5,7 @@ import math
 import struct
 from pathlib import Path
 
-from .models import Brother, empty_equipment, empty_gear_fatigue
+from .models import CampaignIdentity, Brother, empty_equipment, empty_gear_fatigue
 
 def u16(b: bytes, o: int) -> int:
     return struct.unpack_from("<H", b, o)[0]
@@ -17,6 +17,10 @@ def i16(b: bytes, o: int) -> int:
 
 def u32(b: bytes, o: int) -> int:
     return struct.unpack_from("<I", b, o)[0]
+
+
+def i32(b: bytes, o: int) -> int:
+    return struct.unpack_from("<i", b, o)[0]
 
 
 def f32(b: bytes, o: int) -> float:
@@ -39,6 +43,89 @@ def lp_string(b: bytes, o: int, max_len: int = 512):
 
 def printable_ascii(s: str) -> bool:
     return all(32 <= ord(c) <= 126 for c in s)
+
+
+def _asset_manager_tail_at(b: bytes, campaign_offset: int) -> int | None:
+    """Validate the source-defined asset-manager fields after CampaignID."""
+    try:
+        campaign_id = i32(b, campaign_offset)
+        name_rec = lp_string(b, campaign_offset + 4, 128)
+        if name_rec is None or not name_rec[0]:
+            return None
+        banner_rec = lp_string(b, name_rec[1], 32)
+        if banner_rec is None:
+            return None
+        banner, o, _ = banner_rec
+        if not banner.startswith("banner_") or not banner[7:].isdigit():
+            return None
+
+        settings = b[o:o + 6]
+        if len(settings) != 6:
+            return None
+        banner_id, look, economic, combat, ironman, destruction_disabled = settings
+        if banner_id != int(banner[7:]) or look > 32:
+            return None
+        if economic > 3 or combat > 3:
+            return None
+        if ironman not in (0, 1) or destruction_disabled not in (0, 1):
+            return None
+        o += 6
+
+        origin_rec = lp_string(b, o, 128)
+        if origin_rec is None or not origin_rec[0].startswith("scenario."):
+            return None
+        seed_rec = lp_string(b, origin_rec[1], 128)
+        if seed_rec is None or not seed_rec[0] or not printable_ascii(seed_rec[0]):
+            return None
+        o = seed_rec[1]
+
+        resources = struct.unpack_from("<ffffIffHBfBB", b, o)
+        floats = (*resources[:4], *resources[5:7], resources[9])
+        if not all(math.isfinite(value) for value in floats):
+            return None
+        if resources[10] not in (0, 1) or resources[11] not in (0, 1):
+            return None
+        # Preserve a structurally valid negative ID so it can be reported as
+        # invalid evidence rather than mistaken for a missing manager block.
+        return campaign_id
+    except (IndexError, UnicodeDecodeError, ValueError, struct.error):
+        return None
+
+
+def parse_campaign_identity_bytes(b: bytes) -> CampaignIdentity:
+    """Parse exact native campaign membership evidence, or fail safely.
+
+    Vanilla writes a variable-size stash before CampaignID. Candidates are
+    therefore located from the following banner string and accepted only when
+    the complete source-defined post-stash asset-manager layout validates.
+    """
+    candidates: list[int] = []
+    banner_at = b.find(b"banner_")
+    while banner_at >= 0:
+        for name_len in range(1, 129):
+            campaign_offset = banner_at - 2 - name_len - 2 - 4
+            if campaign_offset < 0:
+                break
+            if u16(b, campaign_offset + 4) != name_len:
+                continue
+            value = _asset_manager_tail_at(b, campaign_offset)
+            if value is not None:
+                candidates.append(value)
+        banner_at = b.find(b"banner_", banner_at + 1)
+
+    if not candidates:
+        return CampaignIdentity(None, confidence="unavailable", reason="not_found")
+    if len(candidates) != 1:
+        return CampaignIdentity(None, confidence="invalid", reason="ambiguous")
+    value = candidates[0]
+    if value < 0:
+        return CampaignIdentity(None, confidence="invalid", reason="negative_value")
+    return CampaignIdentity(value, confidence="exact")
+
+
+def parse_campaign_identity(save_path: Path) -> CampaignIdentity:
+    """Path adapter; path metadata is never identity evidence."""
+    return parse_campaign_identity_bytes(save_path.read_bytes())
 
 def try_parse_human_header(b: bytes, human_offset: int):
     """

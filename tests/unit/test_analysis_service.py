@@ -75,6 +75,7 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     result = service.analyze_save(request)
 
     assert result.roster is roster
+    assert result.campaign_identity.confidence == "unavailable"
     assert result.recruits is recruits
     assert result.analysis is analysis
     assert result.public_data["fits"] == analysis.fits
@@ -82,8 +83,9 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     assert result.source_fingerprint.startswith("sha256:")
     assert set(result.configuration_fingerprints) == {"archetypes", "classification"}
     assert [event.stage for event in observed] == [
-        "references", "roster", "recruits", "analysis", "validation"
+        "references", "campaign_identity", "roster", "recruits", "analysis", "validation"
     ]
+    assert "campaign_identity" not in result.public_data
     assert result.incremental_cache.received == (
         {"schema": "test"}, True, "provenance-only"
     )
