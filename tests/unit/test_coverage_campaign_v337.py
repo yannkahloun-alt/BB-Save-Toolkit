@@ -17,13 +17,21 @@ def make_bro(name="A"):
     )
 
 
+def empty_context():
+    return tr.TrajectoryContext(
+        fit_stats=("MAtk",), raw_start={}, normal_ranges={}, range_plan=(),
+        selection_cfg={}, effective_lookup={}, utility_lookup={},
+        static_effective={}, total_weight=1.0,
+    )
+
+
 def test_compare_fit_trajectories_win_loss_tie_paths(monkeypatch):
     bro=make_bro()
     role={"name":"x","stats":{"MAtk":{"fit":True}}}
     monkeypatch.setattr(tr,"development_rounds_to_11",lambda b:1)
     monkeypatch.setattr(tr,"_fit_stats",lambda r:["MAtk"])
     monkeypatch.setattr(tr,"_sample_coordinates",lambda samples,dimensions:[[0.1],[0.2],[0.3]])
-    monkeypatch.setattr(tr,"_projection_context",lambda *a,**k:([1],None,None,None,None,None,None,None,None,None))
+    monkeypatch.setattr(tr,"_projection_context",lambda *a,**k:empty_context())
     seq=iter([(10,{}),(20,{}),(20,{}),(10,{}),(15,{}),(15,{})])
     monkeypatch.setattr(tr,"_simulate_one",lambda *a,**k:next(seq))
     got=tr.compare_fit_trajectories(bro,bro,role,samples=3)
@@ -40,7 +48,7 @@ def test_compare_fit_trajectories_no_wins_or_losses(monkeypatch):
     role={"name":"x","stats":{"MAtk":{"fit":True}}}
     monkeypatch.setattr(tr,"_fit_stats",lambda r:["MAtk"])
     monkeypatch.setattr(tr,"_sample_coordinates",lambda samples,dimensions:[[0.1]])
-    monkeypatch.setattr(tr,"_projection_context",lambda *a,**k:([1],None,None,None,None,None,None,None,None,None))
+    monkeypatch.setattr(tr,"_projection_context",lambda *a,**k:empty_context())
     monkeypatch.setattr(tr,"_simulate_one",lambda *a,**k:(10,{}))
     got=tr.compare_fit_trajectories(bro,bro,role,rounds=0,samples=1)
     assert got["tie_pct"]==100.0

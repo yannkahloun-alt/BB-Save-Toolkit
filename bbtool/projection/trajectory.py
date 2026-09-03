@@ -6,7 +6,8 @@ they provide; exact known rolls are represented as degenerate ranges (X, X).
 """
 from __future__ import annotations
 
-from functools import cache, lru_cache
+from dataclasses import dataclass, field
+from functools import cache
 import time
 from ..models import STATS, Brother
 from .perks import effective_stat_value
@@ -14,67 +15,100 @@ from .progression import development_rounds_to_11
 from .scoring import curve_value
 from .runtime import PROFILE
 from .context import bro_fingerprint, bro_projection_context
+from .sampling import sample_coordinates as _sample_coordinates
+from .sampling import reset_sampling_cache
 
-_PRIMES = (2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,
-           73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,
-           157,163,167,173,179,181,191,193,197,199,211,223,227,229)
 _STAT_INDEX = {stat: i for i, stat in enumerate(STATS)}
-_TRAJECTORY_CACHE: dict[tuple, dict] = {}
-_TRAJECTORY_CACHE_IDENTITIES: dict[tuple, set[tuple[str, str]]] = {}
 _TRAJECTORY_CACHE_MAX = 4096
-_CONTEXT_CACHE: dict[tuple, tuple] = {}
 _CONTEXT_CACHE_MAX = 1024
-_POLICY_CACHE: dict[tuple, object] = {}
 _POLICY_CACHE_MAX = 1024
-_COMPLEXITY_BY_RESULT_ID: dict[int, dict] = {}
+
+
+class _ReadOnlyDict(dict):
+    """Dict-speed lookup table that rejects mutation after construction."""
+
+    @staticmethod
+    def _reject(*_args, **_kwargs):
+        raise TypeError("trajectory context mappings are read-only")
+
+    __setitem__ = _reject
+    __delitem__ = _reject
+    clear = _reject
+    pop = _reject
+    popitem = _reject
+    setdefault = _reject
+    update = _reject
+    __ior__ = _reject
+
+
+def _read_only(mapping: dict) -> _ReadOnlyDict:
+    return _ReadOnlyDict(mapping)
+
+
+@dataclass(frozen=True, slots=True)
+class TrajectoryContext:
+    """Compiled read-only state consumed by every trajectory simulation path."""
+
+    fit_stats: tuple[str, ...]
+    raw_start: dict[str, float]
+    normal_ranges: dict[str, tuple[int, int]]
+    range_plan: tuple[tuple[tuple[int, int], ...], ...]
+    selection_cfg: dict[str, tuple[float, int]]
+    effective_lookup: dict[str, dict[int, float]]
+    utility_lookup: dict[str, dict[int, float]]
+    static_effective: dict[str, float]
+    total_weight: float
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "raw_start", _read_only(self.raw_start))
+        object.__setattr__(self, "normal_ranges", _read_only(self.normal_ranges))
+        object.__setattr__(self, "selection_cfg", _read_only(self.selection_cfg))
+        object.__setattr__(
+            self, "effective_lookup",
+            _read_only({stat: _read_only(values) for stat, values in self.effective_lookup.items()}),
+        )
+        object.__setattr__(
+            self, "utility_lookup",
+            _read_only({stat: _read_only(values) for stat, values in self.utility_lookup.items()}),
+        )
+        object.__setattr__(self, "static_effective", _read_only(self.static_effective))
+
+
+@dataclass(slots=True)
+class _TrajectoryCaches:
+    """One explicit owner for process-local trajectory engine memoization."""
+
+    trajectories: dict[tuple, dict] = field(default_factory=dict)
+    identities: dict[tuple, set[tuple[str, str]]] = field(default_factory=dict)
+    contexts: dict[tuple, TrajectoryContext] = field(default_factory=dict)
+    policies: dict[tuple, object] = field(default_factory=dict)
+    complexity_by_result_id: dict[int, dict] = field(default_factory=dict)
+
+    def clear(self) -> None:
+        self.trajectories.clear()
+        self.identities.clear()
+        self.contexts.clear()
+        self.policies.clear()
+        self.complexity_by_result_id.clear()
+        reset_sampling_cache()
+
+
+_CACHES = _TrajectoryCaches()
+# Private compatibility aliases used by existing diagnostics and tests.
+_TRAJECTORY_CACHE = _CACHES.trajectories
+_TRAJECTORY_CACHE_IDENTITIES = _CACHES.identities
+_CONTEXT_CACHE = _CACHES.contexts
+_POLICY_CACHE = _CACHES.policies
+_COMPLEXITY_BY_RESULT_ID = _CACHES.complexity_by_result_id
 
 
 def reset_trajectory_cache() -> None:
-    _TRAJECTORY_CACHE.clear()
-    _TRAJECTORY_CACHE_IDENTITIES.clear()
-    _CONTEXT_CACHE.clear()
-    _POLICY_CACHE.clear()
-    _COMPLEXITY_BY_RESULT_ID.clear()
+    """Clear all process-local trajectory, policy, context, and sampling state."""
+    _CACHES.clear()
 
 
 def _fit_stats(role: dict) -> tuple[str, ...]:
     return tuple(s for s in STATS if role.get("stats", {}).get(s, {}).get("fit"))
-
-
-def _radical_inverse(n: int, base: int) -> float:
-    inv = 1.0 / base
-    factor = inv
-    out = 0.0
-    while n:
-        n, digit = divmod(n, base)
-        out += digit * factor
-        factor *= inv
-    return out
-
-
-@lru_cache(maxsize=128)
-def _sample_dimension(samples: int, dim: int) -> tuple[float, ...]:
-    """One deterministic low-discrepancy dimension, reusable across shapes.
-
-    Different archetypes/levels request many overlapping dimensionalities. v3.6
-    rebuilt dimensions 0..N for every distinct N. Caching columns means a later
-    36-D request can reuse the first 32 dimensions already built by a 32-D one.
-    """
-    samples = max(1, int(samples))
-    base = _PRIMES[dim % len(_PRIMES)]
-    return tuple(_radical_inverse(i + 1, base) for i in range(samples))
-
-
-@lru_cache(maxsize=32)
-def _sample_coordinates(samples: int, dimensions: int) -> tuple[tuple[float, ...], ...]:
-    """Cache deterministic low-discrepancy rows shared by all roles."""
-    samples = max(1, int(samples))
-    dimensions = max(1, int(dimensions))
-    columns = tuple(_sample_dimension(samples, dim) for dim in range(dimensions))
-    return tuple(
-        tuple(columns[dim][scenario] for dim in range(dimensions))
-        for scenario in range(samples)
-    )
 
 
 def _normalize_round_ranges(
@@ -114,7 +148,7 @@ def _round_ranges_key(round_ranges) -> tuple:
     )
 
 
-def _projection_context(bro: Brother, role: dict, rounds: int, round_ranges=()):
+def _projection_context(bro: Brother, role: dict, rounds: int, round_ranges=()) -> TrajectoryContext:
     fit_stats = _fit_stats(role)
     round_key = _round_ranges_key(round_ranges)
     context_key = (bro_fingerprint(bro), _role_fingerprint(role, fit_stats), int(rounds), round_key)
@@ -168,8 +202,17 @@ def _projection_context(bro: Brother, role: dict, rounds: int, round_ranges=()):
 
     static_effective = _current
     total_weight = sum(float(role["stats"][s].get("weight", 1.0)) for s in fit_stats)
-    result = (fit_stats, effects, raw_start, normal_ranges, range_plan, selection_cfg,
-              effective_lookup, utility_lookup, static_effective, total_weight)
+    result = TrajectoryContext(
+        fit_stats=fit_stats,
+        raw_start=raw_start,
+        normal_ranges=normal_ranges,
+        range_plan=range_plan,
+        selection_cfg=selection_cfg,
+        effective_lookup=effective_lookup,
+        utility_lookup=utility_lookup,
+        static_effective=static_effective,
+        total_weight=total_weight,
+    )
     if len(_CONTEXT_CACHE) >= _CONTEXT_CACHE_MAX:
         _CONTEXT_CACHE.clear()
     _CONTEXT_CACHE[context_key] = result
@@ -342,7 +385,7 @@ def _policy_delta(before: dict, after: dict) -> dict:
     } | {"memo_state_count": after["memo_state_count"]}
 
 
-def _projection_policy(bro, role, rounds, ctx):
+def _projection_policy(bro, role, rounds, ctx: TrajectoryContext):
     """Reuse blind lookahead state across equivalent in-run projections.
 
     Supplied roll ranges affect the rolls replayed by the simulator, but the
@@ -350,11 +393,11 @@ def _projection_policy(bro, role, rounds, ctx):
     ranges.  Consequently a blind projection and its seeded validation replay
     have the same policy whenever the seeded rolls stay inside those ranges.
     """
-    fit_stats = ctx[0]
+    fit_stats = ctx.fit_stats
     if len(fit_stats) <= 3:
         return None
-    normal_ranges = ctx[3]
-    range_plan = ctx[4]
+    normal_ranges = ctx.normal_ranges
+    range_plan = ctx.range_plan
     ranges_are_normal_bounded = all(
         normal_ranges[stat][0] <= bounds[0] <= bounds[1] <= normal_ranges[stat][1]
         for round_ranges in range_plan
@@ -364,14 +407,16 @@ def _projection_policy(bro, role, rounds, ctx):
         # Keep validation able to replay and report malformed serialized rolls;
         # their expanded utility lookup cannot safely share a normal policy.
         return _make_final_fit_policy(
-            fit_stats, normal_ranges, ctx[5], ctx[7], ctx[9]
+            fit_stats, normal_ranges, ctx.selection_cfg,
+            ctx.utility_lookup, ctx.total_weight,
         )
     key = (bro_fingerprint(bro), _role_fingerprint(role, fit_stats), int(rounds))
     cached = _POLICY_CACHE.get(key)
     if cached is not None:
         return cached
     policy = _make_final_fit_policy(
-        fit_stats, ctx[3], ctx[5], ctx[7], ctx[9]
+        fit_stats, normal_ranges, ctx.selection_cfg,
+        ctx.utility_lookup, ctx.total_weight,
     )
     if len(_POLICY_CACHE) >= _POLICY_CACHE_MAX:
         _POLICY_CACHE.clear()
@@ -379,12 +424,19 @@ def _projection_policy(bro, role, rounds, ctx):
     return policy
 
 def _simulate_one_four(
-    rounds, fit_stats, raw_start, normal_ranges,
-    range_plan, selection_cfg, effective_lookup, utility_lookup,
-    static_effective, total_weight, coordinates=None,
+    rounds, ctx: TrajectoryContext, coordinates=None,
     forced_first_combo=None, extreme: str | None = None, trace=None, policy=None,
 ):
     """Specialized allocation-free hot path for exactly four Fit stats."""
+    fit_stats = ctx.fit_stats
+    raw_start = ctx.raw_start
+    normal_ranges = ctx.normal_ranges
+    range_plan = ctx.range_plan
+    selection_cfg = ctx.selection_cfg
+    effective_lookup = ctx.effective_lookup
+    utility_lookup = ctx.utility_lookup
+    static_effective = ctx.static_effective
+    total_weight = ctx.total_weight
     s0, s1, s2, s3 = fit_stats
     r0 = int(raw_start[s0]); r1 = int(raw_start[s1])
     r2 = int(raw_start[s2]); r3 = int(raw_start[s3])
@@ -451,19 +503,24 @@ def _simulate_one_four(
     return score * 100.0, effective
 
 def _simulate_one(
-    role, rounds, fit_stats, raw_start, normal_ranges,
-    range_plan, selection_cfg, effective_lookup, utility_lookup,
-    static_effective, total_weight, coordinates=None,
+    rounds, ctx: TrajectoryContext, coordinates=None,
     forced_first_combo=None, extreme: str | None = None, trace=None, policy=None,
 ):
+    fit_stats = ctx.fit_stats
     if len(fit_stats) == 4:
         return _simulate_one_four(
-            rounds, fit_stats, raw_start, normal_ranges,
-            range_plan, selection_cfg, effective_lookup, utility_lookup,
-            static_effective, total_weight, coordinates,
+            rounds, ctx, coordinates,
             forced_first_combo, extreme, trace, policy,
         )
 
+    raw_start = ctx.raw_start
+    normal_ranges = ctx.normal_ranges
+    range_plan = ctx.range_plan
+    selection_cfg = ctx.selection_cfg
+    effective_lookup = ctx.effective_lookup
+    utility_lookup = ctx.utility_lookup
+    static_effective = ctx.static_effective
+    total_weight = ctx.total_weight
     raw = dict(raw_start)
     fit_count = len(fit_stats)
     no_choice = fit_count <= 3 and forced_first_combo is None
@@ -508,7 +565,7 @@ def _simulate_one(
         raw_i = int(raw[stat])
         eff = effective_lookup[stat][raw_i]
         effective[stat] = eff
-        weighted_sum += float(role["stats"][stat].get("weight", 1.0)) * utility_lookup[stat][raw_i]
+        weighted_sum += float(selection_cfg[stat][0]) * utility_lookup[stat][raw_i]
 
     score = max(0.0, weighted_sum / total_weight) if total_weight else 0.0
     return score * 100.0, effective
@@ -567,8 +624,7 @@ def _project_fit_trajectory_fixed(
     context_started = time.perf_counter()
     ctx = _projection_context(bro, role, rounds, normalized_ranges)
     context_seconds = time.perf_counter() - context_started
-    (fit_stats, effects, raw_start, normal_ranges, range_plan, selection_cfg,
-     effective_lookup, utility_lookup, static_effective, total_weight) = ctx
+    fit_stats = ctx.fit_stats
     dimensions = max(1, rounds * max(1, len(fit_stats)))
     sampling_started = time.perf_counter()
     coordinate_rows = _sample_coordinates(samples, dimensions)
@@ -590,9 +646,7 @@ def _project_fit_trajectory_fixed(
     for scenario, coordinates in enumerate(coordinate_rows):
         scenario_trace = selected_trace if include_trace and scenario == 0 else None
         fit, values = _simulate_one(
-            role, rounds, fit_stats, raw_start, normal_ranges,
-            range_plan, selection_cfg, effective_lookup, utility_lookup,
-            static_effective, total_weight, coordinates,
+            rounds, ctx, coordinates,
             forced_first_combo, trace=scenario_trace, policy=policy,
         )
         outcomes.append(fit)
@@ -605,14 +659,10 @@ def _project_fit_trajectory_fixed(
 
     dummy = (0.0,) * dimensions
     min_fit, min_values = _simulate_one(
-        role, rounds, fit_stats, raw_start, normal_ranges,
-        range_plan, selection_cfg, effective_lookup, utility_lookup,
-        static_effective, total_weight, dummy, forced_first_combo, "min", policy=policy
+        rounds, ctx, dummy, forced_first_combo, "min", policy=policy
     )
     max_fit, max_values = _simulate_one(
-        role, rounds, fit_stats, raw_start, normal_ranges,
-        range_plan, selection_cfg, effective_lookup, utility_lookup,
-        static_effective, total_weight, dummy, forced_first_combo, "max", policy=policy
+        rounds, ctx, dummy, forced_first_combo, "max", policy=policy
     )
     outcomes.sort()
     n = len(outcomes)
@@ -774,21 +824,23 @@ def compare_fit_trajectories(
     pctx = _projection_context(bro_primary, role, rounds, ())
     actx = _projection_context(bro_alternative, role, rounds, ())
     ppolicy = _make_final_fit_policy(
-        pctx[0], pctx[3], pctx[5], pctx[7], pctx[9]
-    ) if len(pctx[0]) > 3 else None
+        pctx.fit_stats, pctx.normal_ranges, pctx.selection_cfg,
+        pctx.utility_lookup, pctx.total_weight,
+    ) if len(pctx.fit_stats) > 3 else None
     apolicy = _make_final_fit_policy(
-        actx[0], actx[3], actx[5], actx[7], actx[9]
-    ) if len(actx[0]) > 3 else None
+        actx.fit_stats, actx.normal_ranges, actx.selection_cfg,
+        actx.utility_lookup, actx.total_weight,
+    ) if len(actx.fit_stats) > 3 else None
 
     wins = ties = losses = 0
     deltas = []
     n = len(coordinate_rows)
     for coordinates in coordinate_rows:
         primary_fit, _ = _simulate_one(
-            role, rounds, pctx[0], pctx[2], pctx[3], pctx[4], pctx[5], pctx[6], pctx[7], pctx[8], pctx[9], coordinates, policy=ppolicy
+            rounds, pctx, coordinates, policy=ppolicy
         )
         alternative_fit, _ = _simulate_one(
-            role, rounds, actx[0], actx[2], actx[3], actx[4], actx[5], actx[6], actx[7], actx[8], actx[9], coordinates, policy=apolicy
+            rounds, actx, coordinates, policy=apolicy
         )
         delta = alternative_fit - primary_fit
         deltas.append(delta)

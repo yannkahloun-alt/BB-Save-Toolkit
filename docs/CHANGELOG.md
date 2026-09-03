@@ -5,6 +5,9 @@
   cold Fit analysis while retaining the diagnostic when explicitly requested.
 - Add bounded per-projection policy diagnostics and a sanitized deterministic
   representative-state benchmark for cold performance investigations.
+- Refactor trajectory engine boundaries without changing projection semantics:
+  deterministic sampling now has an independent module, hot paths use a named
+  read-only context, and process-local cache/reset ownership is explicit.
 
 ## v3.88.1 — Faster analysis and shared analysis service
 

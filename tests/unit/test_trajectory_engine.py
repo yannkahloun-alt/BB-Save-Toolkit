@@ -123,6 +123,41 @@ def test_cached_adaptive_complexity_does_not_accumulate(
 
     assert trajectory_complexity(second) == first_complexity
 
+
+def test_projection_context_exposes_named_hot_path_state(bro_factory, simple_role):
+    bro = bro_factory(Level=10)
+    role = simple_role(("HP", "MAtk", "MDef", "RDef"))
+
+    context = trajectory._projection_context(bro, role, 1, ())
+
+    assert isinstance(context, trajectory.TrajectoryContext)
+    assert context.fit_stats == ("HP", "MAtk", "MDef", "RDef")
+    assert len(context.range_plan) == 1
+    assert context.total_weight == 4.0
+
+    with pytest.raises(TypeError, match="read-only"):
+        context.raw_start["HP"] = 999
+    with pytest.raises(TypeError, match="read-only"):
+        context.utility_lookup["HP"][int(context.raw_start["HP"])] = 999
+
+
+def test_reset_trajectory_cache_clears_every_owned_cache(bro_factory, simple_role):
+    from bbtool.projection import sampling
+
+    project_fit_trajectory(bro_factory(), simple_role(("MAtk",)), rounds=1, samples=8)
+    assert trajectory._CACHES.trajectories
+    assert trajectory._CACHES.contexts
+    assert sampling.sample_coordinates.cache_info().currsize
+
+    reset_trajectory_cache()
+
+    assert not trajectory._CACHES.trajectories
+    assert not trajectory._CACHES.identities
+    assert not trajectory._CACHES.contexts
+    assert not trajectory._CACHES.policies
+    assert not trajectory._CACHES.complexity_by_result_id
+    assert sampling.sample_coordinates.cache_info().currsize == 0
+
 @pytest.mark.parametrize('field,value', [('weight',2.0),('target',120.0),('baseline',10.0)])
 def test_cache_miss_for_each_role_fit_parameter(field,value,bro_factory,simple_role):
     r=simple_role(('MAtk',)); b=bro_factory(); reset_trajectory_cache(); reset_profile_values(); project_fit_trajectory(b,r,rounds=1,samples=8); before=get_profile_values()['trajectory_cache_misses']
