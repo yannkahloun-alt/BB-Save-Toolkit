@@ -1,6 +1,7 @@
 {
   "roles": [
     {
+      "id": "reach_dps",
       "name": "Reach DPS",
       "perk_affinity": {
         "Battle Forged": 2,
@@ -44,6 +45,7 @@
       }
     },
     {
+      "id": "nimble_frontline_dps",
       "name": "Nimble Frontline DPS",
       "perk_affinity": {
         "Berserk": 1,
@@ -91,6 +93,7 @@
       }
     },
     {
+      "id": "battle_forged_frontline_dps",
       "name": "Battle Forged Frontline DPS",
       "perk_affinity": {
         "Battle Forged": 4,
@@ -138,6 +141,7 @@
       }
     },
     {
+      "id": "fat_neutral",
       "name": "Fat Neutral",
       "perk_affinity": {
         "Battle Forged": 4,
@@ -182,6 +186,7 @@
       }
     },
     {
+      "id": "nimble_tank",
       "name": "Nimble Tank",
       "perk_affinity": {
         "Dodge": 1,
@@ -232,6 +237,7 @@
       }
     },
     {
+      "id": "battle_forged_tank",
       "name": "Battle Forged Tank",
       "perk_affinity": {
         "Battle Forged": 4,
@@ -283,6 +289,7 @@
       }
     },
     {
+      "id": "archer",
       "name": "Archer",
       "perk_affinity": {
         "Bow Mastery": 5,
@@ -324,6 +331,7 @@
       }
     },
     {
+      "id": "thrower_hybrid",
       "name": "Thrower Hybrid",
       "perk_affinity": {
         "Duelist": 2,
@@ -367,6 +375,7 @@
       }
     },
     {
+      "id": "thrower",
       "name": "Thrower",
       "perk_affinity": {
         "Duelist": 2,
@@ -410,6 +419,7 @@
       }
     },
     {
+      "id": "crossbow",
       "name": "Crossbow",
       "perk_affinity": {
         "Crossbow Mastery": 5
@@ -449,6 +459,7 @@
       }
     },
     {
+      "id": "banner",
       "name": "Banner",
       "perk_affinity": {
         "Fortified Mind": 2,
@@ -491,7 +502,7 @@
       }
     }
   ],
-  "schema": "bb-archetypes-v0.9",
+  "schema": "bb-archetypes-v1.0",
   "semantics": {
     "baseline": "Level-11 natural-stat neutral point and soft floor. At baseline contribution is zero; below baseline contribution is negative; above baseline contribution is positive up to target.",
     "ceiling": "Optional archetype/stat Fit-valuation saturation point. Projected values remain unchanged; only utility is evaluated at min(projected/effective value, ceiling). Must be finite and >= target.",

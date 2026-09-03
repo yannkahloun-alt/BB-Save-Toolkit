@@ -5,7 +5,8 @@ import pytest
 pytestmark=pytest.mark.unit
 from bbtool.models import STATS
 from bbtool.app.output import _public_bro_dict
-from bbtool.app.config import _normalize_role
+from bbtool.app.config import _normalize_role, load_config
+from bbtool.build_identity import build_definition_hash, build_identity
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -26,7 +27,72 @@ def test_default_archetypes_use_calibrated_role_set(cfg):
 def test_default_archetype_roles_match_retained_issue_source():
     integrated = json.loads((ROOT/'config/archetypes.json').read_text(encoding='utf-8'))
     source = json.loads((ROOT/'docs/sources/issue-27-archetype-calibration.json').read_text(encoding='utf-8'))
-    assert integrated['roles'] == source['roles']
+    assert [{k: v for k, v in role.items() if k != 'id'} for role in integrated['roles']] == source['roles']
+
+def test_shipped_build_ids_are_fixed(cfg):
+    assert [role['id'] for role in cfg.roles] == [
+        'reach_dps', 'nimble_frontline_dps', 'battle_forged_frontline_dps',
+        'fat_neutral', 'nimble_tank', 'battle_forged_tank', 'archer',
+        'thrower_hybrid', 'thrower', 'crossbow', 'banner',
+    ]
+
+def test_cosmetic_rename_preserves_identity_and_definition_hash(cfg):
+    original = cfg.roles[0]
+    renamed = {**original, 'name': 'Cosmetically Renamed'}
+    assert build_identity(renamed) == build_identity(original) == 'reach_dps'
+    assert build_definition_hash(renamed) == build_definition_hash(original)
+    assert build_definition_hash({**original, 'id': 'replacement_id'}) == build_definition_hash(original)
+
+def test_semantic_change_preserves_identity_and_changes_definition_hash(cfg):
+    original = cfg.roles[0]
+    changed = json.loads(json.dumps(original))
+    changed['stats']['MAtk']['weight'] += 1
+    assert build_identity(changed) == build_identity(original)
+    assert build_definition_hash(changed) != build_definition_hash(original)
+
+def _write_config(tmp_path, roles):
+    targets = tmp_path/'targets.json'; classification = tmp_path/'classification.json'
+    targets.write_text(json.dumps({'roles': roles}), encoding='utf-8')
+    classification.write_text('{}', encoding='utf-8')
+    return targets, classification
+
+def test_duplicate_explicit_build_ids_fail(tmp_path):
+    paths = _write_config(tmp_path, [{'id':'same','name':'A'}, {'id':'same','name':'B'}])
+    with pytest.raises(ValueError, match=r'Duplicate archetype id\(s\): same'):
+        load_config(*paths)
+
+@pytest.mark.parametrize('invalid', [
+    '', 'Uppercase', 'has-hyphen', '_leading', 'trailing_', 'double__underscore',
+    '7starts_with_digit', 'space here', 7,
+])
+def test_invalid_explicit_build_ids_fail(tmp_path, invalid):
+    paths = _write_config(tmp_path, [{'id':invalid,'name':'Role'}])
+    with pytest.raises(ValueError, match=r'Role\.id must match'):
+        load_config(*paths)
+
+def test_legacy_idless_role_remains_usable_without_durable_identity(tmp_path):
+    role = {'name':'Legacy Name','stats':{'MAtk':{'target':90,'baseline':80,'weight':1}}}
+    cfg = load_config(*_write_config(tmp_path, [role]))
+    assert cfg.roles[0]['stats']['MAtk']['fit'] is True
+    assert build_identity(cfg.roles[0]) is None
+    assert 'id' not in cfg.roles[0]
+
+def test_definition_hash_ignores_engine_normalization_fields():
+    raw = {'id':'test','name':'Test','stats':{'MAtk':{'target':90,'baseline':80,'weight':1}}}
+    assert build_definition_hash(raw) == build_definition_hash(_normalize_role(raw))
+
+def test_definition_hash_preserves_unknown_future_fields():
+    original = {
+        'id':'test', 'name':'Test',
+        'stats':{'MAtk':{'target':90,'baseline':80,'weight':1}},
+        'future':{'fit':1,'projected_curve':[1, 2], 'required':['b', 'a']},
+    }
+    changed = json.loads(json.dumps(original))
+    changed['future']['fit'] = 2
+    reordered = json.loads(json.dumps(original))
+    reordered['future']['required'].reverse()
+    assert build_definition_hash(original) != build_definition_hash(changed)
+    assert build_definition_hash(original) != build_definition_hash(reordered)
 def test_config_fit_stat_invariants(cfg):
     for r in cfg.roles:
         assert r['stats']
