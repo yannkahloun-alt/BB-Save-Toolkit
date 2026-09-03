@@ -203,11 +203,30 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             emit(stage, "completed", tick)
 
         stage = "validation"
+        pre_validation_projection_profile = get_profile()
         tick = time.perf_counter()
         projection_validation = build_projection_validation(
             roster, analysis.fits, request.roles
         )
         timings[stage] = time.perf_counter() - tick
+        final_projection_profile = get_profile()
+        validation_projection_diagnostics = {
+            "seeded_projection_calls": projection_validation["summary"]["comparisons"],
+            "blind_cache_lookups": projection_validation["summary"]["comparisons"],
+            "trajectory_cache_hits": (
+                final_projection_profile.get("trajectory_cache_hits", 0)
+                - pre_validation_projection_profile.get("trajectory_cache_hits", 0)
+            ),
+            "trajectory_cache_misses": (
+                final_projection_profile.get("trajectory_cache_misses", 0)
+                - pre_validation_projection_profile.get("trajectory_cache_misses", 0)
+            ),
+            "trajectory_seconds": round(
+                final_projection_profile.get("trajectory_s", 0.0)
+                - pre_validation_projection_profile.get("trajectory_s", 0.0),
+                6,
+            ),
+        }
         emit(
             stage,
             "completed",
@@ -245,7 +264,8 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
                 "parse": parse_diagnostics,
                 "references": reference_status,
                 "run_health": health,
-                "projection_profile": get_profile(),
+                "projection_profile": final_projection_profile,
+                "validation_projection": validation_projection_diagnostics,
                 "cache_miss_reasons": dict(sorted(cache.miss_reasons.items())),
             },
             timings=timings,

@@ -273,7 +273,8 @@ def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> di
     role_by_name = {role["name"]: role for role in roles}
     rows = []
     roll_range_violations = []
-    roll_luck_by_bro = {bro.BrotherID: _roll_luck_to_level11(bro) for bro in bros}
+    roll_luck_by_object = {id(bro): _roll_luck_to_level11(bro) for bro in bros}
+    roll_luck_by_bro = {bro.BrotherID: roll_luck_by_object[id(bro)] for bro in bros}
     for bro in bros:
         rounds = development_rounds_to_11(bro)
         for stat, values in (getattr(bro, "FutureRolls", {}) or {}).items():
@@ -314,7 +315,9 @@ def build_projection_validation(bros, fits: list[dict], roles: list[dict]) -> di
             "DeltaVsExpectedPct": round(realized - expected, 1),
             "ActualPercentilePct": actual_percentile,
             "ActualPercentileSampleCount": percentile_samples,
-            "RelevantRollRankPct": _role_relevant_roll_rank(role, _roll_luck_to_level11(bro)),
+            "RelevantRollRankPct": _role_relevant_roll_rank(
+                role, roll_luck_by_object[id(bro)]
+            ),
             "LikelyRangePct": [round(likely_min, 1), round(likely_max, 1)],
             "FullRangePct": [round(full_min, 1), round(full_max, 1)],
             "InsideLikelyRange": likely_min - 1e-9 <= realized <= likely_max + 1e-9,

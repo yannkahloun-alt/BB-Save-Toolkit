@@ -135,6 +135,22 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         )
         projection_profile = service_result.diagnostics["projection_profile"]
         print_projection_profile(projection_profile)
+        validation_profile = service_result.diagnostics.get("validation_projection")
+        service_timings = getattr(service_result, "timings", None)
+        if validation_profile is not None and service_timings is not None:
+            print(
+                "        service stage timings       "
+                f"analysis {service_timings['analysis']:.3f}s · "
+                f"validation compute {service_timings['validation']:.3f}s"
+            )
+            print(
+                "        validation projections      "
+                f"{validation_profile['seeded_projection_calls']} seeded · "
+                f"{validation_profile['blind_cache_lookups']} blind lookups · "
+                f"{validation_profile['trajectory_cache_hits']} cache hits · "
+                f"{validation_profile['trajectory_cache_misses']} cache misses · "
+                f"{validation_profile['trajectory_seconds']:.3f}s compute"
+            )
         if bool(getattr(options, "cache_debug", False)):
             print(
                 "        incremental artifacts      "
