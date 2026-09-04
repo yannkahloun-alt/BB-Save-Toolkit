@@ -1576,7 +1576,7 @@ def _candidate_records(b: bytes, refs: dict) -> list[dict]:
                 not in ("perk", "internal")
             ]
             public_traits = [
-                name
+                {"save_hash": ent["id"], "name": name}
                 for ent, name in zip(trait_tail, circles["Traits"], strict=True)
                 if refs.get(ent.get("id", ""), {}).get(
                     "type",
@@ -1615,7 +1615,8 @@ def _candidate_records(b: bytes, refs: dict) -> list[dict]:
                     circles.get("BackgroundLevel", ident["Level"])
                 ),
                 "TryoutDone": tryout_done,
-                "_ParsedTraits": public_traits,
+                "_ParsedTraits": [trait["name"] for trait in public_traits],
+                "_ParsedTraitEvidence": public_traits,
                 "_DailyCostMult": float(
                     circles.get("DailyCostMult", 1.0)
                 ),
@@ -1820,6 +1821,11 @@ def parse_recruits_bytes(
     Intentionally NOT exported: base stats, talents/stars, hidden traits,
     projections, Fit or any other post-hire information.
 
+    ``BackgroundSaveHash`` is the exact machine identity of the already-visible
+    background. ``RevealedTraitEvidence`` carries exact IDs only after tryout;
+    it is empty otherwise. These IDs allow mechanics lookup without treating
+    display names as authoritative or revealing an unrevealed trait.
+
     Settlement association is resolved through the recruitment roster's
     serialized settlement reference. Daily wage and hire cost are reconstructed
     from vanilla background logic; hire cost uses the recruit's serialized
@@ -1843,7 +1849,7 @@ def parse_recruits_bytes(
             rec["_BackgroundID"],
             rec["Level"],
             rec["_DailyCostMult"],
-            rec["_ParsedTraits"],
+            [trait["name"] for trait in rec["_ParsedTraitEvidence"]],
             economy,
         )
         equipment_value = _parse_recruit_equipment_value(
@@ -1865,9 +1871,16 @@ def parse_recruits_bytes(
             "Name": rec["Name"],
             "Title": rec["Title"],
             "Background": rec["Background"],
+            "BackgroundSaveHash": rec["_BackgroundID"],
             "Level": rec["Level"],
             "TryoutDone": tryout_done,
-            "Traits": rec["_ParsedTraits"] if tryout_done is True else [],
+            "Traits": (
+                [trait["name"] for trait in rec["_ParsedTraitEvidence"]]
+                if tryout_done is True else []
+            ),
+            "RevealedTraitEvidence": (
+                rec["_ParsedTraitEvidence"] if tryout_done is True else []
+            ),
             "HireCost": hire_cost,
             "DailyWage": daily_wage,
         })

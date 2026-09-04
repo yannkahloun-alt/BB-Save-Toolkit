@@ -75,8 +75,8 @@ def test_equipment_value_resolved_unknown_and_exact_circle_boundary():
 
 def test_parse_recruits_public_fields_tryout_traits_and_costs(monkeypatch,tmp_path):
     p=tmp_path/'save'; p.write_bytes(b'abc')
-    recs=[{'Settlement':'Town','Name':'A','Title':'','Background':'Farmhand','_BackgroundID':'BG','Level':2,'_BackgroundLevel':2,'TryoutDone':True,'_ParsedTraits':['Greedy'],'_DailyCostMult':1.0,'_Header':{'StatsEnd':0},'_CircleOffset':0},
-          {'Settlement':'Keep','Name':'B','Title':'x','Background':'Unknown','_BackgroundID':'BG','Level':1,'_BackgroundLevel':1,'TryoutDone':False,'_ParsedTraits':['Brave'],'_DailyCostMult':1.0,'_Header':{'StatsEnd':0},'_CircleOffset':0}]
+    recs=[{'Settlement':'Town','Name':'A','Title':'','Background':'Farmhand','_BackgroundID':'BG','Level':2,'_BackgroundLevel':2,'TryoutDone':True,'_ParsedTraitEvidence':[{'save_hash':'AAAA','name':'Greedy'}],'_DailyCostMult':1.0,'_Header':{'StatsEnd':0},'_CircleOffset':0},
+          {'Settlement':'Keep','Name':'B','Title':'x','Background':'Unknown','_BackgroundID':'BG','Level':1,'_BackgroundLevel':1,'TryoutDone':False,'_ParsedTraitEvidence':[{'save_hash':'BBBB','name':'Brave'}],'_DailyCostMult':1.0,'_Header':{'StatsEnd':0},'_CircleOffset':0}]
     monkeypatch.setattr(sp,'_candidate_records',lambda b,refs:recs)
     monkeypatch.setattr(sp,'load_reference_dictionary',lambda p:{})
     monkeypatch.setattr(sp,'_load_background_economy',lambda p:{'BG':{'HiringCostBase':500,'DailyCostBase':10}})
@@ -85,6 +85,9 @@ def test_parse_recruits_public_fields_tryout_traits_and_costs(monkeypatch,tmp_pa
     out=sp.parse_recruits(p)
     assert [x['Settlement'] for x in out]==['Town','Keep']
     assert out[0]['Traits']==['Greedy'] and out[1]['Traits']==[]
+    assert out[0]['BackgroundSaveHash']=='BG'
+    assert out[0]['RevealedTraitEvidence']==[{'save_hash':'AAAA','name':'Greedy'}]
+    assert out[1]['RevealedTraitEvidence']==[]
     assert out[0]['HireCost'] is not None and out[0]['DailyWage'] is not None
 
 
