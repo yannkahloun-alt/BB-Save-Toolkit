@@ -34,6 +34,10 @@ No CORS permission is emitted. Responses disable caching, MIME sniffing,
 referrers, framing, external scripts, and external objects. Request bodies,
 save contents, and durable state are not logged.
 
+The application shell is served only from the fixed repository-owned assets
+`index.html`, `app.css`, and `app.js`. Request paths are never translated into
+arbitrary filesystem paths.
+
 ## Versioned endpoints
 
 All JSON responses use `bbtool.local-api.v1` and the envelope
@@ -44,6 +48,7 @@ field-level details where applicable.
 | --- | --- | --- |
 | GET | `/api/v1/health` | Service health, toolkit/API version, bind policy |
 | GET | `/api/v1/session` | Same-origin mutation capability |
+| GET | `/api/v1/shell` | Shared shell read model: followed save, publication freshness, public Run Health and current job/progress |
 | GET | `/api/v1/followed-save` | Inspect selected-save preference and availability |
 | POST | `/api/v1/followed-save/select` | Select/change an existing `.sav` with expected revision |
 | POST | `/api/v1/followed-save/forget` | Forget the selected save with expected revision |
@@ -67,6 +72,14 @@ field-level details where applicable.
 | POST | `/api/v1/analysis/jobs` | Snapshot selected bytes/config and enqueue through #97 |
 | GET | `/api/v1/analysis/jobs/{id}` | Status, progress, errors, and scheduled fingerprints |
 | GET | `/api/v1/analysis/result` | Last publication, warnings, data, and freshness identity |
+
+`GET /api/v1/shell` is a read-only composition endpoint for the global Target UI
+shell. It does not create a second analytical source of truth: `followed_save`
+and `result` are the existing authoritative application reads, `active_job` is
+the current coordinator job payload when one exists, and `analysis_health` is
+the same least-privilege `bbtool.analysis_health.v1` contract used by public
+report data. It exposes no debug samples, hidden rolls, save bytes, or generic
+state.
 
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a
@@ -94,4 +107,4 @@ The persisted selection is watched and stabilized as documented in
 [`SAVE_WATCHING.md`](SAVE_WATCHING.md). Followed-save and result reads expose
 the detected/stabilizing/queued/analyzing/current/unavailable/failed freshness
 states through the existing responses. No generic filesystem endpoint is
-introduced. The complete Target UI belongs to #100.
+introduced. The complete workspace bodies belong to #115–#117.
