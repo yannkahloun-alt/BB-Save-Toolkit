@@ -46,7 +46,7 @@ v1 remains deliberately unsupported and frozen at six files. Neither version's
 name-based joins are redefined as durable IDs.
 
 The foundation does not include AssignedBuild (#107), evolved intent-aware
-Advisor output (#108), intended Company Planning/gap semantics (remaining
-#128), or Relevant Roster Need (#112). Those fields require a future additive
+Advisor output (#108), intent-aware Company coverage/fragility (#166, split
+from completed intrinsic #128), or Relevant Roster Need (#112). Those fields require a future additive
 presentation-contract version after their domain contracts and implementations
 are complete.

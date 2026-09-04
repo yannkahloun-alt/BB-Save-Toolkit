@@ -122,7 +122,7 @@ def build_target_presentation(
         "pending": {
             "assigned_build": 107,
             "intent_aware_advisor": 108,
-            "intended_company_planning": 128,
+            "intent_aware_company_planning": 166,
             "relevant_roster_need": 112,
         },
     }
@@ -247,7 +247,7 @@ def validate_target_presentation(
         raise ValueError("target presentation company validity is malformed")
     if payload["pending"] != {
         "assigned_build": 107, "intent_aware_advisor": 108,
-        "intended_company_planning": 128, "relevant_roster_need": 112,
+        "intent_aware_company_planning": 166, "relevant_roster_need": 112,
     }:
         raise ValueError("target presentation pending fields mismatch")
 

@@ -314,8 +314,8 @@
   },
   "pending": {
     "assigned_build": 107,
-    "intended_company_planning": 128,
     "intent_aware_advisor": 108,
+    "intent_aware_company_planning": 166,
     "relevant_roster_need": 112
   },
   "publication": {

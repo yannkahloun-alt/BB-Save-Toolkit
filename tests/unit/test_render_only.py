@@ -165,7 +165,7 @@ def test_target_v3_exposes_authoritative_foundation_and_loads_for_all_consumers(
     assert dataset.presentation["run_health"] == dataset.analysis_health
     assert dataset.presentation["pending"] == {
         "assigned_build": 107, "intent_aware_advisor": 108,
-        "intended_company_planning": 128, "relevant_roster_need": 112,
+        "intent_aware_company_planning": 166, "relevant_roster_need": 112,
     }
     assert render_served_report(source)[1]
 

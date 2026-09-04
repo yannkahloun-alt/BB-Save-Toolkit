@@ -89,8 +89,9 @@ health, build definitions, Brother/recruit relations and coherence signature
 match the other files in the same manifest.
 
 The following fields are intentionally absent until their owning semantics are
-complete: AssignedBuild (#107), intent-aware Advisor (#108), intended Company
-Planning/gap semantics (remaining #128), and Relevant Roster Need (#112). The
+complete: AssignedBuild (#107), intent-aware Advisor (#108), intent-aware
+Company coverage/fragility (#166, split from completed intrinsic #128), and
+Relevant Roster Need (#112). The
 payload carries this bounded pending map so absence cannot be mistaken for a
 negative result.
 
