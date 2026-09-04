@@ -62,6 +62,8 @@ class LocalApplication:
         self._persisted_generation = 0
         self._publication_warning: dict[str, Any] | None = None
         self._source_timestamps: dict[int, str] = {}
+        self._invalidated_generation: int | None = None
+        self._invalidation_reason: str | None = None
 
     def close(self) -> None:
         self.coordinator.shutdown()
@@ -111,6 +113,7 @@ class LocalApplication:
             ),
             expected_revision=expected_revision,
         )
+        self._invalidate_publication("selected_save_changed")
         return self.followed_save() | {
             "revision": saved.revision,
             "freshness": {"status": "stale", "reason": "selected_save_changed"},
@@ -123,6 +126,7 @@ class LocalApplication:
             PreferencesState(selected_save_path=None, auto_refresh=current.auto_refresh),
             expected_revision=expected_revision,
         )
+        self._invalidate_publication("selected_save_forgotten")
         return self.followed_save() | {
             "revision": saved.revision,
             "freshness": {"status": "unavailable", "reason": "selected_save_forgotten"},
@@ -192,6 +196,7 @@ class LocalApplication:
         if operation not in operations:
             raise ApplicationOperationError("unknown_operation", "unknown archetype operation")
         result = operations[operation]()
+        self._invalidate_publication("effective_archetypes_changed")
         return self._effective_catalog_payload(result) | {
             "freshness": {
                 "status": "stale",
@@ -266,13 +271,20 @@ class LocalApplication:
                 "warning": self._publication_warning,
             }
         result = publication.result
+        invalidated = self._invalidated_generation == publication.generation
         freshness = {
-            "status": "current" if publication.job_id == self.coordinator.desired_job_id else "stale",
+            "status": (
+                "current"
+                if publication.job_id == self.coordinator.desired_job_id and not invalidated
+                else "stale"
+            ),
             "generation": publication.generation,
             "represented_source_fingerprint": publication.source_fingerprint,
             "represented_configuration_fingerprints": dict(publication.configuration_fingerprints),
             "artifact_signatures": dict(publication.artifact_signatures),
         }
+        if invalidated:
+            freshness["reason"] = self._invalidation_reason
         return {
             "available": True,
             "freshness": freshness,
@@ -280,6 +292,13 @@ class LocalApplication:
             "data": result.public_data,
             "warning": self._publication_warning,
         }
+
+    def _invalidate_publication(self, reason: str) -> None:
+        publication = self.coordinator.last_success
+        self._invalidated_generation = (
+            publication.generation if publication is not None else None
+        )
+        self._invalidation_reason = reason
 
     def _persist_publication(self) -> None:
         publication = self.coordinator.last_success

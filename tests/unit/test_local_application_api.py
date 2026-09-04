@@ -274,6 +274,38 @@ def test_published_result_exposes_identity_and_persists_last_success(tmp_path):
     assert durable.completed_at is not None
 
 
+def test_successful_mutation_marks_existing_publication_stale_on_later_reads(tmp_path):
+    publication = SimpleNamespace(
+        generation=3,
+        job_id=7,
+        source_fingerprint="sha256:source",
+        configuration_fingerprints={"archetypes": "sha256:a", "classification": "sha256:c"},
+        artifact_signatures={},
+        result=SimpleNamespace(warnings=[], public_data={"fits": []}),
+    )
+
+    class PublishedCoordinator:
+        last_success = publication
+        desired_job_id = 7
+
+        def shutdown(self):
+            pass
+
+    app = make_application(tmp_path, coordinator=PublishedCoordinator())
+    api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
+    mutation = post(api, "/api/v1/archetypes/set-override", {
+        "id": "reach_dps", "patch": {"name": "Polearm"}, "expected_revision": 0,
+    })
+    later_result = decode(
+        api.handle("GET", "/api/v1/analysis/result", {"Host": HOST})
+    )["data"]
+
+    assert decode(mutation)["data"]["freshness"]["status"] == "stale"
+    assert later_result["available"] is True
+    assert later_result["freshness"]["status"] == "stale"
+    assert later_result["freshness"]["reason"] == "effective_archetypes_changed"
+
+
 def test_server_bind_is_fixed_to_ipv4_loopback(monkeypatch, tmp_path):
     observed = {}
 
