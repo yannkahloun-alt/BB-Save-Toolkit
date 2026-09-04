@@ -69,10 +69,6 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
         PROFILE['base_matrix_s']+=time.perf_counter()-t
         fits.extend(rows); best=_best(rows)
         cached_summary = incremental_cache.get_summary(bro, roles, class_cfg) if incremental_cache is not None else None
-        if cached_summary is not None:
-            summaries.append(cached_summary)
-            continue
-
         advice = incremental_cache.get_advisor(bro, roles) if incremental_cache is not None else None
         if advice is None:
             t=time.perf_counter(); advice=advise_levelup(bro,roles,rows); PROFILE['advisor_s']+=time.perf_counter()-t
@@ -80,9 +76,15 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
                 incremental_cache.mark_advisor_computed()
                 incremental_cache.store_advisor(bro, roles, advice)
 
-        effective,_=effective_stat_profile(bro)
-        t=time.perf_counter(); summary=_summary(bro,best,class_cfg,effective,advice); summaries.append(summary); PROFILE['summary_s']+=time.perf_counter()-t
-        if incremental_cache is not None:
-            incremental_cache.mark_summary_computed()
-            incremental_cache.store_summary(bro, roles, class_cfg, summary)
+        if cached_summary is not None:
+            summary = dict(cached_summary)
+            summary["BestRole"] = best["Role"]
+            summary["LevelUpAdvice"] = advice
+            summaries.append(summary)
+        else:
+            effective,_=effective_stat_profile(bro)
+            t=time.perf_counter(); summary=_summary(bro,best,class_cfg,effective,advice); summaries.append(summary); PROFILE['summary_s']+=time.perf_counter()-t
+            if incremental_cache is not None:
+                incremental_cache.mark_summary_computed()
+                incremental_cache.store_summary(bro, roles, class_cfg, summary)
     return AnalysisResult(fits=fits,summaries=summaries)

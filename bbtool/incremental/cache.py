@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
+from ..build_identity import build_identity
 from .manifest import SCHEMA, campaign_identity_payload
 
 from .fingerprint import (
@@ -77,11 +78,15 @@ class IncrementalCache:
             },
         )
 
+    @staticmethod
+    def _role_storage_key(role):
+        return build_identity(role) or f"legacy-name:{role['name']}"
+
     def get_role_row(self, bro, role):
         entry = self._entry_for_bro(bro)
         if entry is None:
             return None
-        prior = (entry.get("roles") or {}).get(role["name"])
+        prior = (entry.get("roles") or {}).get(self._role_storage_key(role))
         if not prior:
             self.miss_reasons["role_artifact_missing"] += 1
             return None
@@ -96,17 +101,19 @@ class IncrementalCache:
             self.miss_reasons["role_artifact_invalid"] += 1
             return None
         self.stats.role_reused += 1
-        self._current_entry(bro)["roles"][role["name"]] = dict(prior)
+        self._current_entry(bro)["roles"][self._role_storage_key(role)] = dict(prior)
         row = dict(result)
         row["BrotherID"] = bro.BrotherID
         row["Name"] = bro.Name
         row["Level"] = bro.Level
         row["Background"] = bro.Background
+        row["Role"] = role["name"]
         return row
 
     def store_role_row(self, bro, role, row, validation_oracle=None):
         entry = self._current_entry(bro)
-        existing = (entry.get("roles") or {}).get(role["name"])
+        role_key = self._role_storage_key(role)
+        existing = (entry.get("roles") or {}).get(role_key)
         artifact = {
             "role_hash": role_fingerprint(role),
             "engine_version": ROLE_PROJECTION_ENGINE_VERSION,
@@ -118,11 +125,11 @@ class IncrementalCache:
             artifact["validation_oracle"]["input_hash"] = validation_oracle_fingerprint(bro, role)
         elif isinstance(existing, dict) and "validation_oracle" in existing:
             artifact["validation_oracle"] = existing["validation_oracle"]
-        entry["roles"][role["name"]] = artifact
+        entry["roles"][role_key] = artifact
 
     def get_validation_oracle(self, bro, role):
         entry = self._current_entry(bro)
-        artifact = (entry.get("roles") or {}).get(role["name"])
+        artifact = (entry.get("roles") or {}).get(self._role_storage_key(role))
         oracle = artifact.get("validation_oracle") if isinstance(artifact, dict) else None
         if not isinstance(oracle, dict):
             self.miss_reasons["validation_oracle_missing"] += 1
@@ -155,7 +162,7 @@ class IncrementalCache:
     def store_validation_oracle(self, bro, role, trajectory):
         outcomes = list(trajectory.get("_outcomes_pct", ()))
         entry = self._current_entry(bro)
-        artifact = (entry.get("roles") or {}).get(role["name"])
+        artifact = (entry.get("roles") or {}).get(self._role_storage_key(role))
         if not isinstance(artifact, dict) or not outcomes:
             return
         artifact["validation_oracle"] = {
@@ -182,15 +189,72 @@ class IncrementalCache:
         if prior.get("input_hash") != advisor_fingerprint(bro, roles):
             self.miss_reasons["advisor_inputs_changed"] += 1
             return None
+        result = prior.get("result")
+        old_labels = prior.get("role_labels")
+        if not isinstance(old_labels, list) or any(
+            not isinstance(item, dict)
+            or set(item) != {"identity", "signature", "name"}
+            or item["identity"] is not None and not isinstance(item["identity"], str)
+            or not isinstance(item["signature"], str)
+            or not isinstance(item["name"], str)
+            for item in old_labels
+        ):
+            self.miss_reasons["advisor_artifact_invalid"] += 1
+            return None
+        current_labels = [{
+            "identity": build_identity(role),
+            "signature": role_fingerprint(role),
+            "name": role["name"],
+        } for role in roles]
+        rename = {}
+        for old in old_labels:
+            matches = [current for current in current_labels if (
+                old["identity"] is not None
+                and current["identity"] == old["identity"]
+                and current["signature"] == old["signature"]
+            )]
+            if not matches and old["identity"] is not None:
+                matches = [current for current in current_labels if (
+                    current["signature"] == old["signature"]
+                )]
+            if old["identity"] is None:
+                matches = [current for current in current_labels if (
+                    current["identity"] is None
+                    and current["name"] == old["name"]
+                    and current["signature"] == old["signature"]
+                )]
+            if len(matches) != 1:
+                self.miss_reasons["advisor_role_association_ambiguous"] += 1
+                return None
+            rename[old["name"]] = matches[0]["name"]
+
+        def refresh(value):
+            if isinstance(value, dict):
+                return {
+                    key: rename.get(item, item)
+                    if key in {"AnchorRole", "RoleBefore", "RoleAfter"}
+                    else refresh(item)
+                    for key, item in value.items()
+                }
+            if isinstance(value, list):
+                return [refresh(item) for item in value]
+            return value
+
+        refreshed = refresh(result)
         self.stats.advisor_reused += 1
         self._current_entry(bro)["advisor"] = dict(prior)
-        return prior.get("result")
+        return refreshed
 
     def store_advisor(self, bro, roles, result):
         entry = self._current_entry(bro)
         entry["advisor"] = {
             "input_hash": advisor_fingerprint(bro, roles),
             "engine_version": ADVISOR_ENGINE_VERSION,
+            "role_labels": [{
+                "identity": build_identity(role),
+                "signature": role_fingerprint(role),
+                "name": role["name"],
+            } for role in roles],
             "result": result,
         }
 
@@ -238,16 +302,21 @@ class IncrementalCache:
         summary["Perks"] = "; ".join(getattr(bro, "Perks", []) or [])
         summary["Traits"] = "; ".join(getattr(bro, "Traits", []) or [])
         summary["Injuries"] = "; ".join(getattr(bro, "Injuries", []) or [])
+        # Advisor has an independent validity domain. Old manifests may have
+        # embedded it in summary; never publish that unvalidated copy.
+        summary.pop("LevelUpAdvice", None)
         return summary
 
     def store_summary(self, bro, roles, classification_cfg, summary):
         entry = self._current_entry(bro)
+        intrinsic_summary = dict(summary)
+        intrinsic_summary.pop("LevelUpAdvice", None)
         entry["summary"] = {
             "input_hash": brother_summary_fingerprint(
                 bro, roles, classification_cfg
             ),
             "engine_version": BROTHER_SUMMARY_ENGINE_VERSION,
-            "result": dict(summary),
+            "result": intrinsic_summary,
         }
 
     def mark_summary_computed(self):

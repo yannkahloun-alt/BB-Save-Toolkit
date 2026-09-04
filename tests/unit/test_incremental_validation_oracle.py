@@ -91,7 +91,9 @@ def test_missing_stale_incompatible_or_corrupt_oracle_conservatively_recomputes(
     analysis = analyze_brothers([bro], [role], cfg.classification, cache)
     manifest = cache.manifest_payload(generated_at="run-a", source_save="same.sav")
     corrupt = copy.deepcopy(manifest)
-    role_artifact = next(iter(corrupt["brothers"].values()))["roles"][role["name"]]
+    role_artifact = next(iter(corrupt["brothers"].values()))["roles"][
+        IncrementalCache._role_storage_key(role)
+    ]
     mutate(role_artifact)
 
     warm = IncrementalCache(corrupt)

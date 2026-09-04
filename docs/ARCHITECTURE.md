@@ -152,6 +152,12 @@ performance evidence stays out of the public report contract.
 
 Dependency-aware reuse layer. It must remain above the computation engines rather than embedding persistence in trajectory/scoring code.
 
+Result-affecting input categories, artifact dependencies, semantic engine
+versions, deterministic signatures, and conservative recomputation closure are
+centralized in `dependencies.py`; see
+[`DEPENDENCY_SIGNATURES.md`](DEPENDENCY_SIGNATURES.md). Intrinsic summary and
+Advisor validity remain separate even where presentation composes them.
+
 Current artifacts can be cached independently where dependencies permit:
 
 ```text
