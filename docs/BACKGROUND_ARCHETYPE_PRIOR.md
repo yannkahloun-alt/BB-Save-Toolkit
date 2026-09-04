@@ -12,7 +12,10 @@ vanilla scripts revision declared in `references/update_references.py`. It
 contains exact level-1 integer stat ranges, background bonuses/maluses,
 excluded talents, and the untalented flag. Base ranges are parsed from
 `character_background.nut`; they are not copied into the model. Static values
-inherit through the background script hierarchy. A dynamic or incomplete
+inherit through both explicit `this.inherit(...)` and the decompiled variant
+form whose `create()` begins with an exact `this.<parent>_background.create()`
+call. Only that anchored constructor form is accepted; arbitrary `create()` or
+`this.new(...)` calls are not parent evidence. A dynamic or incomplete
 definition has no `PotentialProfile` and is explicitly unsupported. Background
 scripts that directly mutate the actor talent array are also unsupported even
 when the assignments look deterministic: treating `IsUntalented` as an
@@ -64,6 +67,14 @@ The histogram uses ten-point Fit bands; the final band is explicitly `90-100`.
 `supported_backgrounds(reference)` enumerates only exact profiles. Missing save
 hashes and source entries without an exact profile fail explicitly instead of
 falling back to display names or guessed values.
+
+At pinned vanilla revision `162f498ac7c49b4c317bbf54718a595ecef6a65a`,
+92 of 101 scanned background scripts have exact profiles. The nine explicit
+exceptions are the six companion variants with direct talent mutation plus
+`executioner`, `executioner_southern`, and `nomad_ranged`, whose decompiled
+attribute-return arrays are incomplete. Constructor-parent resolution restores
+the exact inherited profiles for `juggler_southern`, `gladiator_origin`,
+`old_gladiator`, and `old_paladin`.
 
 ## Versioning
 

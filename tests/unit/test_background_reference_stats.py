@@ -123,16 +123,22 @@ def test_potential_inputs_derive_base_ranges_and_inherit_static_rules(tmp_path):
             b'this.m.ID = "background.parent";\nthis.m.HiringCost = 2;\n'
             b"this.m.DailyCost = 2;\n"
             b"this.m.ExcludedTalents = [this.Const.Attributes.MeleeSkill];\n"
-            + b"\n".join(
+            b"function onChangeAttributes() { return {\n" + b"\n".join(
                 f"{name} = [{1 if name == 'MeleeSkill' else 0}, 0],".encode()
                 for name, _, _ in props
-            )
+            ) + b"\n}; }\n"
         ),
         "child": b'this.inherit("scripts/skills/backgrounds/parent_background");\n',
+        "create_child": (
+            b"function create(this) {\n"
+            b"this.parent_background.create();\n"
+            b'this.new("scripts/items/weapons/knife");\n}\n'
+        ),
         "fixed_talents": (
             b'this.inherit("scripts/skills/backgrounds/character_background");\n'
             b'this.m.ID = "background.fixed_talents";\n'
-            b"this.m.IsUntalented = true;\n" + zeroes + b"\n"
+            b"this.m.IsUntalented = true;\n"
+            b"function onChangeAttributes() { return {\n" + zeroes + b"\n}; }\n"
             b"local talents = this.getContainer().getActor().getTalents();\n"
             b"talents[this.Const.Attributes.RangedSkill] = 2;\n"
         ),
@@ -143,6 +149,10 @@ def test_potential_inputs_derive_base_ranges_and_inherit_static_rules(tmp_path):
     child = next(rec for rec in records.values() if rec["Key"] == "child")
     assert child["PotentialProfile"]["stat_ranges"]["MAtk"] == [48, 57]
     assert child["PotentialProfile"]["excluded_talents"] == ["MAtk"]
+    create_child = next(
+        rec for rec in records.values() if rec["Key"] == "create_child"
+    )
+    assert create_child["PotentialProfile"] == child["PotentialProfile"]
     fixed = next(rec for rec in records.values() if rec["Key"] == "fixed_talents")
     assert "PotentialProfile" not in fixed
     assert fixed["PotentialUnsupportedReason"] == "talent_mutation"

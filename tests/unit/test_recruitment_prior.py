@@ -127,3 +127,6 @@ def test_pinned_vanilla_excerpt_distinguishes_shipped_melee_ranged_and_banner_ro
     }
     with pytest.raises(ValueError, match="no exact potential profile"):
         background_archetype_prior("D1B9D2CC", roles["archer"], reference)
+    assert "18E3126A" in {
+        row["save_hash"] for row in supported_backgrounds(reference)
+    }

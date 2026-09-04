@@ -124,6 +124,12 @@ EXCLUDED_TALENT_ENTRY_RE = re.compile(
 )
 UNTALENTED_RE = re.compile(r"(?:this\.)?m\.IsUntalented\s*=\s*true\b")
 TALENT_MUTATION_RE = re.compile(r"(?:getTalents\s*\(|\bm\.Talents\b)")
+CREATE_BACKGROUND_PARENT_RE = re.compile(
+    r"function\s+create\s*\([^)]*\)\s*\{\s*"
+    r"this\.([a-z0-9_]+_background)\.create\s*\(\s*\)\s*;",
+    re.DOTALL,
+)
+CHANGE_ATTRIBUTES_RE = re.compile(r"function\s+onChangeAttributes\s*\(")
 
 
 INHERIT_RE = re.compile(
@@ -1248,6 +1254,7 @@ def build_background_dictionary(
             rel = path.split("/", 1)[-1]
             script_path = rel.removesuffix(".nut")
             parent_match = INHERIT_RE.search(text)
+            create_parent_match = CREATE_BACKGROUND_PARENT_RE.search(text)
             id_match = BACKGROUND_ID_RE.search(text)
             hiring_match = HIRING_COST_RE.search(text)
             daily_match = DAILY_COST_RE.search(text)
@@ -1281,7 +1288,11 @@ def build_background_dictionary(
                 "Script": rel,
                 "ScriptPath": script_path,
                 "SaveHash": battle_brothers_save_hash(script_path),
-                "Parent": parent_match.group(1) if parent_match else None,
+                "Parent": (
+                    parent_match.group(1) if parent_match else
+                    "scripts/skills/backgrounds/" + create_parent_match.group(1)
+                    if create_parent_match else None
+                ),
                 "BackgroundID": id_match.group(1) if id_match else None,
                 "HiringCostBase": num(hiring_match),
                 "DailyCostBase": num(daily_match),
@@ -1292,6 +1303,7 @@ def build_background_dictionary(
                 "DefinesExcludedTalents": excluded_match is not None,
                 "DefinesUntalented": bool(UNTALENTED_RE.search(text)),
                 "HasTalentMutation": bool(TALENT_MUTATION_RE.search(text)),
+                "DefinesAttributeOffsets": bool(CHANGE_ATTRIBUTES_RE.search(text)),
             }
 
     parse_seconds = time.perf_counter() - t
@@ -1353,7 +1365,7 @@ def build_background_dictionary(
         if daily is None and parent is not None:
             daily = parent["DailyCostBase"]
             inherited_daily = daily is not None
-        if not offsets and parent is not None:
+        if not rec["DefinesAttributeOffsets"] and parent is not None:
             offsets = parent["AttributeOffsets"]
         if not rec["DefinesExcludedTalents"] and parent is not None:
             excluded = parent["ExcludedTalents"]

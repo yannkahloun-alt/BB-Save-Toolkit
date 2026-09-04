@@ -19,7 +19,8 @@ GENERATED RUNTIME CACHES
 backgrounds.json uses bbtool.backgrounds.v2. In addition to independently
 resolved economy fields it carries exact static level-1 PotentialProfile inputs
 for the intrinsic Background x Archetype prior. Base ranges and background
-offset/talent rules are source-derived; dynamic/incomplete profiles and scripts
+offset/talent rules are source-derived through explicit inheritance or an exact
+parent-background `create()` constructor call; dynamic/incomplete profiles and scripts
 that directly mutate actor talents are omitted explicitly with a
 PotentialUnsupportedReason while their reference entries remain available.
 

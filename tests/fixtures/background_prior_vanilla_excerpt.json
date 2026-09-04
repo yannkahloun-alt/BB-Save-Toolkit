@@ -16,6 +16,10 @@
     "D1B9D2CC": {
       "BackgroundID": "background.companion_ranged", "Key": "companion_ranged",
       "PotentialUnsupportedReason": "talent_mutation"
+    },
+    "18E3126A": {
+      "BackgroundID": "background.juggler_southern", "Key": "juggler_southern",
+      "PotentialProfile": {"level": 1, "stat_ranges": {"HP": [45,55], "Resolve": [30,40], "Fatigue": [90,100], "MAtk": [47,57], "RAtk": [35,45], "MDef": [0,5], "RDef": [0,5], "Initiative": [112,120]}, "excluded_talents": [], "untalented": false}
     }
   }
 }
