@@ -169,9 +169,13 @@ class LocalApplicationApi:
             return self._error(500, "internal_error", "the application operation failed")
 
     def _shell_state(self) -> dict[str, Any]:
-        """Compose one read-only shell snapshot from current application state."""
+        """Compose one bounded read-only shell snapshot from application state."""
         followed_save = self.application.followed_save()
         result = self.application.last_result()
+        result_status = {
+            "available": bool(result.get("available")),
+            "freshness": result.get("freshness", {"status": "unavailable"}),
+        }
         publication = self.application.coordinator.last_success
         analysis_health = None
         if publication is not None:
@@ -189,7 +193,7 @@ class LocalApplicationApi:
 
         return {
             "followed_save": followed_save,
-            "result": result,
+            "result": result_status,
             "analysis_health": analysis_health,
             "active_job": active_job,
         }
