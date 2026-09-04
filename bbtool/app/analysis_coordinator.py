@@ -196,6 +196,12 @@ class AnalysisCoordinator:
         with self._lock:
             return dict(self._retained_artifacts)
 
+    @property
+    def desired_job_id(self) -> int | None:
+        """Newest requested generation, for transport-independent freshness views."""
+        with self._lock:
+            return self._desired_id
+
     def job(self, job_id: int) -> AnalysisJob:
         with self._lock:
             return self._jobs[job_id]

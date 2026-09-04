@@ -216,6 +216,13 @@ older artifacts independently revalidated by the dependency owner. See
 [`BACKGROUND_ANALYSIS.md`](BACKGROUND_ANALYSIS.md). HTTP routing and filesystem
 stabilization remain outside this module.
 
+`bbtool/app/local_application.py` is the typed local-application facade over
+durable preferences, effective archetypes, and the background coordinator.
+`bbtool/app/app_server.py` is its bounded loopback HTTP adapter and the only
+browser mutation transport. It binds `127.0.0.1`, requires exact-origin plus a
+same-session capability for typed revision-checked mutations, and exposes no
+generic state or filesystem API. See [`LOCAL_APPLICATION_API.md`](LOCAL_APPLICATION_API.md).
+
 ### `bbtool/html_report.py`, `report.js`, `report.css`
 
 Presentation layer. Report/UI-only changes should not invalidate numerical caches.
