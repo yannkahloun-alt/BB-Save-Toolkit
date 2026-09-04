@@ -33,7 +33,9 @@ distribution; it does not duplicate or alter the background prior.
 
 Unknown traits, conditional or unsupported effects, effects only on non-Fit
 stats, missing tryout state, and partial/missing evidence do not justify a
-candidate percentage. The result remains `prior_only` and
+candidate percentage. If any revealed trait is unresolved or unusable for the
+archetype, the model does not partially condition on the remaining traits. The
+result remains `prior_only` and
 `candidate_estimate` is `null`. There is no interpolation, confidence score,
 Bayesian-sounding adjustment, or added display precision.
 

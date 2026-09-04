@@ -198,6 +198,24 @@ def test_unknown_conditional_and_role_irrelevant_traits_remain_prior_only(monkey
     }
 
 
+def test_mixed_usable_and_unresolved_evidence_remains_prior_only(monkeypatch):
+    reference = load_background_potential_reference(FIXTURE)
+    monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])
+    recruit = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+               "RevealedTraitEvidence": [
+        {"save_hash": "1234ABCD", "name": "Known"},
+        {"save_hash": "00000000", "name": "Unresolved"},
+    ]}
+
+    result = recruit_candidate_estimate(recruit, _role(), reference)
+
+    assert result["state"] == "prior_only"
+    assert result["candidate_estimate"] is None
+    assert [item["status"] for item in result["evidence_basis"]["items"]] == [
+        "applied_exact_unconditional_fit_effect", "insufficient_for_estimate",
+    ]
+
+
 def test_candidate_estimate_ignores_economy_roster_intent_and_hidden_fields(monkeypatch):
     reference = load_background_potential_reference(FIXTURE)
     monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])

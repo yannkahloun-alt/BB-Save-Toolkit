@@ -234,10 +234,14 @@ def recruit_candidate_estimate(
         if usable:
             applied_ids.append(trait_id)
     applied_ids = sorted(set(applied_ids))
+    complete_evidence = bool(evidence) and all(
+        item["status"] == "applied_exact_unconditional_fit_effect"
+        for item in evidence
+    )
     estimate = (
         _conditioned_distribution(
             background_hash, role, reference, tuple(applied_ids),
-        ) if applied_ids else None
+        ) if applied_ids and complete_evidence else None
     )
     return {
         "schema": CANDIDATE_MODEL_ID,
