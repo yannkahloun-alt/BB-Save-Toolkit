@@ -5,6 +5,12 @@
 **Baseline:** v3.84\
 **Purpose:** implementation handoff / remaining-work specification
 
+**Current-status note:** Workstream C was completed after this baseline by
+#79, #123, and #125. The exact native contract and its evidence limits are in
+[`../CAMPAIGN_IDENTITY.md`](../CAMPAIGN_IDENTITY.md). The historical sections
+below are retained to explain the original sequencing and must not be read as
+requiring a new campaign fingerprint or path-based implementation.
+
 This document supersedes the previous v3.83 remaining-work
 specification.
 
@@ -146,7 +152,7 @@ The main remaining workstreams are now:
 
 1.  **Prove and implement true cross-save brother identity**
 2.  **Enable reuse across legitimate brother progression**
-3.  **Campaign-level cache isolation**
+3.  **Campaign-level cache isolation** — completed after v3.84
 4.  **Centralize dependency declarations**
 5.  **Trait/permanent-injury completeness audit**
 6.  **Cache verification and mutation hardening**
@@ -401,7 +407,14 @@ incremental output == full recomputation
 
 # 6. Workstream C --- Campaign-safe cache isolation
 
-## 6.1 Current limitation
+**Completed after this baseline.** `CampaignIdentity` is the native serialized
+`CampaignID`; #123 added conservative parsing and #125 added versioned
+campaign-scoped manifest discovery and pruning. Map seed and filesystem
+provenance are not identity. See
+[`../CAMPAIGN_IDENTITY.md`](../CAMPAIGN_IDENTITY.md) and
+[`../INCREMENTAL_CACHE_CAMPAIGN_STUDY.md`](../INCREMENTAL_CACHE_CAMPAIGN_STUDY.md).
+
+## 6.1 Historical limitation
 
 Manifest discovery is currently constrained by the resolved save-file
 path.
@@ -417,7 +430,7 @@ save copied
 different campaign using same filename/path later
 ```
 
-## 6.2 Requirement
+## 6.2 Completed requirement
 
 Introduce:
 
@@ -429,7 +442,7 @@ derived from stable campaign-level save data.
 
 The save filename/path MUST NOT be the final source of truth.
 
-## 6.3 Required investigation
+## 6.3 Completed investigation
 
 Inspect the save for stable campaign identifiers such as:
 
@@ -442,7 +455,7 @@ scenario/origin state
 other stable campaign metadata
 ```
 
-## 6.4 Discovery behavior
+## 6.4 Implemented discovery behavior
 
 Eventually:
 
@@ -455,7 +468,7 @@ AND campaign fingerprint matches
 The save path may remain a useful hint/filter but should not be
 authoritative.
 
-## 6.5 Acceptance
+## 6.5 Acceptance preserved
 
 No artifact from a different campaign may ever be reused.
 

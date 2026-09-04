@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from bbtool.models import CampaignIdentity
 from bbtool.save_parser import parse_campaign_identity, parse_campaign_identity_bytes
 
 pytestmark = [pytest.mark.unit, pytest.mark.parser]
@@ -44,6 +45,31 @@ def test_parses_source_order_and_does_not_use_seed_as_identity():
     assert first.basis == "native_campaign_id"
     assert first.confidence == "exact"
     assert first.reason is None
+
+
+def test_same_campaign_id_is_stable_across_other_serialized_changes():
+    before = parse_campaign_identity_bytes(
+        b"early snapshot" + _asset_manager_tail(314159, seed="CAMPAIGN01")
+    )
+    after = parse_campaign_identity_bytes(
+        b"later snapshot with unrelated serialized state"
+        + _asset_manager_tail(314159, seed="CAMPAIGN01")
+    )
+
+    assert before == after == CampaignIdentity(314159, confidence="exact")
+
+
+def test_same_map_seed_independent_campaign_ids_remain_separate():
+    first = parse_campaign_identity_bytes(
+        _asset_manager_tail(101, seed="SHAREDSEED")
+    )
+    second = parse_campaign_identity_bytes(
+        _asset_manager_tail(202, seed="SHAREDSEED")
+    )
+
+    assert first == CampaignIdentity(101, confidence="exact")
+    assert second == CampaignIdentity(202, confidence="exact")
+    assert first != second
 
 
 def test_missing_invalid_and_ambiguous_evidence_fail_conservatively():
