@@ -223,9 +223,12 @@ def validate_target_presentation(
 
     roster = {row["BrotherID"]: row for row in payloads["roster"]}
     brothers = payload["brothers"]
-    if not isinstance(brothers, list) or {row.get("brother_id") for row in brothers} != set(roster):
+    if not isinstance(brothers, list) or any(
+        not isinstance(row, dict) for row in brothers
+    ) or [row.get("brother_id") for row in brothers] != list(roster):
         raise ValueError("target presentation brother joins do not match roster")
     campaign_value = _validate_identity(payload["campaign_identity"], brother=False)
+    exact_brother_identities = set()
     for row in brothers:
         if not isinstance(row, dict) or set(row) != {
             "brother_id", "brother_identity", "mechanical_facts",
@@ -234,9 +237,15 @@ def validate_target_presentation(
         brother_campaign = _validate_identity(row["brother_identity"], brother=True)
         if brother_campaign is not None and brother_campaign != campaign_value:
             raise ValueError("target presentation brother campaign identity mismatch")
+        identity_value = row["brother_identity"]["value"]
+        if identity_value is not None:
+            if identity_value in exact_brother_identities:
+                raise ValueError("target presentation contains duplicate BrotherIdentity")
+            exact_brother_identities.add(identity_value)
     if not isinstance(payload["recruitment"], list):
         raise ValueError("target presentation recruitment must be an array")
-    if [row.get("recruit_index") for row in payload["recruitment"]] != \
+    if any(not isinstance(row, dict) for row in payload["recruitment"]) or \
+            [row.get("recruit_index") for row in payload["recruitment"]] != \
             list(range(len(payloads["recruits"]))):
         raise ValueError("target presentation recruit joins do not match recruits")
     for row in payload["recruitment"]:
@@ -247,7 +256,8 @@ def validate_target_presentation(
         if row["background_save_hash"] != payloads["recruits"][
                 row["recruit_index"]].get("BackgroundSaveHash"):
             raise ValueError("target presentation recruitment background mismatch")
-        if [item.get("build_identity") for item in row["analyses"]] != \
+        if any(not isinstance(item, dict) for item in row["analyses"]) or \
+                [item.get("build_identity") for item in row["analyses"]] != \
                 [item["build_identity"] for item in builds]:
             raise ValueError("target presentation recruitment build joins mismatch")
         recruit = payloads["recruits"][row["recruit_index"]]

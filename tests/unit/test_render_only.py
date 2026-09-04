@@ -334,6 +334,28 @@ def test_target_v3_rejects_duplicate_recruitment_build_analysis(tmp_path):
         load_render_dataset(source)
 
 
+def test_target_v3_rejects_duplicate_presentation_brother_row(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"].append(dict(value["brothers"][0])),
+    )
+    with pytest.raises(RenderDatasetError, match="brother joins do not match roster"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_duplicate_exact_brother_identity(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"][1].update(
+            brother_identity=dict(value["brothers"][0]["brother_identity"])
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="duplicate BrotherIdentity"):
+        load_render_dataset(source)
+
+
 def test_recruitment_analysis_must_match_bound_recruit_evidence():
     role = _normalize_role({
         "id": "melee_test", "name": "Melee test",
