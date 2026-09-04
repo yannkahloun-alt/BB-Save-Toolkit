@@ -23,6 +23,12 @@ class FakeCache:
     def store_validation_oracle(self, bro, role, trajectory):
         return None
 
+    def publication_signatures(self):
+        return {
+            "role_projection": [], "strategic_classification": [],
+            "level_advisor": [],
+        }
+
 
 def _patch_pipeline(monkeypatch):
     roster = [SimpleNamespace(Name="A")]
@@ -86,8 +92,11 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     assert result.source_fingerprint.startswith("sha256:")
     assert set(result.configuration_fingerprints) == {"archetypes", "classification"}
     assert [event.stage for event in observed] == [
-        "references", "campaign_identity", "roster", "recruits", "analysis", "validation"
+        "references", "campaign_identity", "roster", "recruits", "analysis",
+        "validation", "recruitment_analysis",
     ]
+    assert result.recruitment_analysis[0]["analyses"][0]["state"] == "unavailable"
+    assert result.presentation_context["source_fingerprint"] == result.source_fingerprint
     assert "campaign_identity" not in result.public_data
     assert result.incremental_cache.received == (
         {"schema": "test"}, True, "provenance-only"

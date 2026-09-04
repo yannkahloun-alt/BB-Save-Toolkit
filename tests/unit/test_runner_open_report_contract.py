@@ -46,9 +46,10 @@ def test_runner_opens_generated_report_when_requested(monkeypatch, tmp_path):
                 "parse": {"recoverable_failures": []},
                 "references": runner.ensure_references(verbose=False),
                 "projection_profile": {},
-            },
-            projection_validation={"summary": {"roll_range_violations": 0}},
-        ),
+                },
+                projection_validation={"summary": {"roll_range_violations": 0}},
+                presentation_context={},
+            ),
     )
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: None)
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)

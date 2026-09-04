@@ -13,10 +13,10 @@ def _load(name):
 
 def test_reference_analysis_manifest_and_files_are_compatible():
     manifest = _load("manifest.json")
-    assert manifest["schema"] == "bbtool.reference_analysis.v2"
+    assert manifest["schema"] == "bbtool.reference_analysis.v3"
     assert set(manifest["files"]) == {
         "roster", "recruits", "role_fit", "classification",
-        "archetypes", "classification_config", "analysis_health",
+        "archetypes", "classification_config", "analysis_health", "presentation",
     }
     for entry in manifest["files"].values():
         path = FIXTURE / entry["path"]
@@ -45,6 +45,13 @@ def test_reference_analysis_relations_and_public_data_contract():
     assert all("FutureRolls" not in bro for bro in roster)
     assert all("FutureRolls" not in json.dumps(value) for value in (fits, summaries))
     assert {rec["TryoutDone"] for rec in _load("reference-recruits.json")} == {True, False}
+    presentation = _load("reference-target-presentation.json")
+    assert presentation["schema"] == "bbtool.target_presentation.v1"
+    assert len(presentation["validity"]["artifacts"]["role_projection"]) == \
+        len(fits)
+    assert len(presentation["validity"]["artifacts"][
+        "strategic_classification"
+    ]) == len(roster)
 
 
 def test_reference_analysis_contains_no_machine_paths_or_volatile_metadata():

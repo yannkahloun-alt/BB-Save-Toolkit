@@ -1,0 +1,829 @@
+{
+  "brothers": [
+    {
+      "brother_id": "human:101",
+      "brother_identity": {
+        "basis": "native_campaign_entity_token",
+        "confidence": "exact",
+        "reason": null,
+        "value": "campaign:4242/entity:1001"
+      },
+      "mechanical_facts": [
+        {
+          "ArmorFatiguePenalty": 0,
+          "Basis": "body_and_head_fatigue",
+          "HitpointDamageMultiplier": 0.4,
+          "HitpointDamageReductionPct": 60.0,
+          "Perk": "Nimble",
+          "State": "active"
+        }
+      ]
+    },
+    {
+      "brother_id": "human:202",
+      "brother_identity": {
+        "basis": "native_campaign_entity_token",
+        "confidence": "exact",
+        "reason": null,
+        "value": "campaign:4242/entity:1002"
+      },
+      "mechanical_facts": []
+    },
+    {
+      "brother_id": "human:303",
+      "brother_identity": {
+        "basis": "native_campaign_entity_token",
+        "confidence": "exact",
+        "reason": null,
+        "value": "campaign:4242/entity:1003"
+      },
+      "mechanical_facts": []
+    },
+    {
+      "brother_id": "human:505",
+      "brother_identity": {
+        "basis": "native_campaign_entity_token",
+        "confidence": "exact",
+        "reason": null,
+        "value": "campaign:4242/entity:1004"
+      },
+      "mechanical_facts": []
+    },
+    {
+      "brother_id": "human:404",
+      "brother_identity": {
+        "basis": "native_campaign_entity_token",
+        "confidence": "exact",
+        "reason": null,
+        "value": "campaign:4242/entity:1005"
+      },
+      "mechanical_facts": []
+    }
+  ],
+  "builds": [
+    {
+      "build_definition_hash": "sha256:f62a2c76ce3f4641d5603f28599a5d1df059bbe007a0068fb488778fb34f89b7",
+      "build_identity": "reach_dps",
+      "display_name": "Reach DPS"
+    },
+    {
+      "build_definition_hash": "sha256:b0f18e22307a1a67c5e4851c698e666cba9a60441da67f7fa2e0ebed02f88664",
+      "build_identity": "nimble_frontline_dps",
+      "display_name": "Nimble Frontline DPS"
+    },
+    {
+      "build_definition_hash": "sha256:5d69d37fb97e30f5628273189551654f3d054b888cd6669fa0894cc10fef1f71",
+      "build_identity": "battle_forged_frontline_dps",
+      "display_name": "Battle Forged Frontline DPS"
+    },
+    {
+      "build_definition_hash": "sha256:44cfad228a9098b97464755def31f2b5364be16a3e49c0a0020b8501b07511d4",
+      "build_identity": "fat_neutral",
+      "display_name": "Fat Neutral"
+    },
+    {
+      "build_definition_hash": "sha256:588ee764c0064530ab7454cb512a57f74468957e85995ff8ac19b998d5b0d80a",
+      "build_identity": "nimble_tank",
+      "display_name": "Nimble Tank"
+    },
+    {
+      "build_definition_hash": "sha256:c7ee5fada75c7716e8c292a2f81e5cedd1a08b4b383b175db5570388de8c324c",
+      "build_identity": "battle_forged_tank",
+      "display_name": "Battle Forged Tank"
+    },
+    {
+      "build_definition_hash": "sha256:e81d2071f11daffc5d38221646f61183e98836757ca909916324935aee7491a6",
+      "build_identity": "archer",
+      "display_name": "Archer"
+    },
+    {
+      "build_definition_hash": "sha256:b02eefaee6e2e030578e3dcd5ff194d9291eee61a625408c02497a522c6a4586",
+      "build_identity": "thrower_hybrid",
+      "display_name": "Thrower Hybrid"
+    },
+    {
+      "build_definition_hash": "sha256:fb399193db6d9aadda6421412201a415329fdf7d87f541e3e9bcd93a1bc8252b",
+      "build_identity": "thrower",
+      "display_name": "Thrower"
+    },
+    {
+      "build_definition_hash": "sha256:7bac03f53686e7a0cef0df8cdd68c6a7aed75341b407b252edb43ce68246b27b",
+      "build_identity": "crossbow",
+      "display_name": "Crossbow"
+    },
+    {
+      "build_definition_hash": "sha256:651fcc1e533238c5cb1256b077a39c098cf74255387cb1078b081888b04dc612",
+      "build_identity": "banner",
+      "display_name": "Banner"
+    }
+  ],
+  "campaign_identity": {
+    "basis": "native_campaign_id",
+    "confidence": "exact",
+    "reason": null,
+    "value": 4242
+  },
+  "company": {
+    "intrinsic_coverage": [
+      {
+        "ArtifactSignature": "sha256:9fca23555e91167e1e72c980cded550f1e078fb1fe20409e5c11a4c7990dcfb0",
+        "BuildDefinitionHash": "sha256:e81d2071f11daffc5d38221646f61183e98836757ca909916324935aee7491a6",
+        "BuildIdentity": "archer",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 0.0,
+        "TopFitPct": 0.0,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:f78c87eadc14385e3935742c70b63f19db7481f127b81997ef40ccad5924c017",
+        "BuildDefinitionHash": "sha256:651fcc1e533238c5cb1256b077a39c098cf74255387cb1078b081888b04dc612",
+        "BuildIdentity": "banner",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 0.0,
+        "TopFitPct": 0.0,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:89aab2b1e04d57121c1cf7ad284f75cf99842b70562dc6d3af4e86fd4f0aa5fa",
+        "BuildDefinitionHash": "sha256:5d69d37fb97e30f5628273189551654f3d054b888cd6669fa0894cc10fef1f71",
+        "BuildIdentity": "battle_forged_frontline_dps",
+        "GoodCount": 3,
+        "PremiumCount": 1,
+        "SecondFitPct": 88.8,
+        "TopFitPct": 100.0,
+        "ViableBrothers": [
+          {
+            "BrotherID": "human:101",
+            "BrotherIdentity": null,
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "BrotherID": "human:202",
+            "BrotherIdentity": null,
+            "FitLabel": "GOOD",
+            "FitPct": 88.8
+          },
+          {
+            "BrotherID": "human:505",
+            "BrotherIdentity": null,
+            "FitLabel": "GOOD",
+            "FitPct": 82.9
+          }
+        ],
+        "ViableCount": 3
+      },
+      {
+        "ArtifactSignature": "sha256:696e2f97d00401f4785dddac17136b299857799ccc76c882ba7db2c937e59b95",
+        "BuildDefinitionHash": "sha256:c7ee5fada75c7716e8c292a2f81e5cedd1a08b4b383b175db5570388de8c324c",
+        "BuildIdentity": "battle_forged_tank",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 0.0,
+        "TopFitPct": 66.7,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:a2d7d2555941cd6dcf193fe84d6e2375a46ec072b49fab14fca03681201d9334",
+        "BuildDefinitionHash": "sha256:7bac03f53686e7a0cef0df8cdd68c6a7aed75341b407b252edb43ce68246b27b",
+        "BuildIdentity": "crossbow",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 0.0,
+        "TopFitPct": 9.9,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:a227303f54bfd8ea953f1db3d1dba4d4f66a2b70ba6f0cad7204c906cef123ca",
+        "BuildDefinitionHash": "sha256:44cfad228a9098b97464755def31f2b5364be16a3e49c0a0020b8501b07511d4",
+        "BuildIdentity": "fat_neutral",
+        "GoodCount": 1,
+        "PremiumCount": 1,
+        "SecondFitPct": 58.3,
+        "TopFitPct": 100.0,
+        "ViableBrothers": [
+          {
+            "BrotherID": "human:101",
+            "BrotherIdentity": null,
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          }
+        ],
+        "ViableCount": 1
+      },
+      {
+        "ArtifactSignature": "sha256:87607cd1bba4e2b2923b4d86f0d90d93da3c09cd7c731aadf67b6eec04cc9102",
+        "BuildDefinitionHash": "sha256:b0f18e22307a1a67c5e4851c698e666cba9a60441da67f7fa2e0ebed02f88664",
+        "BuildIdentity": "nimble_frontline_dps",
+        "GoodCount": 3,
+        "PremiumCount": 1,
+        "SecondFitPct": 90.1,
+        "TopFitPct": 100.0,
+        "ViableBrothers": [
+          {
+            "BrotherID": "human:101",
+            "BrotherIdentity": null,
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "BrotherID": "human:505",
+            "BrotherIdentity": null,
+            "FitLabel": "GOOD",
+            "FitPct": 90.1
+          },
+          {
+            "BrotherID": "human:202",
+            "BrotherIdentity": null,
+            "FitLabel": "GOOD",
+            "FitPct": 88.4
+          }
+        ],
+        "ViableCount": 3
+      },
+      {
+        "ArtifactSignature": "sha256:f594c65d6a057fc7978cc85e1ba66d9b4f65f3dceb952298b06a2f333929bc2a",
+        "BuildDefinitionHash": "sha256:588ee764c0064530ab7454cb512a57f74468957e85995ff8ac19b998d5b0d80a",
+        "BuildIdentity": "nimble_tank",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 12.2,
+        "TopFitPct": 66.7,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:aeab4ff68e43d0846a358e2657611b4509ba4006935a4b2014c0ad8e5356945e",
+        "BuildDefinitionHash": "sha256:f62a2c76ce3f4641d5603f28599a5d1df059bbe007a0068fb488778fb34f89b7",
+        "BuildIdentity": "reach_dps",
+        "GoodCount": 1,
+        "PremiumCount": 1,
+        "SecondFitPct": 76.3,
+        "TopFitPct": 100.0,
+        "ViableBrothers": [
+          {
+            "BrotherID": "human:101",
+            "BrotherIdentity": null,
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "BrotherID": "human:505",
+            "BrotherIdentity": null,
+            "FitLabel": "VIABLE",
+            "FitPct": 76.3
+          },
+          {
+            "BrotherID": "human:202",
+            "BrotherIdentity": null,
+            "FitLabel": "VIABLE",
+            "FitPct": 71.3
+          }
+        ],
+        "ViableCount": 3
+      },
+      {
+        "ArtifactSignature": "sha256:c78668932783003176c01baa82ab3f8c7c70c7d07f5229fd14828ec5bb049943",
+        "BuildDefinitionHash": "sha256:fb399193db6d9aadda6421412201a415329fdf7d87f541e3e9bcd93a1bc8252b",
+        "BuildIdentity": "thrower",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 0.0,
+        "TopFitPct": 24.4,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      },
+      {
+        "ArtifactSignature": "sha256:1db007fdda4b4ba9fd8505a485a000f5372890bfaaf0c720e80c39d7582dad11",
+        "BuildDefinitionHash": "sha256:b02eefaee6e2e030578e3dcd5ff194d9291eee61a625408c02497a522c6a4586",
+        "BuildIdentity": "thrower_hybrid",
+        "GoodCount": 0,
+        "PremiumCount": 0,
+        "SecondFitPct": 11.1,
+        "TopFitPct": 44.4,
+        "ViableBrothers": [],
+        "ViableCount": 0
+      }
+    ]
+  },
+  "pending": {
+    "assigned_build": 107,
+    "intended_company_planning": 128,
+    "intent_aware_advisor": 108,
+    "relevant_roster_need": 112
+  },
+  "publication": {
+    "coherence_signature": "sha256:877bfae807c21324e1cb3bad856d8e763ab94453c30c0ca4f705591d2e567d95",
+    "provenance": {
+      "artifact_hashes": {
+        "analysis_health": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2",
+        "archetypes": "c5434ea66e73bbefecebddcfcaee439771e3be266314a9f1ba925a3fd02731f6",
+        "classification": "803c95597b43e642a7afa9f277e3803eeb750da96fb4641112a4f8f7e9b53866",
+        "classification_config": "47a3b9d213863a2e1641e36979f8f831f6bed36bb767d257a7dd27012bca6011",
+        "recruits": "121602914ab017a5e339f329bc9bfebcb13150e66febbae3a3bcc03e9cd712f6",
+        "role_fit": "a431592a3e6d9dfc3322c556345ba86618f63fbc1d8260861057314d5e2e8846",
+        "roster": "ac2602e146755b367274a588570fa706095618a85a031a8fbaf6e76325c18890"
+      },
+      "configuration_fingerprints": {
+        "archetypes": "sha256:654d6966c0efc4c4aec54f9c644be50bb735f9c0ed21dc05f205b2205f043c95",
+        "classification": "sha256:e5efbf29051cca044a0680c1b5ebfaf0ede966a2845e67797d6e8faf046ad7cc"
+      },
+      "source_fingerprint": "sha256:7bbe2a746fc358d0883d720a4a15302443e126c38cba62718e6efe2f2259d591"
+    }
+  },
+  "recruitment": [
+    {
+      "analyses": [
+        {
+          "build_identity": "reach_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "nimble_frontline_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "battle_forged_frontline_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "fat_neutral",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "nimble_tank",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "battle_forged_tank",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "archer",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "thrower_hybrid",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "thrower",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "crossbow",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "banner",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        }
+      ],
+      "background_save_hash": null,
+      "recruit_index": 0
+    },
+    {
+      "analyses": [
+        {
+          "build_identity": "reach_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "nimble_frontline_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "battle_forged_frontline_dps",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "fat_neutral",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "nimble_tank",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "battle_forged_tank",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "archer",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "thrower_hybrid",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "thrower",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "crossbow",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        },
+        {
+          "build_identity": "banner",
+          "reason": "background_identity_unavailable",
+          "result": null,
+          "state": "unavailable"
+        }
+      ],
+      "background_save_hash": null,
+      "recruit_index": 1
+    }
+  ],
+  "run_health": {
+    "counts": {
+      "recoverable_parsing_failures": 0,
+      "result_affecting_warnings": 0,
+      "unresolved_backgrounds_relevant_to_save": 0,
+      "unresolved_recruit_equipment_relevant_to_save": 0,
+      "unresolved_references_relevant_to_save": 0
+    },
+    "projection_validation": {
+      "roll_range_violations": 0,
+      "status": "pass"
+    },
+    "schema": "bbtool.analysis_health.v1",
+    "status": "healthy",
+    "warning_categories": []
+  },
+  "schema": "bbtool.target_presentation.v1",
+  "validity": {
+    "artifacts": {
+      "level_advisor": [
+        {
+          "brother_id": "human:101",
+          "dependency_signature": "sha256:59a1fd30a3d995cf177f33179122405cdb3ef446bfbcb5520eaf6081a2fd5959"
+        },
+        {
+          "brother_id": "human:202",
+          "dependency_signature": "sha256:b0ac4c9b932021671e993def1a4b01538217f12b027722f9c12b214e9ed4c16f"
+        },
+        {
+          "brother_id": "human:303",
+          "dependency_signature": "sha256:132b4358816464daef609c7affdec4a79667ce4a26c12a685321c232c06cb0c0"
+        },
+        {
+          "brother_id": "human:404",
+          "dependency_signature": "sha256:c80e1cee394c43960055d37c6cf82ed0ab9142975564d2df41ccf1e2b15ff59c"
+        },
+        {
+          "brother_id": "human:505",
+          "dependency_signature": "sha256:3c31b9cd8312f1e381e2c220b35ddc091948466f69eba87010ecbd88c6bae399"
+        }
+      ],
+      "role_projection": [
+        {
+          "brother_id": "human:101",
+          "build_key": "archer",
+          "dependency_signature": "sha256:684d2c444e6636bcc2c803aedcf767df562aba3d5a0d6ad0909d82a395deffd7"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "banner",
+          "dependency_signature": "sha256:2cf8e44447cb2f0d242b19ca3d03e9869349765d0a5ba561310b86d99566a75e"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "battle_forged_frontline_dps",
+          "dependency_signature": "sha256:51dfa6a9159a6b847a1a49b02f2a275601d97e3f53d156a36b24eee1af690cae"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "battle_forged_tank",
+          "dependency_signature": "sha256:c045f0c2b53e094afb3e0390eb011e8893ad0540cb2f90ee40f267dc82b4eb13"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "crossbow",
+          "dependency_signature": "sha256:616774386910481c1732f1afb537ca1e41a10032fcb31a19685dc52bd1de9c28"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "fat_neutral",
+          "dependency_signature": "sha256:77c32643542b2bac556ee3fd8ba4c6b5756edcbdfb5101808120ee79d447107a"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "nimble_frontline_dps",
+          "dependency_signature": "sha256:58baaa6264e0d822483a5d4322b9ff27cda1facb03a3bf276c44ad82f5121b15"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "nimble_tank",
+          "dependency_signature": "sha256:8f0d268cbb9ca342e4a2d99e3f68bd690a68a8c4ccd444f797967e9bc986eb56"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "reach_dps",
+          "dependency_signature": "sha256:20dd349b560339d8d6ae930db7cf3cdfdead9acb2452073f362f6255d1f1cbb1"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "thrower",
+          "dependency_signature": "sha256:852c348e0ac4c51f2fef46bdd299d286d817d601a36f8c849188258d46cb5d65"
+        },
+        {
+          "brother_id": "human:101",
+          "build_key": "thrower_hybrid",
+          "dependency_signature": "sha256:eee90e59dc3fe40793a4572032a1b7371b7e0e9cc748fc9d771d252a67859dbc"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "archer",
+          "dependency_signature": "sha256:c4425f9a7222eab379a19fa1f876c51e7f3b15879a1aea2b5c656e5a0adef99d"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "banner",
+          "dependency_signature": "sha256:e431a6ea40b67ed317172a26870228fe0fdb704c303a016f4dc85ebce073b284"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "battle_forged_frontline_dps",
+          "dependency_signature": "sha256:4fd4828a7a61befa5ee6fa52aed92f9e4851c8fd7b02099e2465c245c118f999"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "battle_forged_tank",
+          "dependency_signature": "sha256:e47a684fa3b59f56072d9b653492b439d4f53f698babd573fac06104aae276b7"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "crossbow",
+          "dependency_signature": "sha256:ccaf1a5e4756ab93843af54bbfa2d9bbf0476f7b4f5f17f00f746a6447534b05"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "fat_neutral",
+          "dependency_signature": "sha256:e5bc2c14f6bc769021dc6ea86c7e049829a21eb7299aa9c86f42e55d801bab58"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "nimble_frontline_dps",
+          "dependency_signature": "sha256:1de5177c4f78ce4e44a0ac3ae7c1b49a87846fc73fd10bd643147ee5aa0595a1"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "nimble_tank",
+          "dependency_signature": "sha256:496beaea740b799353ee621e84c06709569781516a403591e49d07ba9b2f581a"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "reach_dps",
+          "dependency_signature": "sha256:385fed8795d61a5571eddc8248a4346dfe879a607f0fce302b78a0894610b7d1"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "thrower",
+          "dependency_signature": "sha256:6e4b3b9f82d54b67413da9f9df94c75812483fc3f73e2d820902716646031de5"
+        },
+        {
+          "brother_id": "human:202",
+          "build_key": "thrower_hybrid",
+          "dependency_signature": "sha256:f3dd8612c98af1560fd30d46a2fbb1dab63c11d1e7af238373ac568a292e1f5c"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "archer",
+          "dependency_signature": "sha256:78379e02aafcabe6ade3e4e581784da33cd7cd6b1edc1918cc4b107e46209cb9"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "banner",
+          "dependency_signature": "sha256:c5f5923a4972ff21358faf3a5c15c66c50ecce32615a4c780665a5ab504dfe77"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "battle_forged_frontline_dps",
+          "dependency_signature": "sha256:d042da11e5df00753c72d8e50ad852f447451761e2dd6fcd761747e9a73f920e"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "battle_forged_tank",
+          "dependency_signature": "sha256:49a56ff2c651a3af5cefbcbba01ab43a27b6af68fc185902d400cffdc0fb5498"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "crossbow",
+          "dependency_signature": "sha256:537c9bdbb324893e3ad24252d69f33e9a8d6012acd6e03d91f75b8f959117d2e"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "fat_neutral",
+          "dependency_signature": "sha256:29fa67c55b2023f64b5f06214c199e0c22531d063a68e2deaaa7fb84f5acbf08"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "nimble_frontline_dps",
+          "dependency_signature": "sha256:e6175d814dd729303100ffeca3ef2eb59917fd737f08e13846126efb4f6bf2fe"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "nimble_tank",
+          "dependency_signature": "sha256:935ac3e5a2729c85ca3d4ed5c92bcfdd04ec5748fb5c6841abac0e3e57eee7a1"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "reach_dps",
+          "dependency_signature": "sha256:8ab904332b8531d00bf114b96a78098eec6198c1172d1158605bf60aacb2e711"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "thrower",
+          "dependency_signature": "sha256:a6421ca86a4d2f225c95c9d273af3843ad8aa7ef16d192df13117b94207242a4"
+        },
+        {
+          "brother_id": "human:303",
+          "build_key": "thrower_hybrid",
+          "dependency_signature": "sha256:37bc1530032d5b74652eba8fef9ae704f9bb33c34ed3367f8764fb74f15b2f6f"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "archer",
+          "dependency_signature": "sha256:4559688c4c38de464ea3ba83d39da8cf414179da47ac6db2ba3d38396dfa9a97"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "banner",
+          "dependency_signature": "sha256:3aae5ee56ea3709cebfaa224a20233f089039791c8f951947a43166d783545bc"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "battle_forged_frontline_dps",
+          "dependency_signature": "sha256:61c8097bed24351b12b38a898791a5dbb7fa7529cac0740f0e28e64e38ae6cb8"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "battle_forged_tank",
+          "dependency_signature": "sha256:d54d5e0809dcf8920a937cc8ae458095202b38b1c926c16c8e778781623b95c0"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "crossbow",
+          "dependency_signature": "sha256:17cc1178df43dd88d861125422fb2690e1f01617290b253c9560373374039660"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "fat_neutral",
+          "dependency_signature": "sha256:3d6930ad359a46a6206b336876a99208e4f482a1e9367b64a6a55d5cb27ed40e"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "nimble_frontline_dps",
+          "dependency_signature": "sha256:c5579d6b05ce34a90382c616c2816852f1d42898d8d44aab0d2b758de8736114"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "nimble_tank",
+          "dependency_signature": "sha256:fba754c6fdd79a506f0f0d742e4543cf58ea01f88236250e603bd44db00014b8"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "reach_dps",
+          "dependency_signature": "sha256:28153268a2c5a819fffe7b2ae96d4a7637394e85244a4e6fc691590e9799ce7a"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "thrower",
+          "dependency_signature": "sha256:665041f7e0d88748a25ef3ff55b779103edceb5e5e933ae41c835a5ea0e49fa2"
+        },
+        {
+          "brother_id": "human:404",
+          "build_key": "thrower_hybrid",
+          "dependency_signature": "sha256:4965fae9561499245d91eb5f9dfd78729ee86532d87b7f531e0dd560e68f19e9"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "archer",
+          "dependency_signature": "sha256:fe2231b72dfab4e0aae8268140de7e5dc25196a470555f4360c3561fc5278fa3"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "banner",
+          "dependency_signature": "sha256:bb945da864010a515abc7451607546ef1155e296be8278f357ba6006993a2d7d"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "battle_forged_frontline_dps",
+          "dependency_signature": "sha256:ed00f11e449d598163253c517e29b82b1475ebae2adddf1c5f02a35fb8e6e5f5"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "battle_forged_tank",
+          "dependency_signature": "sha256:d5ba28fb004e001392b20b39c40c758764b699dc4d59515ba1b32a223c34ed6b"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "crossbow",
+          "dependency_signature": "sha256:8328a6a64f7cc18c22cd630083066aac77294fd51599068d6902eeb360e53b9f"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "fat_neutral",
+          "dependency_signature": "sha256:1ee802d38907cffbc4227d659e77183c00766d84ebd833191455d884ecd4d996"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "nimble_frontline_dps",
+          "dependency_signature": "sha256:9b2e94ed88f93200a8e68bc0cbd6ccb390cfbe9d6cc365b53895492f0b6859b2"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "nimble_tank",
+          "dependency_signature": "sha256:575edb17f250b62e762c957fc1fa31cf4a77aee8d3e80f82c46bdb6fa6e25a75"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "reach_dps",
+          "dependency_signature": "sha256:f49fc9fe23db05bd39afe8f9a312774bcf318577b2cf1f055ba6040ff910167e"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "thrower",
+          "dependency_signature": "sha256:75541e22e7b810e14e1257939b7fed76795e0ecf970f2dcd17c34231a54f5d1a"
+        },
+        {
+          "brother_id": "human:505",
+          "build_key": "thrower_hybrid",
+          "dependency_signature": "sha256:cb9f3fb16c6f2d8d70bb9643ef6527de716b053908b67be3d0320bd4cdd98cd6"
+        }
+      ],
+      "strategic_classification": [
+        {
+          "brother_id": "human:101",
+          "dependency_signature": "sha256:4c936703f6e853fcfc9197f0f4e1c384dce64e9075881fd2518242f752292026"
+        },
+        {
+          "brother_id": "human:202",
+          "dependency_signature": "sha256:b45312ce7507140454648635cf7cf8a541f707da414dc931ce682319699a9746"
+        },
+        {
+          "brother_id": "human:303",
+          "dependency_signature": "sha256:896a432e7f831d5dd7d2725cb8d5ac9b83b4381447ec932e84a05ce83f8cc581"
+        },
+        {
+          "brother_id": "human:404",
+          "dependency_signature": "sha256:ddce51f56deb4b93075eeae39acef24e077c0d2cbbd13aacea9afb7f9360ac5b"
+        },
+        {
+          "brother_id": "human:505",
+          "dependency_signature": "sha256:c9e1f255da084c908efa036ec6ba69544182fe83f9674210c859c0c03d243c71"
+        }
+      ]
+    },
+    "basis": "result_local_dependency_signature"
+  }
+}

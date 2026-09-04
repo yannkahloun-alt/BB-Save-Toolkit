@@ -14,7 +14,13 @@ from bbtool.app.analysis import analyze_brothers
 from bbtool.app.config import load_config
 from bbtool.app.output import _decorate_fit_rows, _public_bro_dict
 from bbtool.app.health import build_public_analysis_health
-from bbtool.models import Brother, STATS
+from bbtool.app.target_presentation import (
+    build_recruitment_presentation,
+    build_target_presentation,
+)
+from bbtool.incremental.dependencies import stable_hash
+from bbtool.incremental.cache import IncrementalCache
+from bbtool.models import Brother, BrotherIdentity, CampaignIdentity, STATS
 
 OUT = Path(__file__).resolve().parent
 FILES = {
@@ -25,6 +31,7 @@ FILES = {
     "archetypes": "reference-archetypes.json",
     "classification_config": "reference-classification-config.json",
     "analysis_health": "reference-analysis-health.json",
+    "presentation": "reference-target-presentation.json",
 }
 
 
@@ -69,10 +76,11 @@ def _payloads() -> dict[str, object]:
          "Background": "Militia", "Traits": [], "TryoutDone": False,
          "HireCost": 780, "DailyWage": 14},
     ]
-    result = analyze_brothers(bros, cfg.roles, cfg.classification)
+    cache = IncrementalCache(None, enabled=False)
+    result = analyze_brothers(bros, cfg.roles, cfg.classification, cache)
     _decorate_fit_rows(result.fits)
     raw_archetypes = json.loads((ROOT / "config/archetypes.json").read_text(encoding="utf-8"))
-    return {
+    payloads = {
         "roster": [_public_bro_dict(bro) for bro in bros],
         "recruits": recruits,
         "role_fit": result.fits,
@@ -81,10 +89,40 @@ def _payloads() -> dict[str, object]:
         "classification_config": cfg.classification,
         "analysis_health": build_public_analysis_health({}),
     }
+    artifact_hashes = {
+        key: hashlib.sha256(_serialized(value).encode("utf-8")).hexdigest()
+        for key, value in payloads.items()
+    }
+    payloads["presentation"] = build_target_presentation(
+        bros=bros, recruits=recruits, roles=raw_archetypes["roles"],
+        analysis_health=payloads["analysis_health"],
+        campaign_identity=CampaignIdentity(4242, confidence="exact"),
+        brother_identities={
+            bro.BrotherID: BrotherIdentity(
+                4242, index + 1001, confidence="exact"
+            ) for index, bro in enumerate(bros)
+        },
+        source_fingerprint=stable_hash({"fixture": "synthetic-save"}),
+        configuration_fingerprints={
+            "archetypes": stable_hash(raw_archetypes["roles"]),
+            "classification": stable_hash(cfg.classification),
+        },
+        recruitment_analysis=build_recruitment_presentation(
+            recruits, raw_archetypes["roles"], OUT / "unused-backgrounds.json"
+        ),
+        result_signatures=cache.publication_signatures(),
+        company_intrinsic_coverage=result.company_intrinsic_coverage,
+        artifact_hashes=artifact_hashes,
+    )
+    return payloads
+
+
+def _serialized(value: object) -> str:
+    return json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 
 def _write(path: Path, value: object) -> None:
-    text = json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+    text = _serialized(value)
     with path.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
 
@@ -94,7 +132,7 @@ def regenerate() -> None:
     for key, filename in FILES.items():
         _write(OUT / filename, payloads[key])
     manifest = {
-        "schema": "bbtool.reference_analysis.v2",
+        "schema": "bbtool.reference_analysis.v3",
         "source": "synthetic Brother and recruit records declared in generate.py",
         "purpose": "versioned public inputs for report demos and contract tests",
         "files": {

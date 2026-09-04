@@ -8,6 +8,7 @@ import re
 import shutil
 import zipfile
 from collections import defaultdict
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,11 @@ from ..projection import (
     project_seeded_fit_trajectory,
 )
 from .health import build_public_analysis_health
+from .target_presentation import (
+    DATASET_SCHEMA as TARGET_DATASET_SCHEMA,
+    build_target_presentation,
+)
+from ..incremental.dependencies import stable_hash as dependency_stable_hash
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 MAX_RETAINED_OUTPUTS = 10
@@ -138,6 +144,8 @@ def write_report_dataset(
     roles: list[dict],
     class_cfg: dict,
     analysis_health: dict | None = None,
+    presentation_context: dict | None = None,
+    presentation_payload: dict | None = None,
 ) -> Path:
     """Write the versioned public JSON contract consumed by report serving."""
     analysis_health = analysis_health or build_public_analysis_health({})
@@ -158,8 +166,31 @@ def write_report_dataset(
             "path": path.name,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         }
+    schema = REPORT_DATASET_SCHEMA
+    if presentation_context is not None or presentation_payload is not None:
+        artifact_hashes = {key: value["sha256"] for key, value in files.items()}
+        if presentation_context is not None:
+            presentation = build_target_presentation(
+                bros=bros, recruits=recruits, roles=roles,
+                analysis_health=analysis_health,
+                artifact_hashes=artifact_hashes,
+                **presentation_context,
+            )
+        else:
+            presentation = deepcopy(presentation_payload)
+            provenance = presentation["publication"]["provenance"]
+            provenance["artifact_hashes"] = dict(sorted(artifact_hashes.items()))
+            presentation["publication"]["coherence_signature"] = \
+                dependency_stable_hash(provenance)
+        path = workspace.root / f"{workspace.base}-target-presentation.json"
+        _write_public_json(path, presentation)
+        files["presentation"] = {
+            "path": path.name,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+        schema = TARGET_DATASET_SCHEMA
     manifest = {
-        "schema": REPORT_DATASET_SCHEMA,
+        "schema": schema,
         "purpose": "versioned public inputs for the interactive report",
         "source": workspace.source_save.name,
         "generated_at": workspace.generated_at,
@@ -507,10 +538,12 @@ def write_html(
     roles: list[dict],
     class_cfg: dict,
     analysis_health: dict | None = None,
+    presentation_context: dict | None = None,
+    presentation_payload: dict | None = None,
 ) -> Path:
     write_report_dataset(
         workspace, bros, recruits, fits, summaries, roles, class_cfg,
-        analysis_health,
+        analysis_health, presentation_context, presentation_payload,
     )
     shutil.copy2(PACKAGE_ROOT / "report.css", workspace.root / "report.css")
     shutil.copy2(PACKAGE_ROOT / "report.js", workspace.root / "report.js")

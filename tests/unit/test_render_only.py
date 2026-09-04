@@ -11,7 +11,14 @@ import bbtool.app.render_only as render_only
 from bbtool.app.render_only import RenderDatasetError, load_render_dataset, run_render_only
 from bbtool.app.report_server import render_served_report
 from bbtool.app.health import build_public_analysis_health, build_run_health
+from bbtool.app.target_presentation import (
+    DATASET_SCHEMA as TARGET_DATASET_SCHEMA,
+    build_recruitment_presentation,
+    build_target_presentation,
+)
+from bbtool.incremental.dependencies import stable_hash
 from bbtool.html_report import render_report_launcher
+from bbtool.models import BrotherIdentity, CampaignIdentity
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,7 +49,60 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
     manifest["files"][label]["sha256"] = hashlib.sha256(
         payload_path.read_bytes()
     ).hexdigest()
+    if manifest.get("schema") == TARGET_DATASET_SCHEMA and label != "presentation":
+        presentation_path = source / manifest["files"]["presentation"]["path"]
+        presentation = json.loads(presentation_path.read_text(encoding="utf-8"))
+        presentation["publication"]["provenance"]["artifact_hashes"][label] = \
+            manifest["files"][label]["sha256"]
+        if label == "analysis_health":
+            presentation["run_health"] = payload
+        presentation["publication"]["coherence_signature"] = stable_hash(
+            presentation["publication"]["provenance"]
+        )
+        presentation_path.write_text(json.dumps(presentation), encoding="utf-8")
+        manifest["files"]["presentation"]["sha256"] = hashlib.sha256(
+            presentation_path.read_bytes()
+        ).hexdigest()
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+
+def _upgrade_to_target_v3(source: Path) -> Path:
+    dataset = load_render_dataset(source)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    hashes = {key: value["sha256"] for key, value in manifest["files"].items()}
+    identities = {
+        bro.BrotherID: BrotherIdentity(77, index + 1, confidence="exact")
+        for index, bro in enumerate(dataset.bros)
+    }
+    recruitment = build_recruitment_presentation(
+        dataset.recruits, dataset.roles, source / "unused-backgrounds.json"
+    )
+    presentation = build_target_presentation(
+        bros=dataset.bros, recruits=dataset.recruits, roles=dataset.roles,
+        analysis_health=dataset.analysis_health,
+        campaign_identity=CampaignIdentity(77, confidence="exact"),
+        brother_identities=identities,
+        source_fingerprint=stable_hash({"save": "fixture"}),
+        configuration_fingerprints={
+            "archetypes": stable_hash(dataset.roles),
+            "classification": stable_hash(dataset.classification),
+        },
+        recruitment_analysis=recruitment, artifact_hashes=hashes,
+        result_signatures={
+            "role_projection": [], "strategic_classification": [],
+            "level_advisor": [],
+        },
+        company_intrinsic_coverage=[],
+    )
+    path = source / "reference-target-presentation.json"
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+    manifest["schema"] = TARGET_DATASET_SCHEMA
+    manifest["files"]["presentation"] = {
+        "path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    return source
 
 
 def test_cli_accepts_render_only_without_save():
@@ -90,6 +150,69 @@ def test_load_render_dataset_validates_relations_and_builds_brothers():
     assert dataset.roles
     assert dataset.fits
     assert dataset.analysis_health["status"] == "healthy"
+    assert dataset.presentation["schema"] == "bbtool.target_presentation.v1"
+
+
+def test_target_v3_exposes_authoritative_foundation_and_loads_for_all_consumers(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    dataset = load_render_dataset(source)
+    assert dataset.manifest["schema"] == TARGET_DATASET_SCHEMA
+    assert dataset.presentation["campaign_identity"]["value"] == 77
+    assert dataset.presentation["brothers"][0]["brother_identity"]["value"].startswith(
+        "campaign:77/entity:"
+    )
+    assert all(item["build_identity"] for item in dataset.presentation["builds"])
+    assert dataset.presentation["run_health"] == dataset.analysis_health
+    assert dataset.presentation["pending"] == {
+        "assigned_build": 107, "intent_aware_advisor": 108,
+        "intended_company_planning": 128, "relevant_roster_need": 112,
+    }
+    assert render_served_report(source)[1]
+
+
+def test_target_v3_rejects_mixed_generation_even_when_manifest_hash_is_updated(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    path = source / manifest["files"]["classification_config"]["path"]
+    value = json.loads(path.read_text(encoding="utf-8"))
+    value["invest"] = 999
+    path.write_text(json.dumps(value), encoding="utf-8")
+    manifest["files"]["classification_config"]["sha256"] = hashlib.sha256(
+        path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="artifact generation mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_mismatched_build_definition(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["builds"][0].update(
+            build_definition_hash="sha256:" + "0" * 64
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="build identity mismatch"):
+        load_render_dataset(source)
+
+
+def test_v2_compatibility_is_preserved_and_v1_remains_explicitly_unsupported(tmp_path):
+    source = _copy_fixture(tmp_path)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    presentation = manifest["files"].pop("presentation")
+    manifest["schema"] = "bbtool.reference_analysis.v2"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (source / presentation["path"]).unlink()
+    assert load_render_dataset(source).presentation is None
+
+    manifest["schema"] = "bbtool.reference_analysis.v1"
+    manifest["files"].pop("analysis_health")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="unsupported schema"):
+        load_render_dataset(source)
 
 
 def test_served_report_renders_healthy_analysis_health():
@@ -387,8 +510,8 @@ def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
 def test_generated_manifest_is_self_contained_and_versioned(tmp_path):
     workspace, _archive = run_render_only(_options(FIXTURE, tmp_path / "out"))
     manifest = json.loads((workspace.root / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["schema"] == "bbtool.reference_analysis.v2"
-    assert set(manifest["files"]) == render_only.REQUIRED_FILES
+    assert manifest["schema"] == TARGET_DATASET_SCHEMA
+    assert set(manifest["files"]) == render_only.TARGET_REQUIRED_FILES
     assert all(
         (workspace.root / entry["path"]).is_file()
         for entry in manifest["files"].values()

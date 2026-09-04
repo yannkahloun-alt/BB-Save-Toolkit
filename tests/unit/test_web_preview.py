@@ -21,7 +21,7 @@ def test_build_web_previews_is_interactive_metadata_bound_and_presentation_only(
         assert "Render-only preview" in html
         assert "PR #123" in html
         assert "a" * 40 in html
-        assert "bbtool.reference_analysis.v2" in html
+        assert "bbtool.reference_analysis.v3" in html
         assert "2026-08-30T12:34:56Z" in html
         assert "Aldric" in html
         assert '"FutureRolls"' not in html

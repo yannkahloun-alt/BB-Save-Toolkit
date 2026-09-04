@@ -7,7 +7,7 @@ import hashlib
 import time
 from typing import Any
 
-from references.update_references import ensure_references
+from references.update_references import BACKGROUNDS_OUT, ensure_references
 
 from ..incremental import IncrementalCache, first_difference
 from ..incremental.fingerprint import stable_hash
@@ -22,6 +22,7 @@ from ..save_parser import (
 from .analysis import AnalysisResult, analyze_brothers
 from .health import build_run_health
 from .output import build_projection_validation, public_brother_data
+from .target_presentation import build_recruitment_presentation
 
 
 @dataclass(frozen=True)
@@ -81,6 +82,19 @@ class AnalysisServiceResult:
     progress_events: list[ProgressEvent]
     incremental_cache: IncrementalCache
     projection_validation: dict
+    recruitment_analysis: list[dict]
+
+    @property
+    def presentation_context(self) -> dict:
+        return {
+            "campaign_identity": self.campaign_identity,
+            "brother_identities": self.brother_identities,
+            "source_fingerprint": self.source_fingerprint,
+            "configuration_fingerprints": self.configuration_fingerprints,
+            "recruitment_analysis": self.recruitment_analysis,
+            "result_signatures": self.incremental_cache.publication_signatures(),
+            "company_intrinsic_coverage": self.analysis.company_intrinsic_coverage,
+        }
 
     @property
     def public_data(self) -> dict:
@@ -280,6 +294,13 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             validation_payload=projection_validation,
         )
         warnings = _structured_warnings(health)
+        stage = "recruitment_analysis"
+        tick = time.perf_counter()
+        recruitment_analysis = build_recruitment_presentation(
+            recruits, request.roles, BACKGROUNDS_OUT,
+        )
+        timings[stage] = time.perf_counter() - tick
+        emit(stage, "completed", tick, recruits=len(recruits))
         timings["total"] = time.perf_counter() - started
         return AnalysisServiceResult(
             campaign_identity=campaign_identity,
@@ -308,6 +329,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             progress_events=events,
             incremental_cache=cache,
             projection_validation=projection_validation,
+            recruitment_analysis=recruitment_analysis,
         )
     except AnalysisServiceError:
         raise

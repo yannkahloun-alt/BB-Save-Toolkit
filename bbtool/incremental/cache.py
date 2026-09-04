@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from ..build_identity import build_identity
 from .manifest import SCHEMA, campaign_identity_payload
+from .dependencies import stable_hash
 
 from .fingerprint import (
     ADVISOR_ENGINE_VERSION,
@@ -351,4 +352,40 @@ class IncrementalCache:
                 "previous_manifest": self.stats.previous_manifest,
                 "miss_reasons": dict(self.miss_reasons),
             },
+        }
+
+    def publication_signatures(self) -> dict:
+        """Expose result-local input signatures without cached result payloads."""
+        role_rows = []
+        classifications = []
+        advisors = []
+        for brother_id, entry in sorted(self._current.items()):
+            state = entry["projection_state_hash"]
+            for build_key, artifact in sorted(entry.get("roles", {}).items()):
+                role_rows.append({
+                    "brother_id": brother_id,
+                    "build_key": build_key,
+                    "dependency_signature": stable_hash({
+                        "artifact": "role_projection",
+                        "brother_state": state,
+                        "build_definition": artifact.get("role_hash"),
+                        "engine_version": artifact.get("engine_version"),
+                    }),
+                })
+            summary = entry.get("summary")
+            if isinstance(summary, dict):
+                classifications.append({
+                    "brother_id": brother_id,
+                    "dependency_signature": summary.get("input_hash"),
+                })
+            advisor = entry.get("advisor")
+            if isinstance(advisor, dict):
+                advisors.append({
+                    "brother_id": brother_id,
+                    "dependency_signature": advisor.get("input_hash"),
+                })
+        return {
+            "role_projection": role_rows,
+            "strategic_classification": classifications,
+            "level_advisor": advisors,
         }
