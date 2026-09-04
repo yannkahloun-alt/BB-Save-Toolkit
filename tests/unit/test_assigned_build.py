@@ -57,6 +57,19 @@ def test_assignment_survives_restart_and_rename_is_cosmetic(tmp_path):
     assert restarted["assignment"]["assigned_definition_hash"] == assigned["assignment"]["assigned_definition_hash"]
 
 
+def test_campaign_read_exposes_deterministic_resolved_authoritative_state(tmp_path):
+    campaign, first = identities(token=1234)
+    _, second = identities(token=5678)
+    assigned = service(tmp_path)
+    assigned.assign(campaign, second, "banner", expected_revision=0)
+    assigned.assign(campaign, first, "reach_dps", expected_revision=1)
+
+    result = assigned.read_campaign(campaign)
+    assert result["revision"] == 2
+    assert list(result["assignments"]) == [first.value, second.value]
+    assert result["assignments"][first.value]["status"] == "current"
+
+
 def test_redefinition_is_visible_until_explicit_reassignment_acknowledges_hash(tmp_path):
     campaign, brother = identities()
     original = roles()

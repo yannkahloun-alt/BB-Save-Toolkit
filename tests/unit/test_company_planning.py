@@ -1,6 +1,11 @@
 from types import SimpleNamespace
 
-from bbtool.company_planning import build_intrinsic_company_coverage
+import bbtool.app.analysis as analysis_module
+from bbtool.build_identity import build_definition_hash
+from bbtool.company_planning import (
+    build_intent_company_coverage,
+    build_intrinsic_company_coverage,
+)
 
 
 DISPLAY = {"viable_fit": 0.60, "good_fit": 0.75, "premium_fit": 0.90}
@@ -69,6 +74,26 @@ def _coverage(bros, roles, values, classification=CLASSIFICATION):
     }
     return build_intrinsic_company_coverage(
         bros, roles, fits, classification, identities
+    )
+
+
+def _resolved(role):
+    definition_hash = build_definition_hash(role)
+    return {
+        "status": "current", "build_identity": role["id"],
+        "assigned_definition_hash": definition_hash,
+        "current_definition_hash": definition_hash,
+    }
+
+
+def _intended(bros, roles, values, assigned):
+    fits = [
+        _fit(bro, role, values[(bro.BrotherID, role["id"])])
+        for bro in bros for role in roles
+    ]
+    identities = {bro.BrotherID: bro.BrotherIdentity for bro in bros}
+    return build_intent_company_coverage(
+        bros, roles, fits, CLASSIFICATION, assigned, identities
     )
 
 
@@ -185,3 +210,214 @@ def test_threshold_changes_invalidate_coverage_but_unrelated_state_cannot_enter_
         [bro], [role], fits, {**CLASSIFICATION, "AssignedBuild": "also ignored"}
     )[0]
     assert original == same
+
+
+def test_no_intent_preserves_intrinsic_depth_without_need():
+    tank, banner = _role("tank"), _role("banner")
+    bro = _bro("human:1", "campaign:1/entity:1")
+    intended = _intended(
+        [bro], [tank, banner],
+        {(bro.BrotherID, "tank"): 80, (bro.BrotherID, "banner"): 80},
+        {bro.BrotherIdentity: _resolved(banner)},
+    )[1]
+
+    assert intended["AssignedCount"] == 0
+    assert intended["FreeViableBackupCount"] == 0
+    assert intended["ContestedViableBackupCount"] == 1
+    assert intended["FragilityFacts"]["NoIntent"] is True
+    assert intended["NeedBases"] == []
+
+
+def test_single_holder_free_and_contested_backup_facts_are_distinct():
+    tank, banner = _role("tank"), _role("banner")
+    holder = _bro("human:1", "campaign:1/entity:1")
+    backup = _bro("human:2", "campaign:1/entity:2")
+    values = {
+        (holder.BrotherID, "tank"): 80, (holder.BrotherID, "banner"): 40,
+        (backup.BrotherID, "tank"): 75, (backup.BrotherID, "banner"): 80,
+    }
+    holder_assignment = {holder.BrotherIdentity: _resolved(tank)}
+    free = _intended([holder, backup], [tank, banner], values, holder_assignment)[1]
+    # Stable BuildIdentity ordering puts banner before tank.
+    assert free["BuildIdentity"] == "tank"
+    assert free["FreeViableBackupCount"] == 1
+    assert free["FragilityFacts"]["FreeBackupAvailable"] is True
+    assert free["FragilityFacts"]["SinglePointOfFailure"] is False
+
+    contested = _intended(
+        [holder, backup], [tank, banner], values,
+        {**holder_assignment, backup.BrotherIdentity: _resolved(banner)},
+    )[1]
+    assert contested["ContestedViableBackupCount"] == 1
+    assert contested["FragilityFacts"]["ContestedBackupOnly"] is True
+    assert contested["NeedBases"] == ["contested_backup_only"]
+
+    no_spare = _intended([holder], [tank], {(holder.BrotherID, "tank"): 80}, holder_assignment)[0]
+    assert no_spare["FragilityFacts"]["SinglePointOfFailure"] is True
+    assert no_spare["NeedBases"] == ["single_point_of_failure"]
+
+
+def test_below_viable_mismatch_and_multi_holder_evidence():
+    alpha, beta = _role("alpha"), _role("beta")
+    first = _bro("human:1", "campaign:1/entity:1")
+    second = _bro("human:2", "campaign:1/entity:2")
+    values = {
+        (first.BrotherID, "alpha"): 55, (first.BrotherID, "beta"): 90,
+        (second.BrotherID, "alpha"): 80, (second.BrotherID, "beta"): 40,
+    }
+    result = _intended(
+        [first, second], [beta, alpha], values,
+        {first.BrotherIdentity: _resolved(alpha)},
+    )[0]
+    assert result["AssignedBelowViableCount"] == 1
+    assert result["FragilityFacts"]["AssignedButNoViableHolder"] is True
+    assert result["NeedBases"] == ["assigned_but_no_viable_holder"]
+    assert result["AssignedBrothers"][0] == {
+        "BrotherIdentity": first.BrotherIdentity, "BrotherID": first.BrotherID,
+        "AssignedFitPct": 55.0, "AssignedFitLabel": "LOW",
+        "BestBuildIdentity": "beta", "BestFitPct": 90.0,
+        "BestVsAssignedDeltaPctPoints": 35.0, "BestBuildDiffers": True,
+    }
+
+    both = _intended(
+        [first, second], [alpha, beta],
+        {**values, (first.BrotherID, "alpha"): 70},
+        {
+            first.BrotherIdentity: _resolved(alpha),
+            second.BrotherIdentity: _resolved(alpha),
+        },
+    )[0]
+    assert both["AssignedViableCount"] == 2
+    assert both["FragilityFacts"]["MultiHolderDepth"] is True
+
+
+def test_assignment_only_mutation_changes_only_intended_artifact_and_is_stable():
+    alpha, beta = _role("alpha"), _role("beta")
+    bros = [
+        _bro("human:2", "campaign:1/entity:2"),
+        _bro("human:1", "campaign:1/entity:1"),
+    ]
+    values = {(bro.BrotherID, role["id"]): 80 for bro in bros for role in (alpha, beta)}
+    intrinsic_before = _coverage(bros, [beta, alpha], values)
+    first = _intended(bros, [beta, alpha], values, {})
+    assigned = {bros[0].BrotherIdentity: _resolved(alpha)}
+    second = _intended(list(reversed(bros)), [alpha, beta], values, assigned)
+
+    assert intrinsic_before == _coverage(list(reversed(bros)), [alpha, beta], values)
+    assert first[0]["ArtifactSignature"] != second[0]["ArtifactSignature"]
+    assert [row["BuildIdentity"] for row in second] == ["alpha", "beta"]
+    assert [row["BrotherIdentity"] for row in second[0]["ViableAvailability"]] == [
+        "campaign:1/entity:1", "campaign:1/entity:2"
+    ]
+
+
+def test_definition_changed_assignment_is_not_consumed_as_current_intent():
+    role = _role("tank")
+    bro = _bro("human:1", "campaign:1/entity:1")
+    stale = {**_resolved(role), "status": "definition_changed"}
+    result = _intended(
+        [bro], [role], {(bro.BrotherID, "tank"): 80}, {bro.BrotherIdentity: stale}
+    )[0]
+    assert result["AssignedCount"] == 0
+    assert result["FragilityFacts"]["NoIntent"] is True
+
+
+def test_mismatch_best_build_uses_best_role_ranking_not_raw_fit_alone():
+    alpha, beta = _role("alpha"), _role("beta")
+    bro = _bro("human:1", "campaign:1/entity:1")
+    fits = [_fit(bro, alpha, 90), _fit(bro, beta, 80)]
+    fits[0]["PerkCompatibility"] = "CONFLICT"
+    fits[1]["PerkCompatibility"] = "NEUTRAL"
+    result = build_intent_company_coverage(
+        [bro], [alpha, beta], fits, CLASSIFICATION,
+        {bro.BrotherIdentity: _resolved(alpha)},
+        {bro.BrotherID: bro.BrotherIdentity},
+    )[0]
+
+    assert result["AssignedBrothers"][0]["AssignedFitPct"] == 90
+    assert result["AssignedBrothers"][0]["BestBuildIdentity"] == "beta"
+    assert result["AssignedBrothers"][0]["BestFitPct"] == 80
+
+
+def test_unrelated_semantic_changes_preserve_per_build_signature():
+    target, other, third = _role("target"), _role("other"), _role("third")
+    holder = _bro("human:1", "campaign:1/entity:1")
+    outsider = _bro("human:2", "campaign:1/entity:2")
+    values = {
+        (holder.BrotherID, "target"): 80, (holder.BrotherID, "other"): 70,
+        (holder.BrotherID, "third"): 60,
+        (outsider.BrotherID, "target"): 50, (outsider.BrotherID, "other"): 80,
+        (outsider.BrotherID, "third"): 70,
+    }
+    no_target_assignment = {outsider.BrotherIdentity: _resolved(other)}
+    before = _intended(
+        [holder, outsider], [target, other, third], values, no_target_assignment
+    )[1]
+
+    changed_third = _role("third", target=95)
+    unrelated_definition = _intended(
+        [holder, outsider], [target, other, changed_third], values,
+        no_target_assignment,
+    )[1]
+    reassigned_elsewhere = _intended(
+        [holder, outsider], [target, other, third], values,
+        {outsider.BrotherIdentity: _resolved(third)},
+    )[1]
+    assert before["BuildIdentity"] == "target"
+    assert unrelated_definition["ArtifactSignature"] == before["ArtifactSignature"]
+    assert reassigned_elsewhere["ArtifactSignature"] == before["ArtifactSignature"]
+
+    assignments = {
+        holder.BrotherIdentity: _resolved(target),
+        outsider.BrotherIdentity: _resolved(other),
+    }
+    before_mismatch = _intended(
+        [holder, outsider], [target, other, third], values, assignments
+    )[1]
+    changed_other = _role("other", target=95)
+    mismatch = _intended(
+        [holder, outsider], [target, changed_other, third], values,
+        {
+            holder.BrotherIdentity: _resolved(target),
+            outsider.BrotherIdentity: _resolved(changed_other),
+        },
+    )[1]
+    moved_holder = _intended(
+        [holder, outsider], [target, other, third], values,
+        {**assignments, holder.BrotherIdentity: _resolved(other)},
+    )[1]
+    assert mismatch["ArtifactSignature"] != before_mismatch["ArtifactSignature"]
+    assert moved_holder["ArtifactSignature"] != before_mismatch["ArtifactSignature"]
+
+
+def test_assignment_only_pipeline_mutation_preserves_fit_best_role_and_intrinsic(monkeypatch):
+    alpha, beta = _role("alpha"), _role("beta")
+    bro = _bro("human:1", "campaign:1/entity:1")
+
+    def projected(_, role):
+        pct = 80 if role["id"] == "alpha" else 70
+        return _fit(bro, role, pct)
+
+    monkeypatch.setattr(analysis_module, "_role_row", projected)
+    monkeypatch.setattr(analysis_module, "advise_levelup", lambda *args: {})
+    monkeypatch.setattr(analysis_module, "effective_stat_profile", lambda _: ({}, {}))
+    monkeypatch.setattr(
+        analysis_module, "_summary",
+        lambda _, best, *args: {
+            "BestRole": best["Role"], "ProjectedFitPct": best["ProjectedFitPct"]
+        },
+    )
+    identities = {bro.BrotherID: bro.BrotherIdentity}
+    before = analysis_module.analyze_brothers(
+        [bro], [alpha, beta], CLASSIFICATION, brother_identities=identities,
+        assigned_builds={},
+    )
+    after = analysis_module.analyze_brothers(
+        [bro], [alpha, beta], CLASSIFICATION, brother_identities=identities,
+        assigned_builds={bro.BrotherIdentity: _resolved(beta)},
+    )
+
+    assert before.fits == after.fits
+    assert before.summaries == after.summaries
+    assert before.company_intrinsic_coverage == after.company_intrinsic_coverage
+    assert before.company_intended_coverage != after.company_intended_coverage

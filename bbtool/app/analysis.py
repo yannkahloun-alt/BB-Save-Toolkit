@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import time
 from ..classification import classify_bro, fit_label, perk_compatibility, role_sort_key
-from ..company_planning import build_intrinsic_company_coverage
+from ..company_planning import (
+    build_intent_company_coverage,
+    build_intrinsic_company_coverage,
+)
 from ..levelup_advisor import advise_levelup
 from ..projection import (
     effective_stat_profile,
@@ -18,6 +21,7 @@ class AnalysisResult:
     fits: list[dict]
     summaries: list[dict]
     company_intrinsic_coverage: list[dict] = field(default_factory=list)
+    company_intended_coverage: list[dict] = field(default_factory=list)
 
 def _role_row(bro, role: dict, *, fast: bool=False) -> dict:
     projection = project_role_fast(bro, role) if fast else project_role(bro, role)
@@ -47,7 +51,8 @@ def _summary(bro,best,class_cfg,effective_stats,levelup_advice):
     }
 
 def analyze_brothers(
-    bros, roles, class_cfg, incremental_cache=None, brother_identities=None
+    bros, roles, class_cfg, incremental_cache=None, brother_identities=None,
+    assigned_builds=None,
 ):
     fits=[]; summaries=[]
     for bro in bros:
@@ -94,8 +99,15 @@ def analyze_brothers(
     coverage = build_intrinsic_company_coverage(
         bros, roles, fits, class_cfg, brother_identities
     )
+    intended_coverage = (
+        build_intent_company_coverage(
+            bros, roles, fits, class_cfg, assigned_builds, brother_identities or {}
+        )
+        if assigned_builds is not None else []
+    )
     return AnalysisResult(
         fits=fits,
         summaries=summaries,
         company_intrinsic_coverage=coverage,
+        company_intended_coverage=intended_coverage,
     )

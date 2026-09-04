@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 from ..build_identity import validate_build_identity
@@ -17,6 +18,21 @@ from .user_state import (
 
 class AssignedBuildValidationError(ValueError):
     """Identity or catalog evidence cannot authorize the requested operation."""
+
+
+@dataclass(frozen=True)
+class DurableAssignedBuildResolver:
+    """Pickle-safe read-only resolver for background analysis workers."""
+
+    state_root: Path
+    base_roles: tuple[dict, ...]
+
+    def __call__(self, campaign: CampaignIdentity) -> dict[str, dict[str, Any]]:
+        state = UserStateStore(self.state_root)
+        store = AssignedBuildStore(
+            state, ArchetypeCatalogStore(state, self.base_roles)
+        )
+        return store.read_campaign(campaign)["assignments"]
 
 
 @dataclass(frozen=True)
@@ -115,6 +131,30 @@ class AssignedBuildStore:
             self._record(state, campaign_value, brother_value), self.catalog.load()
         )
         return {"revision": state.revision, "assignment": resolved.payload()}
+
+    def read_campaign(self, campaign: CampaignIdentity) -> dict[str, Any]:
+        """Return the authoritative resolved assignment view for one campaign."""
+        if (
+            campaign.confidence != "exact"
+            or isinstance(campaign.value, bool)
+            or not isinstance(campaign.value, int)
+            or not 0 <= campaign.value <= 2_147_483_647
+        ):
+            raise AssignedBuildValidationError("CampaignIdentity must be exact")
+        state = self.store.load("assigned_builds")
+        catalog = self.catalog.load()
+        records = next(
+            (item.assignments for item in state.campaigns
+             if item.campaign_identity == campaign.value),
+            (),
+        )
+        return {
+            "revision": state.revision,
+            "assignments": {
+                record.brother_identity: self._resolve(record, catalog).payload()
+                for record in sorted(records, key=lambda item: item.brother_identity)
+            },
+        }
 
     def assign(
         self,
@@ -264,5 +304,6 @@ class AssignedBuildStore:
 
 
 __all__ = [
-    "AssignedBuildStore", "AssignedBuildValidationError", "ResolvedAssignedBuild",
+    "AssignedBuildStore", "AssignedBuildValidationError", "DurableAssignedBuildResolver",
+    "ResolvedAssignedBuild",
 ]

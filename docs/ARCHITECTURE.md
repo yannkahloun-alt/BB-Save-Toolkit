@@ -124,11 +124,13 @@ considered evidence item. See
 
 ### `bbtool/company_planning.py`
 
-Owns presentation-independent intrinsic Company coverage per authoritative
-BuildIdentity. It aggregates existing Brother × Build Fit evidence using the
-configured display thresholds and publishes artifact signatures through the
-central dependency registry. It has no player-intent input; intended coverage,
-availability, fragility, and need facts remain blocked on AssignedBuild. See
+Owns presentation-independent Company coverage per authoritative BuildIdentity.
+Its intrinsic artifact aggregates Brother × Build Fit evidence using configured
+display thresholds and remains wholly independent of player intent. Its separate
+intent-aware artifact consumes valid resolved AssignedBuild state and exposes
+assigned holders, free/contested availability, mismatch evidence, fragility,
+and structured role-level need bases without inventing roster targets. Both
+publish artifact signatures through the central dependency registry. See
 [`COMPANY_PLANNING.md`](COMPANY_PLANNING.md).
 
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`

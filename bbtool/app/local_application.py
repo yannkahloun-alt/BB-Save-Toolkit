@@ -14,7 +14,7 @@ from typing import Any
 
 from ..incremental.fingerprint import stable_hash
 from ..models import BrotherIdentity, CampaignIdentity
-from .assigned_build import AssignedBuildStore
+from .assigned_build import AssignedBuildStore, DurableAssignedBuildResolver
 from .analysis_coordinator import AnalysisCoordinator, DesiredAnalysis
 from .analysis_service import AnalysisServiceRequest, SaveSource
 from .archetype_catalog import ArchetypeCatalogStore, EffectiveCatalog
@@ -422,6 +422,9 @@ class LocalApplication:
                 source=SaveSource(content=content, name=path.name),
                 roles=config.roles,
                 classification=config.classification,
+                assigned_build_resolver=DurableAssignedBuildResolver(
+                    self.store.root, tuple(self.catalog.base_roles)
+                ),
             )
         )
         job_id = self.coordinator.submit(desired)

@@ -283,6 +283,29 @@ def test_analysis_request_only_submits_to_background_coordinator(tmp_path):
     assert backend.starts[0][1].source.content == b"immutable save bytes"
 
 
+def test_local_analysis_request_uses_authoritative_assigned_build_resolver(tmp_path):
+    backend = HoldingBackend()
+    app = make_application(
+        tmp_path,
+        coordinator=AnalysisCoordinator(backend=backend, monitor=False),
+        read_save=lambda _path: b"save",
+    )
+    campaign = CampaignIdentity(25809, confidence="exact")
+    brother = BrotherIdentity(25809, 1234, confidence="exact")
+    app.assigned_builds.assign(
+        campaign, brother, "reach_dps", expected_revision=0
+    )
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"unused")
+    app.select_followed_save(str(save), expected_revision=0)
+    app.request_analysis(expected_preferences_revision=1)
+
+    request = backend.starts[0][1]
+    resolved = request.assigned_build_resolver(campaign)
+    assert resolved[brother.value]["status"] == "current"
+    assert resolved[brother.value]["build_identity"] == "reach_dps"
+
+
 def test_failed_job_is_structured_and_service_remains_healthy(tmp_path):
     class FailingBackend:
         def start(self, job_id, request):

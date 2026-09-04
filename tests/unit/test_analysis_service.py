@@ -115,6 +115,47 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     assert renamed.source_fingerprint == result.source_fingerprint
 
 
+def test_exact_campaign_resolves_authoritative_assignments_for_analysis(monkeypatch):
+    _patch_pipeline(monkeypatch)
+    campaign = service.CampaignIdentity(25809, confidence="exact")
+    monkeypatch.setattr(service, "parse_campaign_identity_bytes", lambda _: campaign)
+    observed = []
+    monkeypatch.setattr(
+        service, "analyze_brothers",
+        lambda *args: observed.append(args[5]) or AnalysisResult([], []),
+    )
+    assignments = {"campaign:25809/entity:1": {"status": "current"}}
+    resolver_calls = []
+    service.analyze_save(service.AnalysisServiceRequest(
+        source=service.SaveSource(b"save"), roles=[{"name": "Tank"}],
+        classification={},
+        assigned_build_resolver=lambda identity: (
+            resolver_calls.append(identity) or assignments
+        ),
+    ))
+
+    assert resolver_calls == [campaign]
+    assert observed == [assignments]
+
+
+def test_unavailable_campaign_does_not_consume_assignment_provider(monkeypatch):
+    _patch_pipeline(monkeypatch)
+    calls = []
+    observed = []
+    monkeypatch.setattr(
+        service, "analyze_brothers",
+        lambda *args: observed.append(args[5]) or AnalysisResult([], []),
+    )
+    service.analyze_save(service.AnalysisServiceRequest(
+        source=service.SaveSource(b"save"), roles=[{"name": "Tank"}],
+        classification={},
+        assigned_build_resolver=lambda identity: calls.append(identity) or {},
+    ))
+
+    assert calls == []
+    assert observed == [None]
+
+
 def test_service_wraps_parser_failure_as_structured_error(monkeypatch):
     monkeypatch.setattr(service, "ensure_references", lambda verbose=False: {})
     monkeypatch.setattr(
