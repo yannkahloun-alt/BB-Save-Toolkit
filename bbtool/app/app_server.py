@@ -169,27 +169,62 @@ class LocalApplicationApi:
             return self._error(500, "internal_error", "the application operation failed")
 
     def _shell_state(self) -> dict[str, Any]:
-        """Compose one bounded read-only shell snapshot from application state."""
+        """Compose a bounded shell snapshot without rebuilding analytical data."""
         followed_save = self.application.followed_save()
-        result = self.application.last_result()
-        result_status = {
-            "available": bool(result.get("available")),
-            "freshness": result.get("freshness", {"status": "unavailable"}),
-        }
-        publication = self.application.coordinator.last_success
-        analysis_health = None
-        if publication is not None:
-            diagnostics = getattr(publication.result, "diagnostics", {}) or {}
-            analysis_health = build_public_analysis_health(diagnostics.get("run_health", {}))
-
-        active_job = None
         desired_job_id = self.application.coordinator.desired_job_id
+        active_job = None
         if desired_job_id is not None:
             try:
+                # The authoritative job read also performs the existing
+                # publication-persistence bookkeeping when a worker completes.
                 active_job = self.application.analysis_job(desired_job_id)
             except ApplicationOperationError as exc:
                 if exc.code != "job_not_found":
                     raise
+
+        publication = self.application.coordinator.last_success
+        analysis_health = None
+        if publication is None:
+            result_status = {
+                "available": False,
+                "freshness": followed_save.get(
+                    "freshness", {"status": "unavailable"}
+                ),
+            }
+        else:
+            diagnostics = getattr(publication.result, "diagnostics", {}) or {}
+            analysis_health = build_public_analysis_health(
+                diagnostics.get("run_health", {})
+            )
+            freshness = {
+                "status": (
+                    "current"
+                    if publication.job_id == desired_job_id
+                    else "stale"
+                ),
+                "generation": publication.generation,
+                "represented_source_fingerprint": publication.source_fingerprint,
+                "represented_configuration_fingerprints": dict(
+                    publication.configuration_fingerprints
+                ),
+                "artifact_signatures": dict(publication.artifact_signatures),
+            }
+            watcher = followed_save.get("freshness", {})
+            desired_source = watcher.get("desired_source_fingerprint")
+            if (
+                desired_source is not None
+                and desired_source != publication.source_fingerprint
+            ):
+                freshness["status"] = "stale"
+                freshness["reason"] = "selected_save_content_changed"
+            elif watcher.get("status") in {
+                "detected", "stabilizing", "queued", "analyzing",
+                "failed", "unavailable",
+            }:
+                freshness["status"] = watcher["status"]
+                if "reason" in watcher:
+                    freshness["reason"] = watcher["reason"]
+            result_status = {"available": True, "freshness": freshness}
 
         return {
             "followed_save": followed_save,
