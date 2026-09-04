@@ -1,5 +1,8 @@
 ## v3.88.2 — Performance and reliability hardening
 
+- Add a validated public Analysis Health payload and compact report indicator,
+  distinguishing degraded inputs from projection-validation success without
+  exposing private diagnostics.
 - Scope incremental manifest discovery and retention to exact native campaign
   identity, preserving reuse across renamed/copied saves while preventing
   same-path cross-campaign selection.

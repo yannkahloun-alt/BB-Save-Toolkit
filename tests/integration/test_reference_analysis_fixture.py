@@ -13,10 +13,10 @@ def _load(name):
 
 def test_reference_analysis_manifest_and_files_are_compatible():
     manifest = _load("manifest.json")
-    assert manifest["schema"] == "bbtool.reference_analysis.v1"
+    assert manifest["schema"] == "bbtool.reference_analysis.v2"
     assert set(manifest["files"]) == {
         "roster", "recruits", "role_fit", "classification",
-        "archetypes", "classification_config",
+        "archetypes", "classification_config", "analysis_health",
     }
     for entry in manifest["files"].values():
         path = FIXTURE / entry["path"]

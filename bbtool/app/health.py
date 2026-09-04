@@ -11,6 +11,8 @@ _REFERENCE_FIELDS = (
     "Injuries",
 )
 
+PUBLIC_ANALYSIS_HEALTH_SCHEMA = "bbtool.analysis_health.v1"
+
 
 def _unknown_reference_values(records: Iterable[object]) -> list[str]:
     unknown = []
@@ -131,6 +133,54 @@ def build_run_health(
             "cache": "$.runtime.run_health.cache_fallback_reasons",
             "projection_validation": "sibling *-projection-validation.json $.summary",
         },
+    }
+
+
+def build_public_analysis_health(run_health: dict) -> dict:
+    """Return the least-privilege health contract used by public reports."""
+    counts = {
+        "result_affecting_warnings": int(
+            run_health.get("result_affecting_warnings", 0) or 0
+        ),
+        "recoverable_parsing_failures": int(
+            run_health.get("recoverable_parsing_failures", 0) or 0
+        ),
+        "unresolved_references_relevant_to_save": int(
+            run_health.get("unresolved_references_relevant_to_save", 0) or 0
+        ),
+        "unresolved_backgrounds_relevant_to_save": int(
+            run_health.get("unresolved_backgrounds_relevant_to_save", 0) or 0
+        ),
+        "unresolved_recruit_equipment_relevant_to_save": int(
+            run_health.get(
+                "unresolved_recruit_equipment_relevant_to_save", 0
+            ) or 0
+        ),
+    }
+    violations = int(
+        run_health.get("validation_roll_range_violations", 0) or 0
+    )
+    category_sources = (
+        ("recoverable_parsing_failures", counts["recoverable_parsing_failures"]),
+        ("unresolved_references", counts["unresolved_references_relevant_to_save"]),
+        ("unresolved_backgrounds", counts["unresolved_backgrounds_relevant_to_save"]),
+        ("projection_validation_violations", violations),
+    )
+    return {
+        "schema": PUBLIC_ANALYSIS_HEALTH_SCHEMA,
+        "status": (
+            "degraded" if counts["result_affecting_warnings"] else "healthy"
+        ),
+        "counts": counts,
+        "projection_validation": {
+            "status": "fail" if violations else "pass",
+            "roll_range_violations": violations,
+        },
+        "warning_categories": [
+            {"code": code, "count": count}
+            for code, count in category_sources
+            if count
+        ],
     }
 
 

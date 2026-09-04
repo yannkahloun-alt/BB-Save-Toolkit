@@ -14,11 +14,13 @@ from .output import (
     REPORT_DATASET_SCHEMA, archive_workspace, create_workspace, prune_outputs,
     write_html,
 )
+from .health import PUBLIC_ANALYSIS_HEALTH_SCHEMA
 
 DATASET_SCHEMA = REPORT_DATASET_SCHEMA
 REQUIRED_FILES = frozenset({
     "roster", "recruits", "role_fit", "classification",
     "archetypes", "classification_config",
+    "analysis_health",
 })
 
 
@@ -37,6 +39,7 @@ class RenderDataset:
     summaries: list[dict]
     roles: list[dict]
     classification: dict
+    analysis_health: dict
     files: tuple[Path, ...]
 
 
@@ -74,6 +77,98 @@ def _contains_key(value, forbidden: str) -> bool:
     if isinstance(value, list):
         return any(_contains_key(child, forbidden) for child in value)
     return False
+
+
+def _validate_analysis_health(payload) -> None:
+    if not isinstance(payload, dict):
+        raise _fail("analysis_health root must be an object")
+    required = {
+        "schema", "status", "counts", "projection_validation",
+        "warning_categories",
+    }
+    if set(payload) != required:
+        raise _fail("analysis_health fields mismatch")
+    if payload["schema"] != PUBLIC_ANALYSIS_HEALTH_SCHEMA:
+        raise _fail("unsupported analysis_health schema")
+    counts = payload["counts"]
+    count_fields = {
+        "result_affecting_warnings", "recoverable_parsing_failures",
+        "unresolved_references_relevant_to_save",
+        "unresolved_backgrounds_relevant_to_save",
+        "unresolved_recruit_equipment_relevant_to_save",
+    }
+    if not isinstance(counts, dict) or set(counts) != count_fields:
+        raise _fail("analysis_health counts fields mismatch")
+    if any(type(value) is not int or value < 0 for value in counts.values()):
+        raise _fail("analysis_health counts must be non-negative integers")
+    expected_status = (
+        "degraded" if counts["result_affecting_warnings"] else "healthy"
+    )
+    if payload["status"] != expected_status:
+        raise _fail("analysis_health status contradicts warning count")
+    validation = payload["projection_validation"]
+    if not isinstance(validation, dict) or set(validation) != {
+        "status", "roll_range_violations",
+    }:
+        raise _fail("analysis_health projection_validation fields mismatch")
+    violations = validation["roll_range_violations"]
+    if type(violations) is not int or violations < 0:
+        raise _fail("analysis_health roll_range_violations must be a non-negative integer")
+    if validation["status"] != ("fail" if violations else "pass"):
+        raise _fail("analysis_health projection validation status is inconsistent")
+    equipment_overlap = counts[
+        "unresolved_recruit_equipment_relevant_to_save"
+    ]
+    if equipment_overlap > min(
+        counts["recoverable_parsing_failures"],
+        counts["unresolved_references_relevant_to_save"],
+    ):
+        raise _fail("analysis_health recruit equipment overlap is inconsistent")
+    if (
+        counts["unresolved_backgrounds_relevant_to_save"]
+        > counts["unresolved_references_relevant_to_save"]
+    ):
+        raise _fail("analysis_health unresolved background count is inconsistent")
+    expected_warning_count = (
+        counts["recoverable_parsing_failures"]
+        + counts["unresolved_references_relevant_to_save"]
+        - equipment_overlap
+        + violations
+    )
+    if counts["result_affecting_warnings"] != expected_warning_count:
+        raise _fail("analysis_health result-affecting warning count is inconsistent")
+    categories = payload["warning_categories"]
+    allowed = {
+        "recoverable_parsing_failures", "unresolved_references",
+        "unresolved_backgrounds", "projection_validation_violations",
+    }
+    if not isinstance(categories, list) or any(
+        not isinstance(item, dict)
+        or set(item) != {"code", "count"}
+        or item["code"] not in allowed
+        or type(item["count"]) is not int
+        or item["count"] <= 0
+        for item in categories
+    ):
+        raise _fail("analysis_health warning_categories are malformed")
+    if len({item["code"] for item in categories}) != len(categories):
+        raise _fail("analysis_health warning_categories contain duplicate codes")
+    expected_categories = {
+        "recoverable_parsing_failures": counts["recoverable_parsing_failures"],
+        "unresolved_references": counts[
+            "unresolved_references_relevant_to_save"
+        ],
+        "unresolved_backgrounds": counts[
+            "unresolved_backgrounds_relevant_to_save"
+        ],
+        "projection_validation_violations": violations,
+    }
+    expected_categories = {
+        code: count for code, count in expected_categories.items() if count
+    }
+    actual_categories = {item["code"]: item["count"] for item in categories}
+    if actual_categories != expected_categories:
+        raise _fail("analysis_health warning_categories contradict counts")
 
 
 def load_render_dataset(source: Path) -> RenderDataset:
@@ -128,6 +223,7 @@ def load_render_dataset(source: Path) -> RenderDataset:
         raise _fail("archetypes.roles must be a non-empty array")
     if not isinstance(payloads["classification_config"], dict):
         raise _fail("classification_config root must be an object")
+    _validate_analysis_health(payloads["analysis_health"])
 
     bros = []
     for index, raw in enumerate(payloads["roster"]):
@@ -182,6 +278,7 @@ def load_render_dataset(source: Path) -> RenderDataset:
         root=root, manifest_path=manifest_path, manifest=manifest, bros=bros,
         recruits=payloads["recruits"], fits=fits, summaries=summaries,
         roles=roles, classification=payloads["classification_config"],
+        analysis_health=payloads["analysis_health"],
         files=tuple(paths),
     )
     try:
@@ -189,6 +286,7 @@ def load_render_dataset(source: Path) -> RenderDataset:
             Path("validated-dataset.json"), dataset.bros, dataset.fits,
             dataset.summaries, dataset.roles, dataset.classification,
             recruits=dataset.recruits,
+            analysis_health=dataset.analysis_health,
         )
     except Exception as exc:
         raise _fail(
@@ -213,6 +311,7 @@ def run_render_only(options: CliOptions) -> tuple:
     report_path = write_html(
         workspace, dataset.bros, dataset.recruits, dataset.fits,
         dataset.summaries, dataset.roles, dataset.classification,
+        dataset.analysis_health,
     )
     step.done("analysis not executed")
 

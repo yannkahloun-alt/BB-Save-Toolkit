@@ -1,6 +1,65 @@
 from types import SimpleNamespace
 
-from bbtool.app.health import build_run_health, print_run_health
+from bbtool.app.health import (
+    build_public_analysis_health,
+    build_run_health,
+    print_run_health,
+)
+
+
+def test_public_analysis_health_is_healthy_and_projection_passes():
+    public = build_public_analysis_health(build_run_health([], [], {}))
+
+    assert public == {
+        "schema": "bbtool.analysis_health.v1",
+        "status": "healthy",
+        "counts": {
+            "result_affecting_warnings": 0,
+            "recoverable_parsing_failures": 0,
+            "unresolved_references_relevant_to_save": 0,
+            "unresolved_backgrounds_relevant_to_save": 0,
+            "unresolved_recruit_equipment_relevant_to_save": 0,
+        },
+        "projection_validation": {
+            "status": "pass",
+            "roll_range_violations": 0,
+        },
+        "warning_categories": [],
+    }
+
+
+def test_public_health_keeps_projection_pass_distinct_from_degraded_inputs():
+    health = build_run_health(
+        [{"Background": "Unknown [AABB]", "Traits": []}], [], {},
+        validation_payload={"summary": {"roll_range_violations": 0}},
+    )
+
+    public = build_public_analysis_health(health)
+
+    assert public["status"] == "degraded"
+    assert public["projection_validation"]["status"] == "pass"
+    assert public["warning_categories"] == [
+        {"code": "unresolved_references", "count": 1},
+        {"code": "unresolved_backgrounds", "count": 1},
+    ]
+
+
+def test_public_health_exposes_parsing_failure_count_without_private_sample():
+    health = build_run_health(
+        [], [], {},
+        parse_diagnostics={"recoverable_failures": [{
+            "kind": "truncated_record", "offset": "C:/private/save.sav"
+        }]},
+    )
+
+    public = build_public_analysis_health(health)
+
+    assert public["status"] == "degraded"
+    assert public["counts"]["recoverable_parsing_failures"] == 1
+    assert public["warning_categories"] == [
+        {"code": "recoverable_parsing_failures", "count": 1}
+    ]
+    assert "private" not in str(public)
 
 
 def test_run_health_aggregates_result_warnings_and_fallbacks(capsys):

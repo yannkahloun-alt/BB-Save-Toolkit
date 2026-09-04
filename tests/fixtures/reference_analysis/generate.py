@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 from bbtool.app.analysis import analyze_brothers
 from bbtool.app.config import load_config
 from bbtool.app.output import _decorate_fit_rows, _public_bro_dict
+from bbtool.app.health import build_public_analysis_health
 from bbtool.models import Brother, STATS
 
 OUT = Path(__file__).resolve().parent
@@ -23,6 +24,7 @@ FILES = {
     "classification": "reference-classification.json",
     "archetypes": "reference-archetypes.json",
     "classification_config": "reference-classification-config.json",
+    "analysis_health": "reference-analysis-health.json",
 }
 
 
@@ -77,6 +79,7 @@ def _payloads() -> dict[str, object]:
         "classification": result.summaries,
         "archetypes": raw_archetypes,
         "classification_config": cfg.classification,
+        "analysis_health": build_public_analysis_health({}),
     }
 
 
@@ -91,7 +94,7 @@ def regenerate() -> None:
     for key, filename in FILES.items():
         _write(OUT / filename, payloads[key])
     manifest = {
-        "schema": "bbtool.reference_analysis.v1",
+        "schema": "bbtool.reference_analysis.v2",
         "source": "synthetic Brother and recruit records declared in generate.py",
         "purpose": "versioned public inputs for report demos and contract tests",
         "files": {

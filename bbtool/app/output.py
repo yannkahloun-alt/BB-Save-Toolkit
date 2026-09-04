@@ -22,6 +22,7 @@ from ..projection import (
     project_fit_trajectory,
     project_seeded_fit_trajectory,
 )
+from .health import build_public_analysis_health
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 MAX_RETAINED_OUTPUTS = 10
@@ -115,7 +116,7 @@ def write_analysis_json(
     )
 
 
-REPORT_DATASET_SCHEMA = "bbtool.reference_analysis.v1"
+REPORT_DATASET_SCHEMA = "bbtool.reference_analysis.v2"
 
 
 def _write_public_json(path: Path, payload) -> None:
@@ -133,8 +134,10 @@ def write_report_dataset(
     summaries: list[dict],
     roles: list[dict],
     class_cfg: dict,
+    analysis_health: dict | None = None,
 ) -> Path:
     """Write the versioned public JSON contract consumed by report serving."""
+    analysis_health = analysis_health or build_public_analysis_health({})
     payloads = {
         "roster": [_public_bro_dict(bro) for bro in bros],
         "recruits": recruits,
@@ -142,6 +145,7 @@ def write_report_dataset(
         "classification": summaries,
         "archetypes": {"roles": roles},
         "classification_config": class_cfg,
+        "analysis_health": analysis_health,
     }
     files = {}
     for label, payload in payloads.items():
@@ -499,9 +503,11 @@ def write_html(
     summaries: list[dict],
     roles: list[dict],
     class_cfg: dict,
+    analysis_health: dict | None = None,
 ) -> Path:
     write_report_dataset(
-        workspace, bros, recruits, fits, summaries, roles, class_cfg
+        workspace, bros, recruits, fits, summaries, roles, class_cfg,
+        analysis_health,
     )
     shutil.copy2(PACKAGE_ROOT / "report.css", workspace.root / "report.css")
     shutil.copy2(PACKAGE_ROOT / "report.js", workspace.root / "report.js")

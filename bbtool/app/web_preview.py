@@ -115,6 +115,7 @@ def build_web_previews(
             Path(name), dataset.bros, dataset.fits, dataset.summaries,
             dataset.roles, dataset.classification,
             generated_at=metadata.generated_at, recruits=dataset.recruits,
+            analysis_health=dataset.analysis_health,
         )
         banner = _preview_banner(metadata, name, dataset.manifest["schema"])
         html = html.replace("<body>", f"<body>{banner}", 1)

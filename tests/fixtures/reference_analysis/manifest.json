@@ -1,5 +1,9 @@
 {
   "files": {
+    "analysis_health": {
+      "path": "reference-analysis-health.json",
+      "sha256": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2"
+    },
     "archetypes": {
       "path": "reference-archetypes.json",
       "sha256": "c5434ea66e73bbefecebddcfcaee439771e3be266314a9f1ba925a3fd02731f6"
@@ -26,6 +30,6 @@
     }
   },
   "purpose": "versioned public inputs for report demos and contract tests",
-  "schema": "bbtool.reference_analysis.v1",
+  "schema": "bbtool.reference_analysis.v2",
   "source": "synthetic Brother and recruit records declared in generate.py"
 }

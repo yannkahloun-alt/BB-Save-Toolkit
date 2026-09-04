@@ -84,7 +84,7 @@ def test_full_preview_publishes_only_validated_public_files(tmp_path):
     assert "Full application preview" in html
     assert "PR #10" in html and "a" * 40 in html
     assert fixture.sha256 in html
-    assert "bbtool.reference_analysis.v1" in html
+    assert "bbtool.reference_analysis.v2" in html
     assert "Incremental verification: yes" in html
     assert "Aldric" in html
     assert not list(target.glob("*.sav"))

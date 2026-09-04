@@ -722,8 +722,50 @@ def archetype_detail_body_html(b, row: dict, role_cfg: dict | None, effective=No
     )
 
 
-def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg, generated_at="", recruits=None):
+def analysis_health_html(health: dict) -> str:
+    """Render a compact summary without exposing diagnostic samples."""
+    status = health["status"]
+    counts = health["counts"]
+    validation = health["projection_validation"]
+    if status == "healthy":
+        return (
+            '<div class="analysis-health healthy" role="status">'
+            '<strong>Analysis health: Healthy</strong>'
+            '<span>No result-affecting warnings.</span></div>'
+        )
+    labels = {
+        "recoverable_parsing_failures": "Recoverable parsing failures",
+        "unresolved_references": "Unresolved references",
+        "unresolved_backgrounds": "Unresolved backgrounds",
+        "projection_validation_violations": "Projection-validation violations",
+    }
+    items = "".join(
+        f'<li>{esc(labels[item["code"]])}: {item["count"]}</li>'
+        for item in health["warning_categories"]
+    )
+    validation_label = validation["status"].upper()
+    return (
+        '<details class="analysis-health degraded">'
+        '<summary><strong>Analysis health: Degraded</strong> — '
+        f'{counts["result_affecting_warnings"]} result-affecting warning(s)</summary>'
+        '<div><p>The displayed results were produced, but some analysis inputs '
+        'or validation checks need attention.</p><ul>' + items + '</ul>'
+        f'<p>Projection validation: <strong>{validation_label}</strong>. '
+        'This is separate from overall analysis health.</p></div></details>'
+    )
+
+
+def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg, generated_at="", recruits=None, analysis_health=None):
     recruits = recruits or []
+    if analysis_health is None:
+        analysis_health = {
+            "status": "healthy",
+            "counts": {"result_affecting_warnings": 0},
+            "projection_validation": {
+                "status": "pass", "roll_range_violations": 0,
+            },
+            "warning_categories": [],
+        }
 
     ids_by_name = {}
     for bro in bros:
@@ -950,6 +992,7 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
         '<body><div class="wrap">'
         f'<h1>{esc(save_path.stem)} — Battle Brothers Report</h1>'
         f'<p class="muted">{len(bros)} brothers · {len(recruits)} recruits · read-only{stamp}</p>'
+        f'{analysis_health_html(analysis_health)}'
         '<nav class="tabs" aria-label="Report sections">'
         f'<button class="tab-button active" data-tab-button="roster" onclick="showTab(\'roster\', this)">Roster <span class="tab-count">{len(bros)}</span></button>'
         + (

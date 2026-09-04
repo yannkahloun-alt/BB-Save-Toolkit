@@ -30,7 +30,7 @@ Open the generated report automatically:
 python .\bb_analyze.py "C:\path\to\quicksave.sav" --open-report
 ```
 
-Reports consume the six public JSON files stored beside them. Because browsers
+Reports consume the seven public JSON files stored beside them. Because browsers
 do not reliably allow adjacent JSON reads from `file://`, opening is handled by
 a loopback-only local server. To reopen an extracted or moved report later:
 

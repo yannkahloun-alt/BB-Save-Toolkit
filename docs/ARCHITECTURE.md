@@ -117,8 +117,8 @@ parsed public data, Fit/summary outputs, content and configuration fingerprints,
 structured warnings/diagnostics, timings, and progress events.
 
 The typed result includes `campaign_identity` for downstream durable-state
-consumers, but `public_data` intentionally omits it while the public report v1
-schema remains unchanged.
+consumers, but `public_data` intentionally omits it; the public report v2
+schema adds only the separately versioned Analysis Health payload.
 
 The service does not invoke argument parsing, choose output paths, write reports,
 or use a filesystem path as save identity. CLI and future HTTP/worker entry
@@ -194,6 +194,10 @@ contract. The generated HTML is a data-free launcher; a loopback-only local
 server validates the adjacent manifest/JSON and invokes the shared Python
 renderer at view time. This avoids unreliable `file://` JSON access without
 duplicating analysis data or introducing a network dependency.
+The v2 public dataset includes a separately versioned, summary-only Analysis
+Health payload. It exposes result-quality status and category counts while
+keeping projection-validation status distinct and excluding diagnostic samples,
+paths, save contents, and hidden rolls.
 `app/render_only.py` is a presentation-only entry point. It validates the
 versioned public report dataset, reconstructs display models, and calls the
 same HTML/output functions as a normal analysis run. It does not parse a save,

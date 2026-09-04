@@ -10,6 +10,7 @@ import bbtool.app.main as app_main
 import bbtool.app.render_only as render_only
 from bbtool.app.render_only import RenderDatasetError, load_render_dataset, run_render_only
 from bbtool.app.report_server import render_served_report
+from bbtool.app.health import build_public_analysis_health, build_run_health
 from bbtool.html_report import render_report_launcher
 
 
@@ -88,6 +89,163 @@ def test_load_render_dataset_validates_relations_and_builds_brothers():
     assert dataset.bros[0].BrotherID.startswith("human:")
     assert dataset.roles
     assert dataset.fits
+    assert dataset.analysis_health["status"] == "healthy"
+
+
+def test_served_report_renders_healthy_analysis_health():
+    _root, html = render_served_report(FIXTURE)
+    assert "Analysis health: Healthy" in html
+    assert "No result-affecting warnings" in html
+
+
+def test_served_report_renders_degraded_health_with_projection_pass(tmp_path):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source,
+        "analysis_health",
+        lambda value: value.update(
+            status="degraded",
+            counts={
+                **value["counts"],
+                "result_affecting_warnings": 1,
+                "unresolved_references_relevant_to_save": 1,
+            },
+            warning_categories=[{"code": "unresolved_references", "count": 1}],
+        ),
+    )
+
+    _root, html = render_served_report(source)
+
+    assert "Analysis health: Degraded" in html
+    assert "Unresolved references: 1" in html
+    assert "Projection validation: <strong>PASS</strong>" in html
+    assert "separate from overall analysis health" in html
+
+
+def test_served_report_renders_recoverable_parsing_failure_category(tmp_path):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source,
+        "analysis_health",
+        lambda value: value.update(
+            status="degraded",
+            counts={
+                **value["counts"],
+                "result_affecting_warnings": 1,
+                "recoverable_parsing_failures": 1,
+            },
+            warning_categories=[{
+                "code": "recoverable_parsing_failures", "count": 1
+            }],
+        ),
+    )
+
+    _root, html = render_served_report(source)
+
+    assert "Analysis health: Degraded" in html
+    assert "Recoverable parsing failures: 1" in html
+    assert "offset" not in html
+
+
+def test_health_with_unresolved_recruit_equipment_round_trips(tmp_path):
+    source = _copy_fixture(tmp_path)
+    health = build_run_health(
+        [], [], {},
+        parse_diagnostics={"recoverable_failures": [{
+            "kind": "unresolved_recruit_equipment",
+            "reference_hash": "AABBCCDD",
+        }]},
+    )
+    public = build_public_analysis_health(health)
+    _rewrite_payload_and_hash(
+        source, "analysis_health", lambda value: value.update(public)
+    )
+
+    dataset = load_render_dataset(source)
+
+    assert dataset.analysis_health["counts"] == {
+        "result_affecting_warnings": 1,
+        "recoverable_parsing_failures": 1,
+        "unresolved_references_relevant_to_save": 1,
+        "unresolved_backgrounds_relevant_to_save": 0,
+        "unresolved_recruit_equipment_relevant_to_save": 1,
+    }
+    assert dataset.analysis_health["warning_categories"] == [
+        {"code": "recoverable_parsing_failures", "count": 1},
+        {"code": "unresolved_references", "count": 1},
+    ]
+
+
+@pytest.mark.parametrize(
+    "counts,validation,categories,message",
+    [
+        (
+            {"unresolved_backgrounds_relevant_to_save": 1},
+            None,
+            [{"code": "unresolved_backgrounds", "count": 1}],
+            "unresolved background count is inconsistent",
+        ),
+        (
+            {
+                "recoverable_parsing_failures": 1,
+                "result_affecting_warnings": 1,
+            },
+            {"status": "fail", "roll_range_violations": 1},
+            [
+                {"code": "recoverable_parsing_failures", "count": 1},
+                {"code": "projection_validation_violations", "count": 1},
+            ],
+            "result-affecting warning count is inconsistent",
+        ),
+    ],
+)
+def test_render_dataset_rejects_contradictory_health_counts(
+    tmp_path, counts, validation, categories, message
+):
+    source = _copy_fixture(tmp_path)
+
+    def mutate(value):
+        value["counts"].update(counts)
+        value["status"] = (
+            "degraded"
+            if value["counts"]["result_affecting_warnings"]
+            else "healthy"
+        )
+        value["warning_categories"] = categories
+        if validation is not None:
+            value["projection_validation"] = validation
+
+    _rewrite_payload_and_hash(source, "analysis_health", mutate)
+
+    with pytest.raises(RenderDatasetError, match=message):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutation,message",
+    [
+        (lambda value: value.update(status="unknown"), "status contradicts"),
+        (
+            lambda value: value["counts"].update(
+                recoverable_parsing_failures="one"
+            ),
+            "counts must be non-negative integers",
+        ),
+        (
+            lambda value: value.update(
+                warning_categories=[{"code": "private_parser_detail", "count": 1}]
+            ),
+            "warning_categories are malformed",
+        ),
+    ],
+)
+def test_render_dataset_rejects_malformed_health_contract(
+    tmp_path, mutation, message
+):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(source, "analysis_health", mutation)
+    with pytest.raises(RenderDatasetError, match=message):
+        load_render_dataset(source)
 
 
 @pytest.mark.parametrize("mutation, message", [
@@ -217,7 +375,7 @@ def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
 def test_generated_manifest_is_self_contained_and_versioned(tmp_path):
     workspace, _archive = run_render_only(_options(FIXTURE, tmp_path / "out"))
     manifest = json.loads((workspace.root / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["schema"] == "bbtool.reference_analysis.v1"
+    assert manifest["schema"] == "bbtool.reference_analysis.v2"
     assert set(manifest["files"]) == render_only.REQUIRED_FILES
     assert all(
         (workspace.root / entry["path"]).is_file()
