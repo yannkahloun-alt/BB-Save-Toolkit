@@ -8,8 +8,10 @@ from bbtool.app.config import load_config
 from bbtool.recruitment_prior import (
     background_archetype_prior,
     load_background_potential_reference,
+    recruit_candidate_estimate,
     supported_backgrounds,
 )
+from bbtool.projection import perks
 
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "background_prior_reference.json"
@@ -130,3 +132,95 @@ def test_pinned_vanilla_excerpt_distinguishes_shipped_melee_ranged_and_banner_ro
     assert "18E3126A" in {
         row["save_hash"] for row in supported_backgrounds(reference)
     }
+
+
+def _trait_reference():
+    return {"traits": {
+        "1234ABCD": {"Effects": [{
+            "stat": "MAtk", "property": "MeleeSkill", "op": "+=", "value": 5,
+            "conditional": False, "exact": True,
+        }]},
+        "DEADBEEF": {"Effects": [{
+            "stat": "MAtk", "property": "MeleeSkill", "op": "+=", "value": 10,
+            "conditional": True, "exact": True,
+        }]},
+        "99999999": {"Effects": [{
+            "stat": "RAtk", "property": "RangedSkill", "op": "+=", "value": 10,
+            "conditional": False, "exact": True,
+        }]},
+    }}
+
+
+def test_candidate_without_usable_revealed_evidence_is_explicitly_prior_only():
+    reference = load_background_potential_reference(FIXTURE)
+    recruit = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": False,
+               "RevealedTraitEvidence": []}
+    result = recruit_candidate_estimate(recruit, _role(), reference)
+
+    assert result["state"] == "prior_only"
+    assert result["candidate_estimate"] is None
+    assert result["background_prior"] == background_archetype_prior(
+        "AAAABBBB", _role(), reference
+    )
+
+
+def test_exact_revealed_fit_trait_produces_known_evidence_estimate(monkeypatch):
+    reference = load_background_potential_reference(FIXTURE)
+    monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])
+    recruit = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+               "RevealedTraitEvidence": [{"save_hash": "1234abcd", "name": "Sure Footing"}]}
+    result = recruit_candidate_estimate(recruit, _role(), reference)
+
+    assert result["state"] == "known_evidence_estimate"
+    assert result["candidate_estimate"]["applied_trait_save_hashes"] == ["1234ABCD"]
+    assert result["candidate_estimate"]["distribution"]["mean_fit_pct"] > \
+        result["background_prior"]["distribution"]["mean_fit_pct"]
+    item = result["evidence_basis"]["items"][0]
+    assert item["status"] == "applied_exact_unconditional_fit_effect"
+    assert item["effects"][0]["stat"] == "MAtk"
+
+
+def test_unknown_conditional_and_role_irrelevant_traits_remain_prior_only(monkeypatch):
+    reference = load_background_potential_reference(FIXTURE)
+    monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])
+    recruit = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+               "RevealedTraitEvidence": [
+        {"save_hash": "00000000", "name": "Modded"},
+        {"save_hash": "DEADBEEF", "name": "Conditional"},
+        {"save_hash": "99999999", "name": "Ranged only"},
+    ]}
+    result = recruit_candidate_estimate(recruit, _role(), reference)
+
+    assert result["state"] == "prior_only"
+    assert result["candidate_estimate"] is None
+    assert {item["status"] for item in result["evidence_basis"]["items"]} == {
+        "insufficient_for_estimate"
+    }
+
+
+def test_candidate_estimate_ignores_economy_roster_intent_and_hidden_fields(monkeypatch):
+    reference = load_background_potential_reference(FIXTURE)
+    monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])
+    public = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+              "RevealedTraitEvidence": [
+        {"save_hash": "1234ABCD", "name": "Known"},
+    ]}
+    contaminated = {**public, "HireCost": 99999, "DailyWage": 999,
+                    "RosterNeed": 100, "AssignedBuild": "other", "HP": 999,
+                    "MAtkStars": 3, "FutureRolls": {"MAtk": [3] * 10}}
+
+    assert recruit_candidate_estimate(public, _role(), reference) == \
+        recruit_candidate_estimate(contaminated, _role(), reference)
+
+
+def test_unrevealed_serialized_trait_cannot_leak_into_estimate(monkeypatch):
+    reference = load_background_potential_reference(FIXTURE)
+    monkeypatch.setattr(perks, "_TRAIT_EFFECTS_CACHE", _trait_reference()["traits"])
+    recruit = {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": False,
+               "RevealedTraitEvidence": [
+                   {"save_hash": "1234ABCD", "name": "must not be consumed"},
+               ]}
+    result = recruit_candidate_estimate(recruit, _role(), reference)
+    assert result["state"] == "prior_only"
+    assert result["candidate_estimate"] is None
+    assert result["evidence_basis"]["items"] == []

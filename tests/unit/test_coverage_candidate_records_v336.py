@@ -17,7 +17,7 @@ def test_candidate_records_happy_path(monkeypatch):
     monkeypatch.setattr(sp,"find_circle_metadata",lambda *a,**k:{
         "CircleOffset":120,"Background":"Farmhand","BackgroundID":"ABCD",
         "BackgroundLevel":2,"DailyCostMult":1.25,
-        "Tail":[{"type":"trait"},{"type":"injury"},{"type":"internal"}],
+        "Tail":[{"id":"AAAA","type":"trait"},{"id":"BBBB","type":"injury"},{"id":"CCCC","type":"internal"}],
         "Traits":["Strong","Broken Nose"],
     })
     monkeypatch.setattr(sp,"_parse_tryout_done",lambda *a,**k:True)

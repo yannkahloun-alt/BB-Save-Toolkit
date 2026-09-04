@@ -116,6 +116,11 @@ source-derived level-1 background profiles, stable BuildIdentity, and the same
 blind level-11 trajectory/Fit outcome oracle as Brother analysis. Its API has no
 candidate, roster-need, intent, or economy input. See
 [`BACKGROUND_ARCHETYPE_PRIOR.md`](BACKGROUND_ARCHETYPE_PRIOR.md).
+The same module owns the separately versioned candidate layer. It conditions
+that prior only on exact, unconditional core-stat effects of traits revealed by
+tryout, preserves a structural `prior_only` state otherwise, and exposes every
+considered evidence item. See
+[`RECRUIT_CANDIDATE_ESTIMATES.md`](RECRUIT_CANDIDATE_ESTIMATES.md).
 
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`
 
