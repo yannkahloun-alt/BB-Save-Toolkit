@@ -103,6 +103,14 @@ The current candidate pool contains only anchor-role stats with `fit: true` and
 `weight > 0`. Roles with fewer than three eligible stats expose the remaining
 slots as Fit-neutral free picks.
 
+### `bbtool/recruitment_prior.py`
+
+Owns the versioned intrinsic Background × Archetype population prior. It uses
+source-derived level-1 background profiles, stable BuildIdentity, and the same
+blind level-11 trajectory/Fit outcome oracle as Brother analysis. Its API has no
+candidate, roster-need, intent, or economy input. See
+[`BACKGROUND_ARCHETYPE_PRIOR.md`](BACKGROUND_ARCHETYPE_PRIOR.md).
+
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`
 
 Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, advisor output, and summaries.

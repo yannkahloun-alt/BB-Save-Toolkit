@@ -1,0 +1,17 @@
+{
+  "_meta": {"format": "bbtool.backgrounds.v2", "source_revision": "162f498ac7c49b4c317bbf54718a595ecef6a65a"},
+  "backgrounds": {
+    "C6DD9695": {
+      "BackgroundID": "background.farmhand", "Key": "farmhand",
+      "PotentialProfile": {"level": 1, "stat_ranges": {"HP": [62,70], "Resolve": [28,37], "Fatigue": [100,120], "MAtk": [47,57], "RAtk": [32,42], "MDef": [0,5], "RDef": [0,5], "Initiative": [100,110]}, "excluded_talents": [], "untalented": false}
+    },
+    "3B7D9408": {
+      "BackgroundID": "background.hunter", "Key": "hunter",
+      "PotentialProfile": {"level": 1, "stat_ranges": {"HP": [50,60], "Resolve": [30,45], "Fatigue": [97,105], "MAtk": [47,57], "RAtk": [52,59], "MDef": [0,5], "RDef": [0,8], "Initiative": [100,115]}, "excluded_talents": [], "untalented": false}
+    },
+    "71648BCF": {
+      "BackgroundID": "background.cultist", "Key": "cultist",
+      "PotentialProfile": {"level": 1, "stat_ranges": {"HP": [45,65], "Resolve": [45,50], "Fatigue": [93,103], "MAtk": [47,57], "RAtk": [32,42], "MDef": [0,5], "RDef": [0,5], "Initiative": [100,110]}, "excluded_talents": [], "untalented": false}
+    }
+  }
+}

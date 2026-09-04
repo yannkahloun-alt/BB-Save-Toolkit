@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "format": "bbtool.backgrounds.v2",
+    "source_revision": "fixture-pinned-revision"
+  },
+  "backgrounds": {
+    "AAAABBBB": {
+      "BackgroundID": "background.farmhand",
+      "Key": "farmhand",
+      "PotentialProfile": {
+        "level": 1,
+        "stat_ranges": {"HP": [62, 70], "Fatigue": [100, 120], "Resolve": [28, 37], "Initiative": [100, 110], "MAtk": [47, 57], "RAtk": [32, 42], "MDef": [0, 5], "RDef": [0, 5]},
+        "excluded_talents": [],
+        "untalented": false
+      }
+    },
+    "CCCCDDDD": {
+      "BackgroundID": "background.beggar",
+      "Key": "beggar",
+      "PotentialProfile": {
+        "level": 1,
+        "stat_ranges": {"HP": [40, 50], "Fatigue": [80, 90], "Resolve": [20, 30], "Initiative": [90, 100], "MAtk": [42, 52], "RAtk": [27, 37], "MDef": [-5, 0], "RDef": [-5, 0]},
+        "excluded_talents": ["HP", "MDef"],
+        "untalented": false
+      }
+    },
+    "EEEEFFFF": {
+      "BackgroundID": "background.untalented",
+      "Key": "untalented",
+      "PotentialProfile": {
+        "level": 1,
+        "stat_ranges": {"HP": [50, 60], "Fatigue": [90, 100], "Resolve": [30, 40], "Initiative": [100, 110], "MAtk": [47, 57], "RAtk": [32, 42], "MDef": [0, 5], "RDef": [0, 5]},
+        "excluded_talents": [],
+        "untalented": true
+      }
+    }
+  }
+}
