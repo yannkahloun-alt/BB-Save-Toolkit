@@ -11,12 +11,13 @@ from references.update_references import ensure_references
 
 from ..incremental import IncrementalCache, first_difference
 from ..incremental.fingerprint import stable_hash
-from ..models import CampaignIdentity
+from ..models import BrotherIdentity, CampaignIdentity
 from ..projection import configure_engine, get_profile, reset_profile
 from ..save_parser import (
     parse_campaign_identity_bytes,
     parse_recruits_bytes,
     parse_roster_bytes,
+    resolve_brother_identities,
 )
 from .analysis import AnalysisResult, analyze_brothers
 from .health import build_run_health
@@ -66,6 +67,7 @@ class AnalysisServiceRequest:
 @dataclass
 class AnalysisServiceResult:
     campaign_identity: CampaignIdentity
+    brother_identities: dict[str, BrotherIdentity]
     roster: list
     recruits: list[dict]
     analysis: AnalysisResult
@@ -164,6 +166,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         stage = "roster"
         tick = time.perf_counter()
         roster = parse_roster_bytes(request.source.content, diagnostics=parse_diagnostics)
+        brother_identities = resolve_brother_identities(roster, campaign_identity)
         timings[stage] = time.perf_counter() - tick
         emit(stage, "completed", tick, count=len(roster))
 
@@ -269,6 +272,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         timings["total"] = time.perf_counter() - started
         return AnalysisServiceResult(
             campaign_identity=campaign_identity,
+            brother_identities=brother_identities,
             roster=roster,
             recruits=recruits,
             analysis=analysis,

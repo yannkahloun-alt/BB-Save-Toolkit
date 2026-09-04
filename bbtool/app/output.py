@@ -65,6 +65,9 @@ def public_brother_data(bro) -> dict:
         preserved_facts if preserved_facts is not None else perk_gear_facts(bro)
     )
     data.pop("FutureRolls", None)
+    # Native identity is available at the typed application-service boundary.
+    # Keep the public report-v1 dataset free of durable campaign-local tokens.
+    data.pop("NativeEntityToken", None)
     return data
 
 

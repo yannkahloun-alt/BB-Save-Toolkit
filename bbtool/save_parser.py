@@ -5,7 +5,13 @@ import math
 import struct
 from pathlib import Path
 
-from .models import CampaignIdentity, Brother, empty_equipment, empty_gear_fatigue
+from .models import (
+    Brother,
+    BrotherIdentity,
+    CampaignIdentity,
+    empty_equipment,
+    empty_gear_fatigue,
+)
 
 def u16(b: bytes, o: int) -> int:
     return struct.unpack_from("<H", b, o)[0]
@@ -1042,6 +1048,77 @@ BROTHER_SIGNATURE = bytes.fromhex(
     "000000000000007D2C10000000000000D4C4A7E9000100000102000000"
 )
 
+NATIVE_ENTITY_TOKEN_BEFORE_SIGNATURE = 17
+
+
+def native_brother_token_at(b: bytes, signature_offset: int) -> int | None:
+    """Read the container-level uint32 immediately before a battleBrother.
+
+    The token is outside the Squirrel ``onSerialize`` payload. The raw value is
+    preserved here so the identity resolver can classify zero as malformed.
+    """
+    offset = signature_offset - NATIVE_ENTITY_TOKEN_BEFORE_SIGNATURE
+    if offset < 0 or signature_offset + len(BROTHER_SIGNATURE) > len(b):
+        return None
+    if b[signature_offset:signature_offset + len(BROTHER_SIGNATURE)] != BROTHER_SIGNATURE:
+        return None
+    return u32(b, offset)
+
+
+def resolve_brother_identities(
+    roster: list[Brother], campaign_identity: CampaignIdentity
+) -> dict[str, BrotherIdentity]:
+    """Resolve exact identities only for unique tokens in an exact campaign."""
+    if campaign_identity.confidence != "exact" or campaign_identity.value is None:
+        reason = f"campaign_identity_{campaign_identity.confidence}"
+        return {
+            bro.BrotherID: BrotherIdentity(
+                campaign_identity.value,
+                bro.NativeEntityToken,
+                confidence="unavailable",
+                reason=reason,
+            )
+            for bro in roster
+        }
+
+    counts: dict[int, int] = {}
+    for bro in roster:
+        if type(bro.NativeEntityToken) is int and bro.NativeEntityToken > 0:
+            counts[bro.NativeEntityToken] = counts.get(bro.NativeEntityToken, 0) + 1
+
+    resolved = {}
+    for bro in roster:
+        token = bro.NativeEntityToken
+        if token is None:
+            identity = BrotherIdentity(
+                campaign_identity.value,
+                None,
+                confidence="unavailable",
+                reason="native_token_missing",
+            )
+        elif type(token) is not int or token <= 0:
+            identity = BrotherIdentity(
+                campaign_identity.value,
+                token,
+                confidence="invalid",
+                reason="native_token_malformed",
+            )
+        elif counts[token] != 1:
+            identity = BrotherIdentity(
+                campaign_identity.value,
+                token,
+                confidence="invalid",
+                reason="duplicate_native_token",
+            )
+        else:
+            identity = BrotherIdentity(
+                campaign_identity.value,
+                token,
+                confidence="exact",
+            )
+        resolved[bro.BrotherID] = identity
+    return resolved
+
 
 def find_company_brother_human_offsets(b: bytes) -> tuple[list[int], dict]:
     """
@@ -1142,6 +1219,7 @@ def parse_roster_bytes(b: bytes, *, diagnostics: dict | None = None) -> list[Bro
             raise RuntimeError(f"Failed to parse company human header at {p}.")
 
         sig = company_sigs[i]
+        native_entity_token = native_brother_token_at(b, sig)
         try:
             sig_index = all_sigs.index(sig)
         except ValueError as exc:
@@ -1234,6 +1312,7 @@ def parse_roster_bytes(b: bytes, *, diagnostics: dict | None = None) -> list[Bro
             Traits=circles["Traits"],
             Injuries=circles["Injuries"],
             HumanOffset=p,
+            NativeEntityToken=native_entity_token,
             InjuryIDs=circles.get("InjuryIDs", []),
             PermanentInjuryIDs=circles.get("PermanentInjuryIDs", []),
             PermanentInjuries=circles.get("PermanentInjuries", []),

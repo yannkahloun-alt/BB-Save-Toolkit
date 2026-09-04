@@ -165,6 +165,13 @@ The highest-priority blocker is workstream 1.
 
 # 4. Workstream A --- True cross-save brother identity
 
+**Completed after this baseline.** #77 established the native container entity
+token preceding each `battleBrother` record as exact only when unique and
+combined with #79's exact `CampaignIdentity`. The typed contract and real-save
+evidence are documented in [`../BROTHER_IDENTITY.md`](../BROTHER_IDENTITY.md).
+Names, `HumanOffset`, `FutureRolls`, and observable-state fingerprints remain
+non-authoritative. Progression-aware reuse remains separate work.
+
 ## 4.1 Current limitation
 
 The production cache still identifies reusable brothers from an exact
@@ -808,6 +815,10 @@ Future work MUST preserve:
 ------------------------------------------------------------------------
 
 # 15. Immediate next task
+
+**Historical note:** this evidence task is complete under #77. The repository
+retains only a safe real-save fixture; the broader local successive-save sample
+and its limitations are summarized in `docs/BROTHER_IDENTITY.md`.
 
 The next task is now very specific:
 

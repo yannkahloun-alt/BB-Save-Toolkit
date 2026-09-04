@@ -1,3 +1,11 @@
+## Unreleased
+
+- Establishes exact campaign-local `BrotherIdentity` from the native
+  `CampaignIdentity` plus the unique non-zero container entity token preceding
+  each `battleBrother` record. Missing, duplicate, malformed, or non-exact
+  evidence disables durable joins; public report-v1 and incremental reuse
+  semantics remain unchanged.
+
 ## v3.88.2 — Performance and reliability hardening
 
 - Scope incremental manifest discovery and retention to exact native campaign
@@ -707,8 +715,6 @@
 - Adds a no-choice fast path for archetypes with at most three Fit stats.
 - Removes repeated effective-stat reconstruction in the Level-Up Advisor.
 - Keeps v3.3 Fit, ranges, Feasibility, BestRole, classification and Advisor recommendations unchanged on the reference debug after excluding the deliberately removed alternate-perk fields.
-
-# Changelog
 
 ## v3.3 — Adaptive Fit sampling + Roster path-state fix
 

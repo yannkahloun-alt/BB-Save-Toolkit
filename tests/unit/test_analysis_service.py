@@ -30,6 +30,7 @@ def _patch_pipeline(monkeypatch):
     analysis = AnalysisResult(fits=[{"Role": "Tank"}], summaries=[{"Name": "A"}])
     monkeypatch.setattr(service, "ensure_references", lambda verbose=False: {"generated_dictionary": False})
     monkeypatch.setattr(service, "parse_roster_bytes", lambda content, diagnostics=None: roster)
+    monkeypatch.setattr(service, "resolve_brother_identities", lambda *args: {})
     monkeypatch.setattr(service, "parse_recruits_bytes", lambda content, diagnostics=None: recruits)
     monkeypatch.setattr(service, "configure_engine", lambda: None)
     monkeypatch.setattr(service, "reset_profile", lambda: None)
@@ -76,6 +77,7 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
 
     assert result.roster is roster
     assert result.campaign_identity.confidence == "unavailable"
+    assert result.brother_identities == {}
     assert result.recruits is recruits
     assert result.analysis is analysis
     assert result.public_data["fits"] == analysis.fits
