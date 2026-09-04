@@ -47,6 +47,9 @@ These are architectural contracts, not implementation suggestions.
   neither exact snapshot equality nor save ancestry.
 - Missing, malformed, negative, or ambiguous native evidence is explicit and
   disables campaign-dependent behavior rather than triggering a heuristic.
+- `exact` identifies an exactly parsed native token; it does not claim that a
+  finite game-generated integer is mathematically collision-free. See
+  [`CAMPAIGN_IDENTITY.md`](CAMPAIGN_IDENTITY.md).
 
 ## Traits and injuries
 

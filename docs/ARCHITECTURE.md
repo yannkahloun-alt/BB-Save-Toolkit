@@ -47,7 +47,9 @@ The parser also exposes the native asset-manager `CampaignID` through a typed
 sequence and requires a unique, non-negative signed 32-bit value. The map seed,
 save path, filename, and timestamps do not participate. This identity means
 "same campaign" only; the SHA-256 source fingerprint means exact snapshot
-equality, while lineage remains a separate contract.
+equality, while lineage remains a separate contract. Exact semantics, failure
+behavior, persistence guarantees, and the available real-fixture evidence are
+specified in [`CAMPAIGN_IDENTITY.md`](CAMPAIGN_IDENTITY.md).
 
 ### `references/`
 
