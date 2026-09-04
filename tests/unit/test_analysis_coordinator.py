@@ -240,6 +240,33 @@ def test_application_invalidation_cancels_all_pre_mutation_work():
     assert service.last_success is None
 
 
+def test_source_stale_completion_cannot_publish_and_newest_stable_generation_can():
+    backend = Backend()
+    service = coordinator(backend)
+    old = desired("old")
+    old_id = service.submit(old)
+    old_handle = backend.handle
+
+    service.mark_desired_stale()
+
+    assert service.desired_job_id is None
+    assert service.job(old_id).status == JobStatus.RUNNING
+    assert not old_handle.terminated
+
+    newest = desired("newest")
+    newest_id = service.submit(newest)
+    assert service.job(old_id).status == JobStatus.SUPERSEDED
+    assert service.job(newest_id).status == JobStatus.QUEUED
+    old_handle.send("result", old_id, result_for(old))
+    service.poll()
+    assert service.last_success is None
+    assert backend.starts[-1][0] == newest_id
+
+    backend.handle.send("result", newest_id, result_for(newest))
+    service.poll()
+    assert service.last_success.job_id == newest_id
+
+
 def test_stabilizing_and_progress_are_explicit_without_running_analysis():
     backend = Backend()
     service = coordinator(backend)

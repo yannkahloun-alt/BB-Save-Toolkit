@@ -126,12 +126,13 @@ class SaveWatcher:
 
         callback = False
         with self._lock:
-            if self._accepted is not None and fingerprint == self._accepted.fingerprint:
+            if (
+                self._accepted is not None
+                and fingerprint == self._accepted.fingerprint
+                and self._state not in {"unavailable", "stabilizing"}
+            ):
                 self._candidate = None
                 self._candidate_count = 0
-                if self._state not in {"queued", "analyzing", "failed"}:
-                    self._state = "current"
-                    self._reason = None
                 return
             if self._candidate is None or fingerprint != self._candidate.fingerprint:
                 self._candidate = snapshot

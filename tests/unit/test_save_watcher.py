@@ -113,7 +113,10 @@ def test_locked_missing_and_restored_path_retains_selection(tmp_path):
     assert watcher.accepted is not None
     locked = False
     watcher.poll()
-    assert watcher.status()["status"] == "current"
+    assert watcher.status()["status"] == "stabilizing"
+    watcher.poll()
+    assert watcher.status()["status"] == "detected"
+    assert watcher.status()["reason"] == "refresh_available"
 
     save.unlink()
     watcher.poll()
@@ -168,4 +171,47 @@ def test_local_application_restores_auto_refresh_and_delegates_coalescing(tmp_pa
     watcher.poll()
     assert coordinator.desired_job_id == second
     assert len(coordinator._jobs) == 2
+    app.close()
+
+
+def test_notify_only_same_content_recovery_never_claims_current_without_result(tmp_path):
+    config = load_config(
+        ROOT / "config" / "archetypes.json", ROOT / "config" / "classification.json"
+    )
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"stable")
+    store = UserStateStore(tmp_path / "profile")
+    store.save(
+        "preferences",
+        PreferencesState(selected_save_path=str(save), auto_refresh=False),
+        expected_revision=0,
+    )
+    app = LocalApplication(
+        store, ArchetypeCatalogStore(store, config.roles), config.classification,
+        coordinator=AnalysisCoordinator(backend=HoldingBackend(), monitor=False),
+    )
+    watcher = app.start_save_watcher(monitor=False)
+    watcher.poll()
+    watcher.poll()
+    before = app.last_result()
+    assert before["available"] is False
+    assert before["freshness"]["status"] == "detected"
+    assert before["freshness"]["reason"] == "refresh_available"
+
+    save.unlink()
+    watcher.poll()
+    unavailable = app.last_result()
+    assert unavailable["available"] is False
+    assert unavailable["freshness"]["status"] == "unavailable"
+    assert unavailable["freshness"]["reason"] == "selected_save_missing"
+
+    save.write_bytes(b"stable")
+    watcher.poll()
+    assert app.last_result()["freshness"]["status"] == "stabilizing"
+    watcher.poll()
+    restored = app.last_result()
+    assert restored["available"] is False
+    assert restored["freshness"]["status"] == "detected"
+    assert restored["freshness"]["reason"] == "refresh_available"
+    assert app.coordinator.desired_job_id is None
     app.close()
