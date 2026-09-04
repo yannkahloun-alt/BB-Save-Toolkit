@@ -80,6 +80,13 @@ def test_sanitized_successive_save_evidence_proves_token_continuity():
         assert len(tokens) == snapshot["roster_size"]
         assert len(tokens) == len(set(tokens))
 
+    token_owners = {}
+    for track in evidence["tracks"]:
+        for row in track["observations"]:
+            key = (track["campaign"], row["token"])
+            token_owners.setdefault(key, set()).add(track["subject"])
+    assert all(len(subjects) == 1 for subjects in token_owners.values())
+
     changed_fields = {
         field
         for field in (
