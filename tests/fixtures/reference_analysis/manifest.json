@@ -18,7 +18,7 @@
     },
     "presentation": {
       "path": "reference-target-presentation.json",
-      "sha256": "738afccbc641c20047ecd1f1e1144705392cc76efa3911363c034c859290aee7"
+      "sha256": "9e81790e5efa8a4745507dc100ce04b4493b75b2b0d0ad9f27900b66b5579928"
     },
     "recruits": {
       "path": "reference-recruits.json",

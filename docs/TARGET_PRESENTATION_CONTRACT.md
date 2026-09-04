@@ -55,8 +55,29 @@ The v2 report contract remains readable with its exact seven files. Historical
 v1 remains deliberately unsupported and frozen at six files. Neither version's
 name-based joins are redefined as durable IDs.
 
-The foundation does not include AssignedBuild (#107), evolved intent-aware
-Advisor output (#108), intent-aware Company coverage/fragility (#166, split
-from completed intrinsic #128), or Relevant Roster Need (#112). Those fields require a future additive
-presentation-contract version after their domain contracts and implementations
-are complete.
+## Final integration
+
+The same v1 presentation artifact now includes the completed additive domains.
+Every Brother row has a resolved `assigned_build` payload with the #107
+statuses (`current`, `definition_changed`, `deprecated`, `missing`,
+`unassigned`, or explicitly `unavailable` when exact durable resolution was
+not available). Build IDs and definition hashes are verified exactly; a display
+name is never used as a remap key.
+
+`advisors` publishes the complete existing backend-owned Advisor payload for
+each Brother, including the AssignedBuild anchor/fallback, intrinsic Best Fit,
+Primary/RunnerUp/ConditionalBranch, and both consequence sides. Its
+result-local signature includes the resolved assignment, so a stale Advisor is
+rejected without staling Fit or BestRole.
+
+`company.intrinsic_coverage` and `company.intended_coverage` remain distinct
+artifacts. The latter is validated by recomputation from resolved current
+assignments and carries #166 holder, availability, fragility, and need-base
+facts. `relevant_roster_need` is one separate mixed artifact per recruit; its
+candidate evidence and authoritative intended-coverage/intrinsic-coverage
+upstreams are recomputed and its signature must match. Unavailable intent is
+explicit rather than interpreted as Company need.
+
+These additions remain presentation data only: AssignedBuild changes can affect
+Advisor, intended coverage, and Relevant Need, but never intrinsic Fit,
+BestRole, intrinsic coverage, or recruitment-potential evidence.

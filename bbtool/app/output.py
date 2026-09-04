@@ -170,11 +170,12 @@ def write_report_dataset(
     if presentation_context is not None or presentation_payload is not None:
         artifact_hashes = {key: value["sha256"] for key, value in files.items()}
         if presentation_context is not None:
+            context = {"summaries": summaries, **presentation_context}
             presentation = build_target_presentation(
                 bros=bros, recruits=recruits, roles=roles,
                 analysis_health=analysis_health,
                 artifact_hashes=artifact_hashes,
-                **presentation_context,
+                **context,
             )
         else:
             presentation = deepcopy(presentation_payload)

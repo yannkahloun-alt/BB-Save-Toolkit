@@ -7,7 +7,8 @@ import re
 from typing import Any
 
 from ..build_identity import build_definition_hash, build_identity, build_result_key
-from ..company_planning import build_intrinsic_company_coverage
+from ..company_planning import build_intent_company_coverage, build_intrinsic_company_coverage
+from ..relevant_need import build_relevant_roster_need
 from ..incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
 from ..incremental.fingerprint import (
     advisor_fingerprint,
@@ -102,8 +103,11 @@ def build_target_presentation(
     recruitment_analysis: list[dict], artifact_hashes: Mapping[str, str],
     result_signatures: Mapping[str, list[dict]],
     company_intrinsic_coverage: list[dict],
+    summaries: list[dict] | None = None,
+    assigned_builds: Mapping[str, Mapping[str, Any]] | None = None,
+    company_intended_coverage: list[dict] | None = None,
 ) -> dict:
-    """Build only established Target UI semantics; unresolved domains are explicit."""
+    """Build the complete backend-owned Target UI contract."""
     identities = brother_identities or {}
     builds = []
     for role in roles:
@@ -112,24 +116,49 @@ def build_target_presentation(
             "build_definition_hash": build_definition_hash(role),
             "display_name": role["name"],
         })
+    assigned_available = assigned_builds is not None
+    assigned_builds = assigned_builds or {}
+    def assignment_for(brother_id):
+        identity = identities.get(brother_id)
+        value = getattr(identity, "value", None)
+        if not assigned_available or not isinstance(value, str):
+            return {"status": "unavailable", "build_identity": None,
+                    "assigned_definition_hash": None, "current_definition_hash": None,
+                    "display_name": None}
+        resolved = assigned_builds.get(value, {}).get("assignment", assigned_builds.get(value, {}))
+        if not isinstance(resolved, Mapping):
+            resolved = {}
+        return {key: resolved.get(key) for key in (
+            "status", "build_identity", "assigned_definition_hash",
+            "current_definition_hash", "display_name"
+        )} if resolved else {"status": "unassigned", "build_identity": None,
+                            "assigned_definition_hash": None, "current_definition_hash": None,
+                            "display_name": None}
     brothers = [{
         "brother_id": bro.BrotherID,
         "brother_identity": _identity_payload(identities.get(bro.BrotherID)),
-        "mechanical_facts": list(
-            getattr(bro, "PerkGearFacts", None) or perk_gear_facts(bro)
-        ),
+        "mechanical_facts": list(getattr(bro, "PerkGearFacts", None) or perk_gear_facts(bro)),
+        "assigned_build": assignment_for(bro.BrotherID),
     } for bro in bros]
     validity = {
         "basis": "result_local_dependency_signature",
         "artifacts": dict(result_signatures),
     }
-    company = {"intrinsic_coverage": company_intrinsic_coverage}
-    pending = {
-        "assigned_build": 107,
-        "intent_aware_advisor": 108,
-        "intent_aware_company_planning": 166,
-        "relevant_roster_need": 112,
+    company = {
+        "intrinsic_coverage": company_intrinsic_coverage,
+        "intended_coverage": company_intended_coverage or [],
+        "intent_available": assigned_available,
     }
+    advisors = [{"brother_id": row["BrotherID"], "advice": row.get("LevelUpAdvice")}
+                for row in (summaries or [])]
+    relevant_need = [{
+        "recruit_index": row["recruit_index"],
+        "state": "available" if assigned_available else "unavailable",
+        "result": build_relevant_roster_need(
+            row["analyses"], company["intended_coverage"], viable_fit=0.5,
+            company_intrinsic_coverage=company_intrinsic_coverage,
+        ) if assigned_available else None,
+    } for row in recruitment_analysis]
     content = {
         "campaign_identity": _identity_payload(campaign_identity),
         "brothers": brothers,
@@ -137,8 +166,7 @@ def build_target_presentation(
         "run_health": analysis_health,
         "recruitment": recruitment_analysis,
         "validity": validity,
-        "company": company,
-        "pending": pending,
+        "company": company, "advisors": advisors, "relevant_roster_need": relevant_need,
     }
     provenance = {
         "source_fingerprint": source_fingerprint,
@@ -167,7 +195,7 @@ def validate_target_presentation(
     """Reject malformed or mixed-generation presentation datasets."""
     if not isinstance(payload, dict) or set(payload) != {
         "schema", "publication", "campaign_identity", "brothers", "builds",
-        "run_health", "recruitment", "validity", "company", "pending",
+        "run_health", "recruitment", "validity", "company", "advisors", "relevant_roster_need",
     }:
         raise ValueError("target presentation fields mismatch")
     if payload["schema"] != SCHEMA:
@@ -191,8 +219,8 @@ def validate_target_presentation(
         raise ValueError("target presentation coherence signature mismatch")
     expected_content_hashes = {
         key: stable_hash(payload[key]) for key in (
-            "brothers", "builds", "campaign_identity", "company", "pending",
-            "recruitment", "run_health", "validity",
+            "brothers", "builds", "campaign_identity", "company", "advisors",
+            "relevant_roster_need", "recruitment", "run_health", "validity",
         )
     }
     if provenance["content_hashes"] != expected_content_hashes:
@@ -240,7 +268,7 @@ def validate_target_presentation(
     for row in brothers:
         expected_facts = perk_gear_facts(brother_by_id[row["brother_id"]])
         if not isinstance(row, dict) or set(row) != {
-            "brother_id", "brother_identity", "mechanical_facts",
+            "brother_id", "brother_identity", "mechanical_facts", "assigned_build",
         } or row["mechanical_facts"] != expected_facts \
                 or roster[row["brother_id"]].get("PerkGearFacts") != expected_facts:
             raise ValueError("target presentation mechanical facts mismatch")
@@ -252,6 +280,7 @@ def validate_target_presentation(
             if identity_value in exact_brother_identities:
                 raise ValueError("target presentation contains duplicate BrotherIdentity")
             exact_brother_identities.add(identity_value)
+        _validate_assigned_build(row["assigned_build"], builds)
     if not isinstance(payload["recruitment"], list):
         raise ValueError("target presentation recruitment must be an array")
     if any(not isinstance(row, dict) for row in payload["recruitment"]) or \
@@ -321,12 +350,20 @@ def validate_target_presentation(
     )
     _validate_signature_evidence(
         artifacts["level_advisor"],
-        expected={(bro.BrotherID,): advisor_fingerprint(bro, roles) for bro in bros},
+        expected={(bro.BrotherID,): advisor_fingerprint(
+            bro, roles, (lambda assignment: assignment if assignment["status"] not in {
+                "unavailable", "unassigned"
+            } else None)(next(item["assigned_build"] for item in brothers
+                               if item["brother_id"] == bro.BrotherID))
+        ) for bro in bros},
         key_fields=("brother_id",), roster=roster,
     )
     company = payload["company"]
-    if not isinstance(company, dict) or set(company) != {"intrinsic_coverage"} \
-            or not isinstance(company["intrinsic_coverage"], list):
+    if not isinstance(company, dict) or set(company) != {
+        "intrinsic_coverage", "intended_coverage", "intent_available"
+    } or not isinstance(company["intrinsic_coverage"], list) \
+            or not isinstance(company["intended_coverage"], list) \
+            or not isinstance(company["intent_available"], bool):
         raise ValueError("target presentation company fields mismatch")
     identity_by_brother = {
         row["brother_id"]: row["brother_identity"]["value"] for row in brothers
@@ -337,11 +374,46 @@ def validate_target_presentation(
     )
     if company["intrinsic_coverage"] != expected_company:
         raise ValueError("target presentation company generation mismatch")
-    if payload["pending"] != {
-        "assigned_build": 107, "intent_aware_advisor": 108,
-        "intent_aware_company_planning": 166, "relevant_roster_need": 112,
-    }:
-        raise ValueError("target presentation pending fields mismatch")
+    assignments = {
+        row["brother_identity"]["value"]: row["assigned_build"]
+        for row in brothers if row["brother_identity"]["confidence"] == "exact"
+    }
+    expected_intended = build_intent_company_coverage(
+        bros, roles, payloads["role_fit"], payloads["classification_config"],
+        assignments, identity_by_brother,
+    ) if company["intent_available"] else []
+    if company["intended_coverage"] != expected_intended:
+        raise ValueError("target presentation intended company generation mismatch")
+    if not company["intent_available"] and any(
+        row["assigned_build"]["status"] != "unavailable" for row in brothers
+    ):
+        raise ValueError("target presentation assignment availability mismatch")
+    advisors = payload["advisors"]
+    summaries = {row["BrotherID"]: row.get("LevelUpAdvice") for row in payloads["classification"]}
+    if not isinstance(advisors, list) or [row.get("brother_id") for row in advisors] != list(roster) \
+            or any(not isinstance(row, dict) or set(row) != {"brother_id", "advice"}
+                   or row["advice"] != summaries[row["brother_id"]] for row in advisors):
+        raise ValueError("target presentation advisor generation mismatch")
+    for item in advisors:
+        assignment = next(row["assigned_build"] for row in brothers
+                          if row["brother_id"] == item["brother_id"])
+        if not _advice_is_bound_to_assignment(item["advice"], assignment):
+            raise ValueError("target presentation advisor assignment generation mismatch")
+    relevant = payload["relevant_roster_need"]
+    if not isinstance(relevant, list) or [row.get("recruit_index") for row in relevant] != list(range(len(payload["recruitment"]))):
+        raise ValueError("target presentation relevant need joins mismatch")
+    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):
+        if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
+            raise ValueError("target presentation relevant need is malformed")
+        if item["state"] == "available":
+            expected = build_relevant_roster_need(
+                recruitment["analyses"], company["intended_coverage"], viable_fit=.5,
+                company_intrinsic_coverage=company["intrinsic_coverage"],
+            )
+            if item["result"] != expected:
+                raise ValueError("target presentation relevant need generation mismatch")
+        elif item["state"] != "unavailable" or item["result"] is not None or company["intent_available"]:
+            raise ValueError("target presentation relevant need availability mismatch")
 
 
 def _validate_identity(value: Any, *, brother: bool) -> int | None:
@@ -376,6 +448,69 @@ def _validate_identity(value: Any, *, brother: bool) -> int | None:
             or not value["reason"]:
         raise ValueError("target presentation non-exact identity is malformed")
     return None
+
+
+def _validate_assigned_build(value: Any, builds: list[dict]) -> None:
+    """Validate resolved intent without inventing a remap from display text."""
+    fields = {
+        "status", "build_identity", "assigned_definition_hash",
+        "current_definition_hash", "display_name",
+    }
+    if not isinstance(value, dict) or set(value) != fields:
+        raise ValueError("target presentation assigned build is malformed")
+    status = value["status"]
+    if status not in {"unavailable", "unassigned", "current", "definition_changed", "deprecated", "missing"}:
+        raise ValueError("target presentation assigned build status is malformed")
+    if status in {"unavailable", "unassigned"}:
+        if any(value[key] is not None for key in fields - {"status"}):
+            raise ValueError("target presentation empty assigned build is malformed")
+        return
+    identity = value["build_identity"]
+    if not isinstance(identity, str) or not identity:
+        raise ValueError("target presentation assigned build identity is malformed")
+    matching = [item for item in builds if item["build_identity"] == identity]
+    if status in {"current", "definition_changed"}:
+        if len(matching) != 1 or value["current_definition_hash"] != matching[0]["build_definition_hash"] \
+                or value["display_name"] != matching[0]["display_name"] \
+                or not isinstance(value["assigned_definition_hash"], str) \
+                or SHA256_PATTERN.fullmatch(value["assigned_definition_hash"]) is None:
+            raise ValueError("target presentation assigned build definition mismatch")
+        if (status == "current") != (value["assigned_definition_hash"] == value["current_definition_hash"]):
+            raise ValueError("target presentation assigned build current state mismatch")
+    elif value["current_definition_hash"] is not None or value["display_name"] is not None \
+            or not isinstance(value["assigned_definition_hash"], str) \
+            or SHA256_PATTERN.fullmatch(value["assigned_definition_hash"]) is None:
+        raise ValueError("target presentation unresolved assigned build is malformed")
+
+
+def _advice_is_bound_to_assignment(advice: Any, assignment: Mapping[str, Any]) -> bool:
+    """Ensure copied Advisor evidence cannot silently survive an intent change."""
+    if advice is None:
+        return True
+    if not isinstance(advice, Mapping):
+        return False
+    assigned = advice.get("AssignedBuild")
+    anchor = advice.get("Anchor")
+    best_fit = advice.get("BestFit")
+    if not isinstance(assigned, Mapping) or not isinstance(anchor, Mapping) \
+            or not isinstance(best_fit, Mapping):
+        return False
+    fields = {
+        "Status": "status", "BuildIdentity": "build_identity",
+        "AssignedDefinitionHash": "assigned_definition_hash",
+        "CurrentDefinitionHash": "current_definition_hash",
+    }
+    if any(assigned.get(public) != assignment.get(private)
+           for public, private in fields.items()):
+        return False
+    current = assignment["status"] == "current"
+    if bool(assigned.get("ValidAdvisorAnchor")) != current:
+        return False
+    if current:
+        return anchor.get("Source") == "AssignedBuild" and \
+            anchor.get("BuildIdentity") == assignment["build_identity"]
+    return anchor.get("Source") == "BestFitFallback" and \
+        anchor.get("BuildIdentity") == best_fit.get("BuildIdentity")
 
 
 def _validate_signature_evidence(

@@ -19,7 +19,9 @@ from bbtool.app.target_presentation import (
 )
 from bbtool.app.config import _normalize_role
 from bbtool.build_identity import build_definition_hash, build_result_key
-from bbtool.company_planning import build_intrinsic_company_coverage
+from bbtool.company_planning import (
+    build_intent_company_coverage, build_intrinsic_company_coverage,
+)
 from bbtool.incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
 from bbtool.incremental.fingerprint import (
     advisor_fingerprint,
@@ -62,8 +64,8 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
     if manifest.get("schema") == TARGET_DATASET_SCHEMA and label == "presentation":
         payload["publication"]["provenance"]["content_hashes"] = {
             key: stable_hash(payload[key]) for key in (
-                "brothers", "builds", "campaign_identity", "company", "pending",
-                "recruitment", "run_health", "validity",
+                "brothers", "builds", "campaign_identity", "company", "advisors",
+                "relevant_roster_need", "recruitment", "run_health", "validity",
             )
         }
         payload["publication"]["coherence_signature"] = stable_hash(
@@ -82,8 +84,8 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
             presentation["run_health"] = payload
         presentation["publication"]["provenance"]["content_hashes"] = {
             key: stable_hash(presentation[key]) for key in (
-                "brothers", "builds", "campaign_identity", "company", "pending",
-                "recruitment", "run_health", "validity",
+                "brothers", "builds", "campaign_identity", "company", "advisors",
+                "relevant_roster_need", "recruitment", "run_health", "validity",
             )
         }
         presentation["publication"]["coherence_signature"] = stable_hash(
@@ -96,7 +98,7 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
 
-def _upgrade_to_target_v3(source: Path) -> Path:
+def _upgrade_to_target_v3(source: Path, assigned_builds=None) -> Path:
     dataset = load_render_dataset(source)
     manifest_path = source / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -108,6 +110,9 @@ def _upgrade_to_target_v3(source: Path) -> Path:
     recruitment = build_recruitment_presentation(
         dataset.recruits, dataset.roles, source / "unused-backgrounds.json"
     )
+    assigned_builds = assigned_builds or {}
+    def assignment_for(bro):
+        return assigned_builds.get(identities[bro.BrotherID].value)
     presentation = build_target_presentation(
         bros=dataset.bros, recruits=dataset.recruits, roles=dataset.roles,
         analysis_health=dataset.analysis_health,
@@ -148,7 +153,9 @@ def _upgrade_to_target_v3(source: Path) -> Path:
             "level_advisor": [
                 {
                     "brother_id": bro.BrotherID,
-                    "dependency_signature": advisor_fingerprint(bro, dataset.roles),
+                    "dependency_signature": advisor_fingerprint(
+                        bro, dataset.roles, assignment_for(bro)
+                    ),
                 }
                 for bro in dataset.bros
             ],
@@ -157,6 +164,11 @@ def _upgrade_to_target_v3(source: Path) -> Path:
             dataset.bros, dataset.roles, dataset.fits, dataset.classification,
             identities,
         ),
+        company_intended_coverage=build_intent_company_coverage(
+            dataset.bros, dataset.roles, dataset.fits, dataset.classification,
+            assigned_builds, identities,
+        ),
+        assigned_builds=assigned_builds, summaries=dataset.summaries,
     )
     path = source / "reference-target-presentation.json"
     path.write_text(json.dumps(presentation), encoding="utf-8")
@@ -226,11 +238,59 @@ def test_target_v3_exposes_authoritative_foundation_and_loads_for_all_consumers(
     )
     assert all(item["build_identity"] for item in dataset.presentation["builds"])
     assert dataset.presentation["run_health"] == dataset.analysis_health
-    assert dataset.presentation["pending"] == {
-        "assigned_build": 107, "intent_aware_advisor": 108,
-        "intent_aware_company_planning": 166, "relevant_roster_need": 112,
-    }
+    assert dataset.presentation["company"]["intent_available"] is True
+    assert len(dataset.presentation["advisors"]) == len(dataset.bros)
+    assert len(dataset.presentation["relevant_roster_need"]) == len(dataset.recruits)
     assert render_served_report(source)[1]
+
+
+def test_target_v3_assigned_build_mutation_is_local_and_stale_dependents_reject(tmp_path):
+    baseline_source = _upgrade_to_target_v3(_copy_fixture(tmp_path / "baseline"))
+    baseline = load_render_dataset(baseline_source).presentation
+    role = json.loads((baseline_source / "reference-archetypes.json").read_text())["roles"][0]
+    identity = baseline["brothers"][0]["brother_identity"]["value"]
+    assigned = {
+        identity: {
+            "status": "current", "build_identity": role["id"],
+            "assigned_definition_hash": build_definition_hash(role),
+            "current_definition_hash": build_definition_hash(role),
+            "display_name": role["name"],
+        }
+    }
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path / "assigned"), assigned)
+    presentation = load_render_dataset(source).presentation
+    assert presentation["company"]["intrinsic_coverage"] == baseline["company"]["intrinsic_coverage"]
+    assert presentation["recruitment"] == baseline["recruitment"]
+    assert presentation["brothers"][0]["assigned_build"]["build_identity"] == role["id"]
+
+    _rewrite_payload_and_hash(
+        source, "presentation", lambda value: value["validity"]["artifacts"][
+            "level_advisor"
+        ][0].update(dependency_signature="sha256:" + "0" * 64),
+    )
+    with pytest.raises(RenderDatasetError, match="dependency evidence is mismatched"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize("status", ["current", "definition_changed", "deprecated", "missing"])
+def test_target_v3_rejects_malformed_assigned_build_hashes(tmp_path, status):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+
+    def mutate(value):
+        assignment = value["brothers"][0]["assigned_build"]
+        build = value["builds"][0]
+        assignment.update(
+            status=status, build_identity=build["build_identity"],
+            assigned_definition_hash="not-a-hash",
+            current_definition_hash=(build["build_definition_hash"]
+                                     if status in {"current", "definition_changed"} else None),
+            display_name=(build["display_name"]
+                          if status in {"current", "definition_changed"} else None),
+        )
+
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="assigned build"):
+        load_render_dataset(source)
 
 
 def test_target_v3_round_trips_idless_legacy_role_with_nondurable_result_key(tmp_path):

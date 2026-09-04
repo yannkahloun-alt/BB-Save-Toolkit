@@ -65,7 +65,7 @@ durable joins and must not infer those joins from the legacy display fields.
 
 ## Target presentation v1
 
-`bbtool.target_presentation.v1` contains only established semantics:
+`bbtool.target_presentation.v1` contains backend-owned semantics:
 
 - exact-or-explicitly-unavailable CampaignIdentity and BrotherIdentity;
 - BuildIdentity, BuildDefinitionHash and display name as separate fields;
@@ -81,6 +81,10 @@ durable joins and must not infer those joins from the legacy display fields.
   publication coherence signature; and
 - separate result-local dependency signatures for role projection, strategic
   classification and Level Advisor artifacts.
+- resolved per-Brother AssignedBuild status, exact BuildIdentity/hash evidence,
+  and the complete two-sided Level Advisor payload;
+- structurally separate intrinsic and intent-aware Company coverage; and
+- separately inspectable per-recruit Relevant Roster Need intersections.
 
 These signatures are result-local #122 evidence. They do not use a global
 user-state revision and do not imply that an artifact depends on unrelated
@@ -88,12 +92,10 @@ mutable intent. A presentation artifact is accepted only when its bound hashes,
 health, build definitions, Brother/recruit relations and coherence signature
 match the other files in the same manifest.
 
-The following fields are intentionally absent until their owning semantics are
-complete: AssignedBuild (#107), intent-aware Advisor (#108), intent-aware
-Company coverage/fragility (#166, split from completed intrinsic #128), and
-Relevant Roster Need (#112). The
-payload carries this bounded pending map so absence cannot be mistaken for a
-negative result.
+AssignedBuild-dependent artifacts are validated from their declared local
+signatures and exact upstream identity/hash joins. An unrelated user-state
+revision cannot stale intrinsic artifacts, while stale Advisor, intended
+coverage, or Relevant Need data is rejected.
 
 The health payload is deliberately summary-only. Debug bundles, diagnostic
 samples, incremental manifests, projection-validation artifacts, source saves,
