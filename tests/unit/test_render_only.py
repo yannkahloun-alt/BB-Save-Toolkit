@@ -246,6 +246,28 @@ def test_target_v3_rejects_incomplete_or_malformed_dependency_evidence(
         load_render_dataset(source)
 
 
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["campaign_identity"].update(value="not-an-integer"),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value="campaign:77/entity:0"
+        ),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value="campaign:78/entity:1"
+        ),
+    ],
+    ids=("campaign-shape", "brother-shape", "campaign-namespace"),
+)
+def test_target_v3_rejects_malformed_or_mismatched_exact_identity(
+    tmp_path, mutate,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="identity"):
+        load_render_dataset(source)
+
+
 def test_v2_compatibility_is_preserved_and_v1_remains_explicitly_unsupported(tmp_path):
     source = _copy_fixture(tmp_path)
     manifest_path = source / "manifest.json"

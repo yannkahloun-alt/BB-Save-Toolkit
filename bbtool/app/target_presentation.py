@@ -24,6 +24,9 @@ BOUND_ARTIFACTS = frozenset({
     "classification_config", "analysis_health",
 })
 SHA256_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
+BROTHER_IDENTITY_PATTERN = re.compile(r"campaign:(\d+)/entity:(\d+)\Z")
+CAMPAIGN_ID_MAX = 2_147_483_647
+ENTITY_TOKEN_MAX = 4_294_967_295
 
 
 def build_recruitment_presentation(recruits, roles, reference_path) -> list[dict]:
@@ -191,13 +194,15 @@ def validate_target_presentation(
     brothers = payload["brothers"]
     if not isinstance(brothers, list) or {row.get("brother_id") for row in brothers} != set(roster):
         raise ValueError("target presentation brother joins do not match roster")
+    campaign_value = _validate_identity(payload["campaign_identity"], brother=False)
     for row in brothers:
         if not isinstance(row, dict) or set(row) != {
             "brother_id", "brother_identity", "mechanical_facts",
         } or row["mechanical_facts"] != roster[row["brother_id"]].get("PerkGearFacts", []):
             raise ValueError("target presentation mechanical facts mismatch")
-        _validate_identity(row["brother_identity"], brother=True)
-    _validate_identity(payload["campaign_identity"], brother=False)
+        brother_campaign = _validate_identity(row["brother_identity"], brother=True)
+        if brother_campaign is not None and brother_campaign != campaign_value:
+            raise ValueError("target presentation brother campaign identity mismatch")
     if not isinstance(payload["recruitment"], list):
         raise ValueError("target presentation recruitment must be an array")
     if [row.get("recruit_index") for row in payload["recruitment"]] != \
@@ -268,7 +273,7 @@ def validate_target_presentation(
         raise ValueError("target presentation pending fields mismatch")
 
 
-def _validate_identity(value: Any, *, brother: bool) -> None:
+def _validate_identity(value: Any, *, brother: bool) -> int | None:
     if not isinstance(value, dict) or set(value) != {
         "value", "basis", "confidence", "reason",
     } or value["confidence"] not in {"exact", "unavailable", "invalid"}:
@@ -277,8 +282,23 @@ def _validate_identity(value: Any, *, brother: bool) -> None:
         expected = "native_campaign_entity_token" if brother else "native_campaign_id"
         if value["basis"] != expected or value["value"] is None:
             raise ValueError("target presentation exact identity is malformed")
+        if brother:
+            if not isinstance(value["value"], str):
+                raise ValueError("target presentation exact identity is malformed")
+            match = BROTHER_IDENTITY_PATTERN.fullmatch(value["value"])
+            if match is None:
+                raise ValueError("target presentation exact identity is malformed")
+            campaign_value, native_token = map(int, match.groups())
+            if campaign_value > CAMPAIGN_ID_MAX or not 0 < native_token <= ENTITY_TOKEN_MAX:
+                raise ValueError("target presentation exact identity is malformed")
+            return campaign_value
+        if isinstance(value["value"], bool) or not isinstance(value["value"], int) \
+                or not 0 <= value["value"] <= CAMPAIGN_ID_MAX:
+            raise ValueError("target presentation exact identity is malformed")
+        return value["value"]
     elif value["value"] is not None:
         raise ValueError("target presentation non-exact identity exposes a value")
+    return None
 
 
 def _validate_signature_evidence(
