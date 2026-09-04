@@ -58,6 +58,12 @@ field-level details where applicable.
 | POST | `/api/v1/archetypes/duplicate` | Duplicate an effective role into a new identity |
 | POST | `/api/v1/archetypes/delete-custom` | Delete and retire a custom identity |
 | POST | `/api/v1/archetypes/import` | Merge/replace a validated bounded export document |
+| GET | `/api/v1/assigned-builds/{campaign}/{entity}` | Resolve authoritative assignment intent against the current catalog |
+| POST | `/api/v1/assigned-builds/assign` | Assign a current BuildIdentity with expected AssignedBuild revision |
+| POST | `/api/v1/assigned-builds/change` | Change assignment with expected AssignedBuild revision |
+| POST | `/api/v1/assigned-builds/acknowledge` | Re-acknowledge the current definition hash with expected revision |
+| POST | `/api/v1/assigned-builds/clear` | Clear one exact brother assignment with expected revision |
+| POST | `/api/v1/assigned-builds/clear-campaign` | Clear one exact campaign namespace with expected revision |
 | POST | `/api/v1/analysis/jobs` | Snapshot selected bytes/config and enqueue through #97 |
 | GET | `/api/v1/analysis/jobs/{id}` | Status, progress, errors, and scheduled fingerprints |
 | GET | `/api/v1/analysis/result` | Last publication, warnings, data, and freshness identity |

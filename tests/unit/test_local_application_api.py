@@ -14,6 +14,7 @@ from bbtool.app.archetype_catalog import ArchetypeCatalogStore
 from bbtool.app.config import load_config
 from bbtool.app.local_application import LocalApplication
 from bbtool.app.user_state import UserStateStore
+from bbtool.models import BrotherIdentity, CampaignIdentity
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -135,6 +136,70 @@ def test_request_limits_and_exact_typed_shapes_are_enforced(tmp_path):
     assert generic.status == 422
     assert decode(generic)["error"]["details"]["unexpected"] == ["state"]
     assert unknown.status == 422
+
+
+def test_assigned_build_typed_mutation_read_and_conflict(tmp_path):
+    app = make_application(tmp_path)
+    app.coordinator._last_success = SimpleNamespace(
+        job_id=1,
+        generation=1,
+        result=SimpleNamespace(
+            campaign_identity=CampaignIdentity(25809, confidence="exact"),
+            brother_identities={
+                "human:1": BrotherIdentity(25809, 1234, confidence="exact")
+            },
+        ),
+    )
+    app.coordinator._desired_id = 1
+    api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
+    payload = {
+        "campaign_identity": 25809,
+        "native_entity_token": 1234,
+        "build_identity": "reach_dps",
+        "expected_revision": 0,
+    }
+    assigned = post(api, "/api/v1/assigned-builds/assign", payload)
+    assert assigned.status == 200
+    data = decode(assigned)["data"]
+    assert data["revision"] == 1
+    assert data["assignment"]["status"] == "current"
+    assert data["invalidation"]["changes"][0]["input_kind"] == "assigned_build"
+
+    read = api.handle("GET", "/api/v1/assigned-builds/25809/1234", {"Host": HOST})
+    assert decode(read)["data"]["assignment"] == data["assignment"]
+    conflict = post(api, "/api/v1/assigned-builds/clear", {
+        "campaign_identity": 25809,
+        "native_entity_token": 1234,
+        "expected_revision": 0,
+    })
+    assert conflict.status == 409
+    assert decode(conflict)["error"]["code"] == "state_revision_conflict"
+
+
+def test_stale_publication_identity_cannot_authorize_assignment(tmp_path):
+    app = make_application(tmp_path)
+    app.coordinator._last_success = SimpleNamespace(
+        job_id=1,
+        generation=4,
+        result=SimpleNamespace(
+            campaign_identity=CampaignIdentity(25809, confidence="exact"),
+            brother_identities={
+                "human:1": BrotherIdentity(25809, 1234, confidence="exact")
+            },
+        ),
+    )
+    app.coordinator._desired_id = 1
+    app._invalidated_generation = 4
+    api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
+    response = post(api, "/api/v1/assigned-builds/assign", {
+        "campaign_identity": 25809,
+        "native_entity_token": 1234,
+        "build_identity": "reach_dps",
+        "expected_revision": 0,
+    })
+    assert response.status == 422
+    assert decode(response)["error"]["code"] == "identity_unavailable"
+    assert app.store.load("assigned_builds").revision == 0
 
 
 def test_followed_save_selection_is_revision_checked_and_bounded(tmp_path):

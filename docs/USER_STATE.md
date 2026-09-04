@@ -24,6 +24,7 @@ UserStateRoot/
   preferences.json
   last-success.json
   archetypes/catalog-state.json
+  assigned-builds.json
 ```
 
 Every file declares a schema, integer schema version, and monotonic revision.

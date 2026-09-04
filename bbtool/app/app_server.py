@@ -92,6 +92,15 @@ class LocalApplicationApi:
                 return self._ok(self.application.effective_archetypes())
             if method == "GET" and path == "/api/v1/archetypes/export":
                 return self._ok(self.application.export_archetypes())
+            assigned_prefix = "/api/v1/assigned-builds/"
+            if method == "GET" and path.startswith(assigned_prefix):
+                parts = path[len(assigned_prefix):].split("/")
+                if len(parts) != 2:
+                    raise ApplicationOperationError("invalid_request", "assigned-build read requires campaign and entity tokens")
+                return self._ok(self.application.assigned_build(
+                    self._integer_text(parts[0], "campaign identity"),
+                    self._positive_integer(parts[1], "native entity token"),
+                ))
             if method == "GET" and path == "/api/v1/analysis/result":
                 return self._ok(self.application.last_result())
             if method == "GET" and path.startswith("/api/v1/analysis/jobs/"):
@@ -125,6 +134,11 @@ class LocalApplicationApi:
                 operation = path[len(prefix):].replace("-", "_")
                 self._validate_archetype_command(operation, payload)
                 return self._ok(self.application.mutate_archetypes(operation, payload))
+            assigned_prefix = "/api/v1/assigned-builds/"
+            if path.startswith(assigned_prefix):
+                operation = path[len(assigned_prefix):].replace("-", "_")
+                self._validate_assigned_build_command(operation, payload)
+                return self._ok(self.application.mutate_assigned_build(operation, payload))
             return self._error(404, "not_found", "endpoint was not found")
         except ApplicationOperationError as exc:
             status = {
@@ -222,6 +236,29 @@ class LocalApplicationApi:
         if "document" in payload and not isinstance(payload["document"], str):
             raise ApplicationOperationError("invalid_request", "document must be a string")
 
+    def _validate_assigned_build_command(self, operation: str, payload: dict) -> None:
+        identity = {"campaign_identity", "native_entity_token", "expected_revision"}
+        shapes = {
+            "assign": (identity | {"build_identity"}, set()),
+            "change": (identity | {"build_identity"}, set()),
+            "acknowledge": (identity | {"build_identity"}, set()),
+            "clear": (identity, set()),
+            "clear_campaign": ({"campaign_identity", "expected_revision"}, set()),
+        }
+        if operation not in shapes:
+            raise ApplicationOperationError("unknown_operation", "unknown assigned-build operation")
+        required, optional = shapes[operation]
+        self._exact_keys(payload, required, optional)
+        payload["expected_revision"] = self._revision(payload)
+        payload["campaign_identity"] = self._integer(payload["campaign_identity"], "campaign_identity")
+        if "native_entity_token" in payload:
+            token = self._integer(payload["native_entity_token"], "native_entity_token")
+            if token == 0 or token > 0xFFFFFFFF:
+                raise ApplicationOperationError("invalid_request", "native_entity_token must be a non-zero unsigned 32-bit integer")
+            payload["native_entity_token"] = token
+        if "build_identity" in payload and not isinstance(payload["build_identity"], str):
+            raise ApplicationOperationError("invalid_request", "build_identity must be a string")
+
     def _revision(self, payload: dict) -> int:
         return self._integer(payload["expected_revision"], "expected_revision")
 
@@ -239,6 +276,16 @@ class LocalApplicationApi:
             raise ApplicationOperationError("invalid_request", f"{name} must be a positive integer") from exc
         if parsed <= 0:
             raise ApplicationOperationError("invalid_request", f"{name} must be a positive integer")
+        return parsed
+
+    @staticmethod
+    def _integer_text(value: str, name: str) -> int:
+        try:
+            parsed = int(value)
+        except ValueError as exc:
+            raise ApplicationOperationError("invalid_request", f"{name} must be a non-negative integer") from exc
+        if parsed < 0:
+            raise ApplicationOperationError("invalid_request", f"{name} must be a non-negative integer")
         return parsed
 
     @staticmethod
