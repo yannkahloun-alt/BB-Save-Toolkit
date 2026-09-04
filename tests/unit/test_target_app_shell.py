@@ -45,8 +45,8 @@ class ShellApplication:
         return {
             "available": True,
             "freshness": {"status": "stale", "reason": "selected_save_content_changed"},
-            "warnings": [],
-            "data": {"fits": []},
+            "warnings": [{"code": "must_not_be_polled"}],
+            "data": {"fits": [{"large": "analytical payload"}]},
         }
 
     def analysis_job(self, job_id):
@@ -116,7 +116,7 @@ def test_shell_navigation_freshness_health_progress_and_accessibility_are_struct
     assert ":focus-visible" in css
 
 
-def test_shell_endpoint_composes_public_health_and_current_progress_without_debug_samples():
+def test_shell_endpoint_composes_bounded_health_freshness_and_progress():
     api = LocalApplicationApi(ShellApplication(), origin=ORIGIN, token="capability")
 
     response = api.handle("GET", "/api/v1/shell", {"Host": HOST})
@@ -125,6 +125,7 @@ def test_shell_endpoint_composes_public_health_and_current_progress_without_debu
     assert response.status == 200
     assert set(data) == {"followed_save", "result", "analysis_health", "active_job"}
     assert data["followed_save"]["name"] == "quicksave.sav"
+    assert set(data["result"]) == {"available", "freshness"}
     assert data["result"]["freshness"] == {
         "status": "stale",
         "reason": "selected_save_content_changed",
