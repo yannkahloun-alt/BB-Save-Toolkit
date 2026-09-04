@@ -19,6 +19,7 @@ from ..build_identity import (
     build_identity,
     validate_build_identity,
 )
+from ..models import STATS
 from .config import AnalyzerConfig, _normalize_role
 from .user_state import ArchetypeState, StateValidationError, UserStateStore
 
@@ -81,6 +82,11 @@ def _validate_role(
             stat_path = f"{path}.stats.{stat}"
             if not isinstance(stat, str) or not stat:
                 errors.append(f"{path}.stats keys must be non-empty strings")
+                continue
+            if stat not in STATS:
+                errors.append(
+                    f"{stat_path} is not a supported projection stat; expected one of {list(STATS)}"
+                )
                 continue
             if not isinstance(definition, dict):
                 errors.append(f"{stat_path} must be an object")

@@ -147,6 +147,45 @@ def test_override_rejects_engine_derived_state(tmp_path):
     assert not catalog.store.path_for("archetypes").exists()
 
 
+def test_custom_unknown_stat_fails_visibly_without_persistence(tmp_path):
+    catalog = service(tmp_path)
+    definition = editable(base_roles()[0])
+    definition["name"] = "Invalid custom"
+    definition["stats"]["Magic"] = {
+        "target": 100,
+        "baseline": 80,
+        "weight": 10,
+    }
+    with pytest.raises(
+        CatalogValidationError,
+        match=r"entries\[0\]\.definition\.stats\.Magic is not a supported projection stat",
+    ):
+        catalog.create_custom(definition, identity="custom_invalid", expected_revision=0)
+    assert not catalog.store.path_for("archetypes").exists()
+
+
+def test_import_unknown_stat_fails_visibly_without_persistence(tmp_path):
+    catalog = service(tmp_path)
+    definition = editable(base_roles()[0])
+    definition["id"] = "custom_imported"
+    definition["name"] = "Invalid import"
+    definition["stats"]["Magic"] = {
+        "target": 100,
+        "baseline": 80,
+        "weight": 10,
+    }
+    payload = {
+        "schema": "bbtool.user-archetypes-export.v1",
+        "entries": [{"kind": "custom", "definition": definition}],
+    }
+    with pytest.raises(
+        CatalogValidationError,
+        match=r"entries\[0\]\.definition\.stats\.Magic is not a supported projection stat",
+    ):
+        catalog.import_json(json.dumps(payload), expected_revision=0)
+    assert not catalog.store.path_for("archetypes").exists()
+
+
 def test_export_replace_import_round_trip_all_user_owned_state(tmp_path):
     source = service(tmp_path / "source", ids=["custom_aaaaaaaa"])
     state = source.set_override("reach_dps", {"name": "Polearm"}, expected_revision=0)
