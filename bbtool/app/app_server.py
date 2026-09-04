@@ -169,15 +169,38 @@ class LocalApplicationApi:
             return self._error(500, "internal_error", "the application operation failed")
 
     def _shell_state(self) -> dict[str, Any]:
-        """Compose a bounded shell snapshot without rebuilding analytical data."""
-        followed_save = self.application.followed_save()
+        """Compose a least-privilege shell snapshot from authoritative state."""
+        followed = self.application.followed_save()
+        watcher = followed.get("freshness", {})
+        followed_freshness = {
+            "status": watcher.get("status", "unavailable"),
+        }
+        if "reason" in watcher:
+            followed_freshness["reason"] = watcher["reason"]
+        followed_save = {
+            "name": followed.get("name"),
+            "available": bool(followed.get("available")),
+            "freshness": followed_freshness,
+        }
+
         desired_job_id = self.application.coordinator.desired_job_id
         active_job = None
         if desired_job_id is not None:
             try:
                 # The authoritative job read also performs the existing
                 # publication-persistence bookkeeping when a worker completes.
-                active_job = self.application.analysis_job(desired_job_id)
+                job = self.application.analysis_job(desired_job_id)
+                progress = job.get("progress") or []
+                latest = progress[-1] if progress else None
+                active_job = {
+                    "id": job["id"],
+                    "status": job["status"],
+                    "progress": {
+                        "completed_count": len(progress),
+                        "latest_stage": latest.get("stage") if latest else None,
+                        "latest_status": latest.get("status") if latest else None,
+                    },
+                }
             except ApplicationOperationError as exc:
                 if exc.code != "job_not_found":
                     raise
@@ -187,9 +210,7 @@ class LocalApplicationApi:
         if publication is None:
             result_status = {
                 "available": False,
-                "freshness": followed_save.get(
-                    "freshness", {"status": "unavailable"}
-                ),
+                "freshness": followed_freshness,
             }
         else:
             diagnostics = getattr(publication.result, "diagnostics", {}) or {}
@@ -202,14 +223,7 @@ class LocalApplicationApi:
                     if publication.job_id == desired_job_id
                     else "stale"
                 ),
-                "generation": publication.generation,
-                "represented_source_fingerprint": publication.source_fingerprint,
-                "represented_configuration_fingerprints": dict(
-                    publication.configuration_fingerprints
-                ),
-                "artifact_signatures": dict(publication.artifact_signatures),
             }
-            watcher = followed_save.get("freshness", {})
             desired_source = watcher.get("desired_source_fingerprint")
             if (
                 desired_source is not None
