@@ -90,3 +90,12 @@ def test_each_company_coverage_upstream_invalidates_independently():
     changed_intended = build_relevant_roster_need(analyses, [gap("tank", ["contested_backup_only"])], viable_fit=.5, company_intrinsic_coverage=[intrinsic("tank", "intrinsic:v1")])
     assert baseline["artifact_signature"] != changed_intrinsic["artifact_signature"]
     assert baseline["artifact_signature"] != changed_intended["artifact_signature"]
+
+
+def test_signature_is_stable_when_semantic_input_order_changes():
+    analyses = [a("tank", 80), a("banner", 70)]
+    gaps = [gap("tank", ["single_point_of_failure"]), gap("banner", ["contested_backup_only"])]
+    intrinsic_rows = [intrinsic("tank"), intrinsic("banner")]
+    forward = build_relevant_roster_need(analyses, gaps, viable_fit=.5, company_intrinsic_coverage=intrinsic_rows)
+    reverse = build_relevant_roster_need(list(reversed(analyses)), list(reversed(gaps)), viable_fit=.5, company_intrinsic_coverage=list(reversed(intrinsic_rows)))
+    assert forward["artifact_signature"] == reverse["artifact_signature"]

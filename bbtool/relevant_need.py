@@ -64,13 +64,16 @@ def build_relevant_roster_need(
     other = [gap for gap in gaps if gap["build_identity"] not in plausible_set]
     for item in (*relevant, *other):
         item["candidate_plausible"] = item["build_identity"] in plausible_set
-    inputs = {
-        InputKind.CANDIDATE_EVIDENCE: [
+    candidate_evidence = sorted([
             {"build_identity": item.get("build_identity"), "state": item.get("state"),
              "result": item.get("result")}
             for item in analyses if isinstance(item, Mapping)
-        ],
-        InputKind.COMPANY_NEED: list(company_intended_coverage),
+        ], key=stable_hash)
+    intended_evidence = sorted(company_intended_coverage, key=stable_hash)
+    intrinsic_evidence = sorted(company_intrinsic_coverage, key=stable_hash)
+    inputs = {
+        InputKind.CANDIDATE_EVIDENCE: candidate_evidence,
+        InputKind.COMPANY_NEED: intended_evidence,
         InputKind.ENGINE_SEMANTICS: {
             "relevant_roster_need": ENGINE_VERSIONS[ArtifactKind.RELEVANT_ROSTER_NEED],
             "viable_fit": viable_fit,
@@ -81,12 +84,12 @@ def build_relevant_roster_need(
         {"BuildIdentity": item.get("BuildIdentity"),
          "ArtifactSignature": item.get("ArtifactSignature"),
          "NeedBases": item.get("NeedBases", ())}
-        for item in company_intended_coverage
+        for item in intended_evidence
     ])
     intrinsic_upstream = stable_hash([
         {"BuildIdentity": item.get("BuildIdentity"),
          "ArtifactSignature": item.get("ArtifactSignature")}
-        for item in company_intrinsic_coverage
+        for item in intrinsic_evidence
     ])
     return {
         "schema": "bbtool.relevant_roster_need.v1",
