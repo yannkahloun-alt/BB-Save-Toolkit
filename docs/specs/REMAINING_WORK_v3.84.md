@@ -159,11 +159,19 @@ The main remaining workstreams are now:
 7.  **Real-save performance validation**
 8.  **Optional cache storage improvements**
 
-The highest-priority blocker is workstream 1.
+Workstream 1 is now complete under #77. The next incremental architecture work
+is workstream B's progression-aware artifact dependencies and reuse.
 
 ------------------------------------------------------------------------
 
 # 4. Workstream A --- True cross-save brother identity
+
+**Completed after this baseline.** #77 established the native container entity
+token preceding each `battleBrother` record as exact only when unique and
+combined with #79's exact `CampaignIdentity`. The typed contract and real-save
+evidence are documented in [`../BROTHER_IDENTITY.md`](../BROTHER_IDENTITY.md).
+Names, `HumanOffset`, `FutureRolls`, and observable-state fingerprints remain
+non-authoritative. Progression-aware reuse remains separate work.
 
 ## 4.1 Current limitation
 
@@ -802,52 +810,13 @@ Future work MUST preserve:
 12. Incremental output equals full recomputation.
 13. Report-only changes do not invalidate numerical artifacts
     unnecessarily.
-14. Experimental FutureRolls continuity is not production identity until
-    proven on real progression saves.
+14. FutureRolls continuity remains diagnostic and is not production identity.
 
 ------------------------------------------------------------------------
 
 # 15. Immediate next task
 
-The next task is now very specific:
-
-> **Provide and analyze a real pair of saves around a brother
-> level-up.**
-
-Ideal sequence:
-
-``` text
-Save A — immediately before level-up
-Save B — immediately after applying the level-up
-```
-
-Preferably without unrelated roster changes between A and B.
-
-From those saves we should extract, for every brother:
-
-``` text
-name for human inspection only
-HumanOffset
-level
-stats
-stars
-traits
-permanent injuries
-CurrentRolls
-FutureRolls
-background
-perks
-```
-
-Then determine whether:
-
-``` text
-native stable identity exists
-or
-FutureRolls suffix continuity is sufficient
-or
-a stronger composite identity is required
-```
-
-Until that evidence exists, v3.84 should retain its current conservative
-exact-state reuse behavior.
+Use the exact `BrotherIdentity` established by #77 to implement workstream B's
+specialized progression dependencies and conservative artifact reuse. Keep the
+current exact-state cache path until each narrower dependency is proven to
+preserve `incremental == full recomputation`.

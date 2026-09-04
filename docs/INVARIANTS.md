@@ -37,6 +37,9 @@ These are architectural contracts, not implementation suggestions.
 - Cross-save identity must be native/proven or conservatively synthetic.
 - Ambiguity always disables reuse.
 - Experimental `FutureRolls` continuity helpers are not production identity until real progression saves validate them.
+- Exact `BrotherIdentity` is `CampaignIdentity +` the unique non-zero native
+  container entity token preceding a `battleBrother` record. Missing,
+  duplicated, malformed, or non-exact evidence disables durable joins.
 
 ## Campaign identity
 

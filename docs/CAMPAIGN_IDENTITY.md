@@ -103,8 +103,9 @@ joined heuristically.
 
 ## Downstream status
 
-#79's campaign-namespace prerequisite for #77 is satisfied. #77 remains a
-separate investigation of a campaign-local stable brother token and must not
-use `HumanOffset`, name, or save-state similarity as exact identity. #80 remains
-responsible for lineage. The toolkit-managed fallback proposed in #82 is not
-needed for normal supported saves.
+#79's campaign namespace now combines with the native container entity token
+established by #77 to form exact campaign-local `BrotherIdentity`; see
+[`BROTHER_IDENTITY.md`](BROTHER_IDENTITY.md). `HumanOffset`, name, and save-state
+similarity remain non-authoritative. #80 remains responsible for lineage. The
+toolkit-managed fallback proposed in #82 is not needed for normal supported
+saves.

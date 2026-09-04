@@ -42,6 +42,12 @@ Its supported formulas and conservative unknown states are specified in
 
 `BrotherID = human:<HumanOffset>` is save-local. Names are display-only.
 
+The binary container token immediately preceding each structural
+`battleBrother` record is combined with exact `CampaignIdentity` to form the
+campaign-local `BrotherIdentity`. Typed application-service results expose that
+mapping; public report-v1 data intentionally does not. Exact semantics and
+fixture limitations are in [`BROTHER_IDENTITY.md`](BROTHER_IDENTITY.md).
+
 The parser also exposes the native asset-manager `CampaignID` through a typed
 `CampaignIdentity`. It validates the source-defined post-stash serialization
 sequence and requires a unique, non-negative signed 32-bit value. The map seed,
@@ -184,7 +190,9 @@ semantics. Missing, incompatible, or malformed oracle data is recomputed through
 the shared trajectory engine and repaired in the next manifest; it is never
 included in public analysis/report data.
 
-Conservative exact-state reuse is production-safe. Cross-save progression identity remains an open roadmap item; experimental FutureRoll continuity helpers are diagnostic only until validated on real before/after progression saves.
+Conservative exact-state reuse remains production-safe and does not yet consume
+the now-established `BrotherIdentity`; progression-aware artifact invalidation
+is separate work. FutureRoll continuity helpers remain diagnostic only.
 
 Incremental manifests use `bb-incremental-v2` and carry a versioned native
 `CampaignIdentity` namespace. Discovery selects the newest compatible manifest
@@ -336,4 +344,6 @@ If artifact compatibility cannot be proven, recompute. Cache contents are derive
 
 ## Open architecture work
 
-The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Its main unresolved architectural blocker is proven stable cross-save brother identity after normal progression.
+The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Exact campaign-local
+brother identity is established; progression-aware artifact dependencies and
+reuse remain the next incremental architecture work.

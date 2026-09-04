@@ -17,6 +17,23 @@ class CampaignIdentity:
     reason: str | None = None
 
 
+@dataclass(frozen=True)
+class BrotherIdentity:
+    """Campaign-namespaced native identity, or conservative failure evidence."""
+
+    campaign_value: int | None
+    native_token: int | None
+    basis: Literal["native_campaign_entity_token"] = "native_campaign_entity_token"
+    confidence: Literal["exact", "unavailable", "invalid"] = "unavailable"
+    reason: str | None = None
+
+    @property
+    def value(self) -> str | None:
+        if self.confidence != "exact":
+            return None
+        return f"campaign:{self.campaign_value}/entity:{self.native_token}"
+
+
 def empty_equipment() -> dict:
     """Return the stable public shape used for a brother's current loadout."""
     return {
@@ -76,6 +93,7 @@ class Brother:
     Traits: list[str]
     Injuries: list[str]
     HumanOffset: int
+    NativeEntityToken: int | None = None
     CurrentRolls: dict[str, int] = field(default_factory=dict)
     FutureRolls: dict[str, list[int]] = field(default_factory=dict)
     InjuryIDs: list[str] = field(default_factory=list)
