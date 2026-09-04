@@ -182,10 +182,9 @@ def build_intent_company_coverage(
     exact BrotherIdentity; unresolved intent is conservatively unavailable.
     """
     brother_list = list(brothers)
-    authoritative_roles = sorted(
-        ((build_identity(role), role) for role in roles if build_identity(role)),
-        key=lambda item: item[0],
-    )
+    authoritative_roles = [
+        (build_identity(role), role) for role in roles if build_identity(role)
+    ]
     if not authoritative_roles:
         return []
     role_by_name = {role["name"]: (identity, role) for identity, role in authoritative_roles}
@@ -222,7 +221,7 @@ def build_intent_company_coverage(
         for bro in brother_list
     )
     output: list[dict[str, Any]] = []
-    for identity, _role in authoritative_roles:
+    for identity, _role in sorted(authoritative_roles, key=lambda item: item[0]):
         available: list[dict[str, Any]] = []
         assigned: list[dict[str, Any]] = []
         for brother_id, by_role in evidence_by_brother.items():
@@ -247,13 +246,11 @@ def build_intent_company_coverage(
                     "Availability": availability,
                 })
             if availability == "assigned_here":
-                # Match BestRole's complete ranking tuple. BuildIdentity is the
-                # deterministic final tie-break because display/order is not authority.
-                best_identity, (_, best_row) = min(
-                    by_role.items(), key=lambda candidate: (
-                        tuple(-value for value in role_sort_key(dict(candidate[1][1]))),
-                        candidate[0],
-                    )
+                # Match the pipeline's ``max(rows, key=role_sort_key)`` exactly,
+                # including retaining the first configured role on a full tie.
+                best_identity, (_, best_row) = max(
+                    by_role.items(),
+                    key=lambda candidate: role_sort_key(dict(candidate[1][1])),
                 )
                 assigned_pct = float(row["ProjectedFitPct"])
                 best_pct = float(best_row["ProjectedFitPct"])
@@ -294,10 +291,22 @@ def build_intent_company_coverage(
             ) if present
         ]
         assigned_identities = {row["BrotherIdentity"] for row in assigned}
-        target_projection_signatures = [
+        target_projection_signatures = sorted(
             signature for (brother_id, build), signature in role_signatures.items()
             if build == identity
-            or identities.get(brother_id) in assigned_identities
+        )
+        assigned_best_role_signatures = [
+            {
+                "brother_identity": stable_identity,
+                "ordered_roles": [
+                    (build, role_signatures[(brother_id, build)])
+                    for build in evidence_by_brother[brother_id]
+                ],
+            }
+            for stable_identity in sorted(assigned_identities)
+            for brother_id in [next(
+                key for key, value in identities.items() if value == stable_identity
+            )]
         ]
         availability_intent = sorted(
             (row["BrotherIdentity"], row["Availability"])
@@ -332,9 +341,10 @@ def build_intent_company_coverage(
                         ]
                     },
                 },
-                {ArtifactKind.ROLE_PROJECTION: stable_hash(
-                    sorted(target_projection_signatures)
-                )},
+                {ArtifactKind.ROLE_PROJECTION: stable_hash({
+                    "target_role": target_projection_signatures,
+                    "assigned_best_role": assigned_best_role_signatures,
+                })},
             ),
             "AssignedCount": len(assigned),
             "AssignedBrothers": assigned,

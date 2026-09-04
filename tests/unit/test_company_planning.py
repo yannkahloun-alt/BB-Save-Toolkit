@@ -339,6 +339,29 @@ def test_mismatch_best_build_uses_best_role_ranking_not_raw_fit_alone():
     assert result["AssignedBrothers"][0]["BestFitPct"] == 80
 
 
+def test_exact_best_role_tie_retains_first_configured_role_and_changes_signature():
+    alpha, beta = _role("alpha"), _role("beta")
+    bro = _bro("human:1", "campaign:1/entity:1")
+    values = {
+        (bro.BrotherID, "alpha"): 80,
+        (bro.BrotherID, "beta"): 80,
+    }
+    assignment = {bro.BrotherIdentity: _resolved(beta)}
+
+    alpha_first = _intended([bro], [alpha, beta], values, assignment)[1]
+    beta_first = _intended([bro], [beta, alpha], values, assignment)[1]
+
+    assert analysis_module._best([
+        _fit(bro, alpha, 80), _fit(bro, beta, 80)
+    ])["Role"] == "alpha"
+    assert alpha_first["AssignedBrothers"][0]["BestBuildIdentity"] == "alpha"
+    assert analysis_module._best([
+        _fit(bro, beta, 80), _fit(bro, alpha, 80)
+    ])["Role"] == "beta"
+    assert beta_first["AssignedBrothers"][0]["BestBuildIdentity"] == "beta"
+    assert alpha_first["ArtifactSignature"] != beta_first["ArtifactSignature"]
+
+
 def test_unrelated_semantic_changes_preserve_per_build_signature():
     target, other, third = _role("target"), _role("other"), _role("third")
     holder = _bro("human:1", "campaign:1/entity:1")
