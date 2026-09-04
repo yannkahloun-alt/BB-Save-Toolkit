@@ -8,7 +8,14 @@ from bbtool.app.assigned_build import AssignedBuildStore, AssignedBuildValidatio
 from bbtool.app.archetype_catalog import ArchetypeCatalogStore
 from bbtool.app.config import load_config
 from bbtool.app.local_application import LocalApplication
-from bbtool.app.user_state import AssignedBuildState, StateConflictError, UserStateStore
+from bbtool.app.user_state import (
+    AssignedBuildCampaign,
+    AssignedBuildRecord,
+    AssignedBuildState,
+    CorruptStateError,
+    StateConflictError,
+    UserStateStore,
+)
 from bbtool.models import BrotherIdentity, CampaignIdentity
 
 
@@ -127,6 +134,34 @@ def test_clear_absent_is_idempotent_and_emits_no_change(tmp_path):
         },
         "change": None,
     }
+
+
+@pytest.mark.parametrize(
+    "brother_values",
+    [
+        ("campaign:25809/entity:001234",),
+        ("campaign:25809/entity:1234", "campaign:25809/entity:001234"),
+    ],
+)
+def test_noncanonical_brother_token_aliases_are_rejected(tmp_path, brother_values):
+    state = UserStateStore(tmp_path / "profile")
+    records = tuple(
+        AssignedBuildRecord(
+            brother_identity=value,
+            build_identity="reach_dps",
+            assigned_definition_hash="sha256:" + "0" * 64,
+        )
+        for value in brother_values
+    )
+    with pytest.raises(CorruptStateError, match="brother_identity is malformed"):
+        state.save(
+            "assigned_builds",
+            AssignedBuildState(
+                campaigns=(AssignedBuildCampaign(25809, records),)
+            ),
+            expected_revision=0,
+        )
+    assert not state.path_for("assigned_builds").exists()
 
 
 @pytest.mark.parametrize("operation", ["clear", "clear_campaign"])

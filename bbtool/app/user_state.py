@@ -282,7 +282,12 @@ def _validate_assigned_builds(payload: Mapping) -> AssignedBuildState:
             if not isinstance(brother, str) or not brother.startswith(prefix):
                 raise StateValidationError(f"{item_path}.brother_identity is outside its campaign namespace")
             token = brother[len(prefix):]
-            if not token.isascii() or not token.isdigit() or not 1 <= int(token) <= 0xFFFFFFFF:
+            if (
+                not token.isascii()
+                or not token.isdigit()
+                or not 1 <= int(token) <= 0xFFFFFFFF
+                or token != str(int(token))
+            ):
                 raise StateValidationError(f"{item_path}.brother_identity is malformed")
             if brother in seen_brothers:
                 raise StateValidationError(f"{item_path}.brother_identity is duplicated")
