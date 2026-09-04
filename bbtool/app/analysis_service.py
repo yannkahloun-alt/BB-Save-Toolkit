@@ -89,6 +89,7 @@ class AnalysisServiceResult:
             "recruits": self.recruits,
             "fits": self.analysis.fits,
             "summaries": self.analysis.summaries,
+            "company_intrinsic_coverage": self.analysis.company_intrinsic_coverage,
             "roles": self.roles,
             "classification": self.classification,
         }
@@ -186,7 +187,8 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         )
         tick = time.perf_counter()
         analysis = analyze_brothers(
-            roster, request.roles, request.classification, cache
+            roster, request.roles, request.classification, cache,
+            brother_identities,
         )
         timings[stage] = time.perf_counter() - tick
         emit(
@@ -203,11 +205,20 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             stage = "cache_verification"
             tick = time.perf_counter()
             clean = analyze_brothers(
-                roster, request.roles, request.classification, None
+                roster, request.roles, request.classification, None,
+                brother_identities,
             )
             difference = first_difference(
-                {"fits": analysis.fits, "summaries": analysis.summaries},
-                {"fits": clean.fits, "summaries": clean.summaries},
+                {
+                    "fits": analysis.fits,
+                    "summaries": analysis.summaries,
+                    "company_intrinsic_coverage": analysis.company_intrinsic_coverage,
+                },
+                {
+                    "fits": clean.fits,
+                    "summaries": clean.summaries,
+                    "company_intrinsic_coverage": clean.company_intrinsic_coverage,
+                },
             )
             if difference is not None:
                 path, incremental_value, full_value = difference

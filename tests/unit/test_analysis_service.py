@@ -81,6 +81,7 @@ def test_service_analyzes_bytes_without_path_identity_and_reports_contract(monke
     assert result.recruits is recruits
     assert result.analysis is analysis
     assert result.public_data["fits"] == analysis.fits
+    assert result.public_data["company_intrinsic_coverage"] == []
     assert "FutureRolls" not in result.public_data["roster"][0]
     assert result.source_fingerprint.startswith("sha256:")
     assert set(result.configuration_fingerprints) == {"archetypes", "classification"}
