@@ -247,13 +247,11 @@ def validate_target_presentation(
         if row["background_save_hash"] != payloads["recruits"][
                 row["recruit_index"]].get("BackgroundSaveHash"):
             raise ValueError("target presentation recruitment background mismatch")
-        if {item.get("build_identity") for item in row["analyses"]} != \
-                {item["build_identity"] for item in builds}:
+        if [item.get("build_identity") for item in row["analyses"]] != \
+                [item["build_identity"] for item in builds]:
             raise ValueError("target presentation recruitment build joins mismatch")
-        definition_by_build = {
-            item["build_identity"]: item["build_definition_hash"] for item in builds
-        }
-        for item in row["analyses"]:
+        recruit = payloads["recruits"][row["recruit_index"]]
+        for item, build in zip(row["analyses"], builds, strict=True):
             if not isinstance(item, dict) or set(item) != {
                 "build_identity", "state", "reason", "result",
             } or item["state"] not in {
@@ -262,7 +260,8 @@ def validate_target_presentation(
                 raise ValueError("target presentation recruitment analysis is malformed")
             _validate_recruitment_analysis(
                 item, background_save_hash=row["background_save_hash"],
-                build_definition_hash_value=definition_by_build[item["build_identity"]],
+                build_definition_hash_value=build["build_definition_hash"],
+                recruit=recruit,
             )
     validity = payload["validity"]
     if not isinstance(validity, dict) or set(validity) != {"basis", "artifacts"} \
@@ -364,6 +363,7 @@ def _validate_signature_evidence(
 
 def _validate_recruitment_analysis(
     item: dict, *, background_save_hash: Any, build_definition_hash_value: str,
+    recruit: Mapping[str, Any],
 ) -> None:
     state, reason, result = item["state"], item["reason"], item["result"]
     if state == "unavailable":
@@ -389,11 +389,30 @@ def _validate_recruitment_analysis(
             or not isinstance(evidence["items"], list):
         raise ValueError("target presentation recruitment evidence is malformed")
     applied = _validate_recruitment_evidence_items(evidence["items"])
+    revealed = recruit.get("RevealedTraitEvidence", ()) or () \
+        if recruit.get("TryoutDone") is True else ()
+    if not isinstance(revealed, (list, tuple)) or any(
+        not isinstance(entry, Mapping) for entry in revealed
+    ):
+        raise ValueError("target presentation recruit evidence input is malformed")
+    expected_evidence_identity = [
+        (str(entry.get("save_hash", "")).upper() or None, entry.get("name"))
+        for entry in revealed
+    ]
+    actual_evidence_identity = [
+        (entry["save_hash"], entry["name"]) for entry in evidence["items"]
+    ]
+    if actual_evidence_identity != expected_evidence_identity:
+        raise ValueError("target presentation recruitment evidence generation mismatch")
     estimate = result["candidate_estimate"]
+    complete_evidence = bool(evidence["items"]) and all(
+        entry["status"] == "applied_exact_unconditional_fit_effect"
+        for entry in evidence["items"]
+    )
     if state == "prior_only":
-        if estimate is not None:
+        if estimate is not None or complete_evidence:
             raise ValueError("target presentation prior-only recruitment result is malformed")
-    elif not isinstance(estimate, dict) or set(estimate) != {
+    elif not complete_evidence or not isinstance(estimate, dict) or set(estimate) != {
         "distribution", "applied_trait_save_hashes",
     } or estimate["applied_trait_save_hashes"] != applied or not applied:
         raise ValueError("target presentation known-evidence result is malformed")

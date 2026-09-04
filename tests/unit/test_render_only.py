@@ -13,13 +13,20 @@ from bbtool.app.report_server import render_served_report
 from bbtool.app.health import build_public_analysis_health, build_run_health
 from bbtool.app.target_presentation import (
     DATASET_SCHEMA as TARGET_DATASET_SCHEMA,
+    _validate_recruitment_analysis,
     build_recruitment_presentation,
     build_target_presentation,
 )
+from bbtool.app.config import _normalize_role
+from bbtool.build_identity import build_definition_hash
 from bbtool.company_planning import build_intrinsic_company_coverage
 from bbtool.incremental.dependencies import stable_hash
 from bbtool.html_report import render_report_launcher
 from bbtool.models import BrotherIdentity, CampaignIdentity
+from bbtool.recruitment_prior import (
+    load_background_potential_reference,
+    recruit_candidate_estimate,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -313,6 +320,46 @@ def test_target_v3_rejects_bogus_recruitment_result(tmp_path):
     _rewrite_payload_and_hash(source, "presentation", replace_result)
     with pytest.raises(RenderDatasetError, match="recruitment result is malformed"):
         load_render_dataset(source)
+
+
+def test_target_v3_rejects_duplicate_recruitment_build_analysis(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["recruitment"][0]["analyses"].append(
+            dict(value["recruitment"][0]["analyses"][0])
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="recruitment build joins mismatch"):
+        load_render_dataset(source)
+
+
+def test_recruitment_analysis_must_match_bound_recruit_evidence():
+    role = _normalize_role({
+        "id": "melee_test", "name": "Melee test",
+        "stats": {"MAtk": {"baseline": 70, "target": 90, "weight": 1}},
+    })
+    reference = load_background_potential_reference(
+        ROOT / "tests" / "fixtures" / "background_prior_reference.json"
+    )
+    result = recruit_candidate_estimate(
+        {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": False}, role, reference
+    )
+    with pytest.raises(ValueError, match="evidence generation mismatch"):
+        _validate_recruitment_analysis(
+            {
+                "build_identity": role["id"], "state": result["state"],
+                "reason": None, "result": result,
+            },
+            background_save_hash="AAAABBBB",
+            build_definition_hash_value=build_definition_hash(role),
+            recruit={
+                "BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+                "RevealedTraitEvidence": [
+                    {"save_hash": "1234ABCD", "name": "Sure Footing"}
+                ],
+            },
+        )
 
 
 @pytest.mark.parametrize(
