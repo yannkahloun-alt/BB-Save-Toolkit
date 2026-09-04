@@ -14,6 +14,8 @@ Start with:
 - `docs/ARCHITECTURE.md` — current architecture;
 - `docs/DEVELOPMENT_WORKFLOW.md` — branch/worktree workflow;
 - `docs/TESTING.md` — required quality gates;
+- `docs/target-ui/README.md` — validated Target UI product contract and
+  repository-local implementation references;
 - `docs/specs/REMAINING_WORK_v3.84.md` — current open roadmap.
 
 ## Run the analyzer
