@@ -87,8 +87,9 @@ ARTIFACT_DEPENDENCIES: Mapping[ArtifactKind, ArtifactDependency] = {
     ),
     ArtifactKind.COMPANY_INTENDED_COVERAGE: ArtifactDependency(frozenset({
         InputKind.ROSTER_STATE, InputKind.ASSIGNED_BUILD,
-        InputKind.BUILD_DEFINITION, InputKind.ENGINE_SEMANTICS,
-    })),
+        InputKind.BUILD_DEFINITION, InputKind.CLASSIFICATION_CONFIG,
+        InputKind.ENGINE_SEMANTICS,
+    }), frozenset({ArtifactKind.ROLE_PROJECTION})),
     ArtifactKind.RECRUIT_INTRINSIC_POTENTIAL: ArtifactDependency(frozenset({
         InputKind.CANDIDATE_EVIDENCE, InputKind.BUILD_DEFINITION,
         InputKind.ENGINE_SEMANTICS,
@@ -116,6 +117,7 @@ ENGINE_VERSIONS: Mapping[ArtifactKind, int] = {
     ArtifactKind.LEVEL_ADVISOR: 5,
     ArtifactKind.VALIDATION_ORACLE: 2,
     ArtifactKind.COMPANY_INTRINSIC_COVERAGE: 1,
+    ArtifactKind.COMPANY_INTENDED_COVERAGE: 1,
 }
 
 

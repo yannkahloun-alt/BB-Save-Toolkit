@@ -1,7 +1,7 @@
 """Transport-independent application service for save analysis."""
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 import hashlib
 import time
@@ -62,6 +62,9 @@ class AnalysisServiceRequest:
     options: AnalysisServiceOptions = field(default_factory=AnalysisServiceOptions)
     cache: CompatibleCacheContext = field(default_factory=CompatibleCacheContext)
     on_progress: Callable[[ProgressEvent], None] | None = None
+    assigned_build_resolver: (
+        Callable[[CampaignIdentity], Mapping[str, Mapping[str, Any]]] | None
+    ) = None
 
 
 @dataclass
@@ -90,6 +93,7 @@ class AnalysisServiceResult:
             "fits": self.analysis.fits,
             "summaries": self.analysis.summaries,
             "company_intrinsic_coverage": self.analysis.company_intrinsic_coverage,
+            "company_intended_coverage": self.analysis.company_intended_coverage,
             "roles": self.roles,
             "classification": self.classification,
         }
@@ -163,6 +167,12 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             tick,
             confidence=campaign_identity.confidence,
         )
+        assigned_builds = None
+        if (
+            request.assigned_build_resolver is not None
+            and campaign_identity.confidence == "exact"
+        ):
+            assigned_builds = dict(request.assigned_build_resolver(campaign_identity))
 
         stage = "roster"
         tick = time.perf_counter()
@@ -188,7 +198,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         tick = time.perf_counter()
         analysis = analyze_brothers(
             roster, request.roles, request.classification, cache,
-            brother_identities,
+            brother_identities, assigned_builds,
         )
         timings[stage] = time.perf_counter() - tick
         emit(
@@ -206,18 +216,20 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             tick = time.perf_counter()
             clean = analyze_brothers(
                 roster, request.roles, request.classification, None,
-                brother_identities,
+                brother_identities, assigned_builds,
             )
             difference = first_difference(
                 {
                     "fits": analysis.fits,
                     "summaries": analysis.summaries,
                     "company_intrinsic_coverage": analysis.company_intrinsic_coverage,
+                    "company_intended_coverage": analysis.company_intended_coverage,
                 },
                 {
                     "fits": clean.fits,
                     "summaries": clean.summaries,
                     "company_intrinsic_coverage": clean.company_intrinsic_coverage,
+                    "company_intended_coverage": clean.company_intended_coverage,
                 },
             )
             if difference is not None:

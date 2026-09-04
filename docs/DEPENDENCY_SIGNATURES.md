@@ -24,6 +24,12 @@ An AssignedBuild-only change invalidates intent-aware Advisor and intended
 Company consumers, but not role projections, intrinsic Fit, BestRole,
 intrinsic Alternatives, or recruit intrinsic potential. A classification-only
 change invalidates strategic classification while preserving role projections.
+Each intended Company build signs resolved availability-relevant intent, its
+effective build hash, roster membership, Fit-label thresholds, its roster Fit
+inputs, and the other role inputs required to establish BestRole for assigned
+holders. Unrelated assignment targets and role projections remain reusable.
+Stored definition-changed, deprecated, or missing assignments are not accepted
+as current intent evidence.
 
 ## Adding an input or artifact
 
