@@ -300,7 +300,16 @@ class LocalApplication:
         path = Path(preferences.selected_save_path)
         accepted = self._save_watcher.accepted if self._save_watcher is not None else None
         if self._save_watcher is not None:
-            if accepted is None or accepted.path != path:
+            watcher_status = self._save_watcher.status()["status"]
+            if watcher_status == "unavailable":
+                raise ApplicationOperationError(
+                    "selected_save_unavailable", "the selected save is not currently readable"
+                )
+            if (
+                accepted is None
+                or accepted.path != path
+                or watcher_status == "stabilizing"
+            ):
                 raise ApplicationOperationError(
                     "selected_save_stabilizing", "the selected save is not yet stable"
                 )
@@ -339,7 +348,10 @@ class LocalApplication:
         except KeyError as exc:
             raise ApplicationOperationError("job_not_found", "analysis job was not found") from exc
         self._persist_publication()
-        if self._save_watcher is not None:
+        if (
+            self._save_watcher is not None
+            and job.id == self.coordinator.desired_job_id
+        ):
             self._save_watcher.set_job_state(job.status.value)
         return {
             "id": job.id,

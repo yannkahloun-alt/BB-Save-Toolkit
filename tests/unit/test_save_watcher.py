@@ -1,9 +1,12 @@
 from pathlib import Path
+from types import SimpleNamespace
 
-from bbtool.app.analysis_coordinator import AnalysisCoordinator
+import pytest
+
+from bbtool.app.analysis_coordinator import AnalysisCoordinator, JobStatus
 from bbtool.app.archetype_catalog import ArchetypeCatalogStore
 from bbtool.app.config import load_config
-from bbtool.app.local_application import LocalApplication
+from bbtool.app.local_application import ApplicationOperationError, LocalApplication
 from bbtool.app.save_watcher import SaveWatcher
 from bbtool.app.user_state import PreferencesState, UserStateStore
 
@@ -32,6 +35,35 @@ class HoldingBackend:
     def start(self, job_id, request):
         self.starts.append((job_id, request))
         return HoldingHandle()
+
+
+class CompletingHandle(HoldingHandle):
+    def __init__(self):
+        self.pending = []
+
+    def messages(self):
+        messages, self.pending = self.pending, []
+        return messages
+
+    def is_alive(self):
+        return not self.pending
+
+    def send_result(self, job_id, desired):
+        self.pending.append(("result", (job_id, SimpleNamespace(
+            source_fingerprint=desired.source_fingerprint,
+            configuration_fingerprints=desired.configuration_fingerprints,
+        ))))
+
+
+class CompletingBackend(HoldingBackend):
+    def start(self, job_id, request):
+        handle = CompletingHandle()
+        self.starts.append((job_id, request, handle))
+        return handle
+
+    @property
+    def handle(self):
+        return self.starts[-1][2]
 
 
 def test_duplicate_events_and_same_content_replacement_coalesce(tmp_path):
@@ -214,4 +246,85 @@ def test_notify_only_same_content_recovery_never_claims_current_without_result(t
     assert restored["freshness"]["status"] == "detected"
     assert restored["freshness"]["reason"] == "refresh_available"
     assert app.coordinator.desired_job_id is None
+    app.close()
+
+
+def test_manual_refresh_rejects_old_snapshot_while_stabilizing_or_unavailable(tmp_path):
+    config = load_config(
+        ROOT / "config" / "archetypes.json", ROOT / "config" / "classification.json"
+    )
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"accepted")
+    store = UserStateStore(tmp_path / "profile")
+    store.save(
+        "preferences",
+        PreferencesState(selected_save_path=str(save), auto_refresh=False),
+        expected_revision=0,
+    )
+    backend = HoldingBackend()
+    app = LocalApplication(
+        store, ArchetypeCatalogStore(store, config.roles), config.classification,
+        coordinator=AnalysisCoordinator(backend=backend, monitor=False),
+    )
+    watcher = app.start_save_watcher(monitor=False)
+    watcher.poll()
+    watcher.poll()
+    assert watcher.accepted.content == b"accepted"
+
+    save.write_bytes(b"new-candidate")
+    watcher.poll()
+    with pytest.raises(ApplicationOperationError, match="not yet stable") as stabilizing:
+        app.request_analysis(expected_preferences_revision=1)
+    assert stabilizing.value.code == "selected_save_stabilizing"
+    assert backend.starts == []
+
+    save.unlink()
+    watcher.poll()
+    assert watcher.accepted.content == b"accepted"
+    with pytest.raises(ApplicationOperationError, match="not currently readable") as unavailable:
+        app.request_analysis(expected_preferences_revision=1)
+    assert unavailable.value.code == "selected_save_unavailable"
+    assert backend.starts == []
+    app.close()
+
+
+def test_historical_job_query_cannot_change_newer_global_watcher_state(tmp_path):
+    config = load_config(
+        ROOT / "config" / "archetypes.json", ROOT / "config" / "classification.json"
+    )
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"first")
+    store = UserStateStore(tmp_path / "profile")
+    store.save(
+        "preferences",
+        PreferencesState(selected_save_path=str(save), auto_refresh=True),
+        expected_revision=0,
+    )
+    backend = CompletingBackend()
+    coordinator = AnalysisCoordinator(backend=backend, monitor=False)
+    app = LocalApplication(
+        store, ArchetypeCatalogStore(store, config.roles), config.classification,
+        coordinator=coordinator,
+    )
+    watcher = app.start_save_watcher(monitor=False)
+    watcher.poll()
+    watcher.poll()
+    old_id = coordinator.desired_job_id
+    old_desired = coordinator.job(old_id).desired
+    backend.handle.send_result(old_id, old_desired)
+    coordinator.poll()
+    assert coordinator.job(old_id).status == JobStatus.SUCCEEDED
+    app.analysis_job(old_id)
+    assert watcher.status()["status"] == "current"
+
+    save.write_bytes(b"newest")
+    watcher.poll()
+    watcher.poll()
+    newest_id = coordinator.desired_job_id
+    assert newest_id != old_id
+    assert watcher.status()["status"] == "analyzing"
+
+    assert app.analysis_job(old_id)["status"] == "succeeded"
+    assert watcher.status()["status"] == "analyzing"
+    assert coordinator.desired_job_id == newest_id
     app.close()
