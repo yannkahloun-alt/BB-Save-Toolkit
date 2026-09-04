@@ -48,7 +48,7 @@ field-level details where applicable.
 | --- | --- | --- |
 | GET | `/api/v1/health` | Service health, toolkit/API version, bind policy |
 | GET | `/api/v1/session` | Same-origin mutation capability |
-| GET | `/api/v1/shell` | Shared shell read model: followed save, publication freshness, public Run Health and current job/progress |
+| GET | `/api/v1/shell` | Least-privilege shell read model: save display context, freshness, public Run Health, and summarized current progress |
 | GET | `/api/v1/followed-save` | Inspect selected-save preference and availability |
 | POST | `/api/v1/followed-save/select` | Select/change an existing `.sav` with expected revision |
 | POST | `/api/v1/followed-save/forget` | Forget the selected save with expected revision |
@@ -74,12 +74,16 @@ field-level details where applicable.
 | GET | `/api/v1/analysis/result` | Last publication, warnings, data, and freshness identity |
 
 `GET /api/v1/shell` is a read-only composition endpoint for the global Target UI
-shell. It does not create a second analytical source of truth: `followed_save`
-and `result` are the existing authoritative application reads, `active_job` is
-the current coordinator job payload when one exists, and `analysis_health` is
-the same least-privilege `bbtool.analysis_health.v1` contract used by public
-report data. It exposes no debug samples, hidden rolls, save bytes, or generic
-state.
+shell. It does not create a second analytical source of truth. It projects only
+the fields required by the shell from authoritative application/coordinator
+state: the followed save's display name/availability/freshness, publication
+availability/freshness, the public `bbtool.analysis_health.v1` contract, and a
+current-job summary containing only job id, status, completed progress-event
+count, and latest stage/status. It deliberately omits selected filesystem paths,
+source/configuration/artifact fingerprints, job errors, progress `details`,
+debug/reference provenance, hidden rolls, save bytes, and generic durable state.
+The full job/result endpoints remain available to explicit consumers that need
+their documented data.
 
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a
