@@ -34,6 +34,12 @@ items. Item records are decoded conservatively from the source-derived
 reference dictionary; an unknown item is reported as partial data and never
 prevents the rest of the roster from being exported.
 
+The public roster additionally exposes `PerkGearFacts`, a derived current-state
+mechanics list. It is computed only while serializing public data and is never
+an input to projection, Fit, BestRole, classification, or incremental reuse.
+Its supported formulas and conservative unknown states are specified in
+[`PERK_GEAR_FACTS.md`](PERK_GEAR_FACTS.md).
+
 `BrotherID = human:<HumanOffset>` is save-local. Names are display-only.
 
 The parser also exposes the native asset-manager `CampaignID` through a typed
