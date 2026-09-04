@@ -66,6 +66,8 @@ def test_supported_backgrounds_and_explicit_unsupported_cases():
     ]
     with pytest.raises(KeyError, match="unsupported background"):
         background_archetype_prior("00000000", _role(), reference)
+    with pytest.raises(ValueError, match="no exact potential profile"):
+        background_archetype_prior("11112222", _role(), reference)
     legacy_role = dict(_role())
     legacy_role.pop("id")
     with pytest.raises(ValueError, match="BuildIdentity"):
@@ -120,3 +122,8 @@ def test_pinned_vanilla_excerpt_distinguishes_shipped_melee_ranged_and_banner_ro
         == row["distribution"]["weight_denominator"]
         for row in results.values()
     )
+    assert "D1B9D2CC" not in {
+        row["save_hash"] for row in supported_backgrounds(reference)
+    }
+    with pytest.raises(ValueError, match="no exact potential profile"):
+        background_archetype_prior("D1B9D2CC", roles["archer"], reference)

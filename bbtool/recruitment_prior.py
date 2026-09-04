@@ -83,7 +83,10 @@ def background_archetype_prior(
         raise KeyError(f"unsupported background save hash: {key}")
     profile = record.get("PotentialProfile")
     if not isinstance(profile, dict):
-        raise ValueError(f"background {key} has no exact potential profile")
+        reason = record.get("PotentialUnsupportedReason", "unspecified")
+        raise ValueError(
+            f"background {key} has no exact potential profile: {reason}"
+        )
 
     fit_stats = tuple(
         stat for stat in STATS if role.get("stats", {}).get(stat, {}).get("fit")

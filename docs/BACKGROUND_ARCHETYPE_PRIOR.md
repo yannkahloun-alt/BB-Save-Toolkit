@@ -13,7 +13,12 @@ contains exact level-1 integer stat ranges, background bonuses/maluses,
 excluded talents, and the untalented flag. Base ranges are parsed from
 `character_background.nut`; they are not copied into the model. Static values
 inherit through the background script hierarchy. A dynamic or incomplete
-definition has no `PotentialProfile` and is explicitly unsupported.
+definition has no `PotentialProfile` and is explicitly unsupported. Background
+scripts that directly mutate the actor talent array are also unsupported even
+when the assignments look deterministic: treating `IsUntalented` as an
+all-zero-star result would otherwise discard those post-generation overrides.
+Generated entries expose `PotentialUnsupportedReason` as either
+`talent_mutation` or `non_static_attribute_offsets`.
 
 The build is identified by authoritative `BuildIdentity` plus its observed
 `BuildDefinitionHash`. Id-less legacy roles are rejected for this durable

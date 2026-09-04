@@ -123,6 +123,7 @@ EXCLUDED_TALENT_ENTRY_RE = re.compile(
     r"this\.Const\.Attributes\.([A-Za-z]+)"
 )
 UNTALENTED_RE = re.compile(r"(?:this\.)?m\.IsUntalented\s*=\s*true\b")
+TALENT_MUTATION_RE = re.compile(r"(?:getTalents\s*\(|\bm\.Talents\b)")
 
 
 INHERIT_RE = re.compile(
@@ -1290,6 +1291,7 @@ def build_background_dictionary(
                 "Untalented": bool(UNTALENTED_RE.search(text)),
                 "DefinesExcludedTalents": excluded_match is not None,
                 "DefinesUntalented": bool(UNTALENTED_RE.search(text)),
+                "HasTalentMutation": bool(TALENT_MUTATION_RE.search(text)),
             }
 
     parse_seconds = time.perf_counter() - t
@@ -1343,6 +1345,7 @@ def build_background_dictionary(
         offsets = rec["AttributeOffsets"]
         excluded = rec["ExcludedTalents"]
         untalented = rec["Untalented"]
+        has_talent_mutation = rec["HasTalentMutation"]
 
         if hiring is None and parent is not None:
             hiring = parent["HiringCostBase"]
@@ -1356,6 +1359,10 @@ def build_background_dictionary(
             excluded = parent["ExcludedTalents"]
         if not rec["DefinesUntalented"] and parent is not None:
             untalented = parent["Untalented"]
+        if parent is not None:
+            has_talent_mutation = (
+                has_talent_mutation or parent["HasTalentMutation"]
+            )
 
         resolving.discard(path)
         resolved = {
@@ -1367,6 +1374,7 @@ def build_background_dictionary(
             "AttributeOffsets": offsets,
             "ExcludedTalents": excluded,
             "Untalented": untalented,
+            "HasTalentMutation": has_talent_mutation,
         }
         memo[path] = resolved
         return resolved
@@ -1422,7 +1430,9 @@ def build_background_dictionary(
             "InheritedDailyCost": rec["InheritedDailyCost"],
         }
         offsets = rec["AttributeOffsets"]
-        if set(offsets) == set(BACKGROUND_STAT_PROPERTIES.values()):
+        if rec["HasTalentMutation"]:
+            out[rec["SaveHash"]]["PotentialUnsupportedReason"] = "talent_mutation"
+        elif set(offsets) == set(BACKGROUND_STAT_PROPERTIES.values()):
             base = base_attribute_ranges
             if base is None:
                 raise ValueError("character background base attribute ranges are unresolved")
@@ -1436,6 +1446,10 @@ def build_background_dictionary(
                 "excluded_talents": rec["ExcludedTalents"],
                 "untalented": rec["Untalented"],
             }
+        else:
+            out[rec["SaveHash"]]["PotentialUnsupportedReason"] = (
+                "non_static_attribute_offsets"
+            )
 
     if not out:
         raise ValueError("Generated background dictionary is empty.")

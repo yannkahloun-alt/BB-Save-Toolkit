@@ -33,6 +33,11 @@
         "excluded_talents": [],
         "untalented": true
       }
+    },
+    "11112222": {
+      "BackgroundID": "background.fixed_talents",
+      "Key": "fixed_talents",
+      "PotentialUnsupportedReason": "talent_mutation"
     }
   }
 }

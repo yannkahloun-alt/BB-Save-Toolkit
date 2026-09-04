@@ -129,6 +129,13 @@ def test_potential_inputs_derive_base_ranges_and_inherit_static_rules(tmp_path):
             )
         ),
         "child": b'this.inherit("scripts/skills/backgrounds/parent_background");\n',
+        "fixed_talents": (
+            b'this.inherit("scripts/skills/backgrounds/character_background");\n'
+            b'this.m.ID = "background.fixed_talents";\n'
+            b"this.m.IsUntalented = true;\n" + zeroes + b"\n"
+            b"local talents = this.getContainer().getActor().getTalents();\n"
+            b"talents[this.Const.Attributes.RangedSkill] = 2;\n"
+        ),
     })
     output = tmp_path / "backgrounds.json"
     build_background_dictionary(output_path=output, scripts_archive=archive)
@@ -136,6 +143,9 @@ def test_potential_inputs_derive_base_ranges_and_inherit_static_rules(tmp_path):
     child = next(rec for rec in records.values() if rec["Key"] == "child")
     assert child["PotentialProfile"]["stat_ranges"]["MAtk"] == [48, 57]
     assert child["PotentialProfile"]["excluded_talents"] == ["MAtk"]
+    fixed = next(rec for rec in records.values() if rec["Key"] == "fixed_talents")
+    assert "PotentialProfile" not in fixed
+    assert fixed["PotentialUnsupportedReason"] == "talent_mutation"
 
 
 def test_potential_is_retained_when_economy_is_incomplete(tmp_path):

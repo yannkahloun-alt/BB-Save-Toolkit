@@ -12,6 +12,10 @@
     "71648BCF": {
       "BackgroundID": "background.cultist", "Key": "cultist",
       "PotentialProfile": {"level": 1, "stat_ranges": {"HP": [45,65], "Resolve": [45,50], "Fatigue": [93,103], "MAtk": [47,57], "RAtk": [32,42], "MDef": [0,5], "RDef": [0,5], "Initiative": [100,110]}, "excluded_talents": [], "untalented": false}
+    },
+    "D1B9D2CC": {
+      "BackgroundID": "background.companion_ranged", "Key": "companion_ranged",
+      "PotentialUnsupportedReason": "talent_mutation"
     }
   }
 }
