@@ -22,7 +22,7 @@
     },
     "roster": {
       "path": "reference-roster.json",
-      "sha256": "c8bf7db5e042529677d637613395e930763a61963afd0359a305706989332468"
+      "sha256": "ac2602e146755b367274a588570fa706095618a85a031a8fbaf6e76325c18890"
     }
   },
   "purpose": "versioned public inputs for report demos and contract tests",

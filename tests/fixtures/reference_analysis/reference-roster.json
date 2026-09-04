@@ -40,6 +40,16 @@
     "MDef": 38,
     "MDefStars": 0,
     "Name": "Aldric",
+    "PerkGearFacts": [
+      {
+        "ArmorFatiguePenalty": 0,
+        "Basis": "body_and_head_fatigue",
+        "HitpointDamageMultiplier": 0.4,
+        "HitpointDamageReductionPct": 60.0,
+        "Perk": "Nimble",
+        "State": "active"
+      }
+    ],
     "PerkIDs": [],
     "PerkPoints": 0,
     "Perks": [
@@ -102,6 +112,7 @@
     "MDef": 31,
     "MDefStars": 0,
     "Name": "Berta",
+    "PerkGearFacts": [],
     "PerkIDs": [],
     "PerkPoints": 0,
     "Perks": [],
@@ -161,6 +172,7 @@
     "MDef": 29,
     "MDefStars": 2,
     "Name": "Cem",
+    "PerkGearFacts": [],
     "PerkIDs": [],
     "PerkPoints": 0,
     "Perks": [],
@@ -229,6 +241,7 @@
     "MDef": 25,
     "MDefStars": 0,
     "Name": "Elin",
+    "PerkGearFacts": [],
     "PerkIDs": [],
     "PerkPoints": 0,
     "Perks": [],
@@ -288,6 +301,7 @@
     "MDef": 1,
     "MDefStars": 0,
     "Name": "Daria",
+    "PerkGearFacts": [],
     "PerkIDs": [],
     "PerkPoints": 0,
     "Perks": [],

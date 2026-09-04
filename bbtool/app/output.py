@@ -1,23 +1,26 @@
-
 """Creation of reproducible analysis run folders and archives."""
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime
 import hashlib
 import json
-from collections import defaultdict
-from pathlib import Path
 import re
 import shutil
 import zipfile
+from collections import defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
 
 from ..formatting import component_summary
-from ..models import STATS
 from ..html_report import render_report_launcher
+from ..models import STATS
+from ..perk_gear import perk_gear_facts
 from ..projection import (
-    project_fit_trajectory, project_seeded_fit_trajectory,
-    gain_range, development_rounds_to_11,
+    development_rounds_to_11,
+    gain_range,
+    project_fit_trajectory,
+    project_seeded_fit_trajectory,
 )
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +60,10 @@ def public_brother_data(bro) -> dict:
     """
     data = asdict(bro)
     data["BrotherID"] = bro.BrotherID
+    preserved_facts = getattr(bro, "PerkGearFacts", None)
+    data["PerkGearFacts"] = (
+        preserved_facts if preserved_facts is not None else perk_gear_facts(bro)
+    )
     data.pop("FutureRolls", None)
     return data
 

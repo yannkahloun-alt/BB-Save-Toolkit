@@ -136,6 +136,10 @@ def load_render_dataset(source: Path) -> RenderDataset:
         data = dict(raw)
         declared_id = data.pop("BrotherID", None)
         data.pop("FutureRolls", None)
+        # Derived current-state facts remain part of the supplied public
+        # dataset; render-only reconstructs Brother solely for existing
+        # renderer joins and must not recompute this mechanics payload.
+        supplied_perk_gear_facts = data.pop("PerkGearFacts", None)
         try:
             bro = Brother(**data)
         except (TypeError, ValueError) as exc:
@@ -144,6 +148,8 @@ def load_render_dataset(source: Path) -> RenderDataset:
             raise _fail(
                 f"roster[{index}] BrotherID {declared_id!r} does not match HumanOffset"
             )
+        if supplied_perk_gear_facts is not None:
+            bro.PerkGearFacts = supplied_perk_gear_facts
         bros.append(bro)
 
     bro_ids = {bro.BrotherID for bro in bros}

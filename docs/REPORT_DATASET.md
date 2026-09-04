@@ -46,7 +46,7 @@ dataset-local `path` and the exact lowercase SHA-256 of its bytes:
 
 | Key | JSON root | Purpose |
 | --- | --- | --- |
-| `roster` | array | Public brother display state and `BrotherID` joins |
+| `roster` | array | Public brother current state, `BrotherID` joins, and factual `PerkGearFacts` |
 | `recruits` | array | Public recruit display state |
 | `role_fit` | array | One projection row per brother and archetype |
 | `classification` | array | One summary and Advisor payload per brother |
