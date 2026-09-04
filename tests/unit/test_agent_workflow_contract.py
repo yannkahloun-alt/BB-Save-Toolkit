@@ -15,6 +15,15 @@ def test_shared_workflow_is_pinned_and_available() -> None:
     assert (SHARED / "REVIEW_AGENT.md").is_file()
 
 
+def test_shared_workflow_pin_tracks_the_approved_v1_1_3_release() -> None:
+    assert (
+        (SHARED / "AGENTS.md").read_text(encoding="utf-8").find(
+            "a named ticket owns one implementation pull request"
+        )
+        >= 0
+    )
+
+
 def test_shared_startup_and_instruction_precedence_contract() -> None:
     workflow = (SHARED / "AGENTS.md").read_text(encoding="utf-8")
 
@@ -43,6 +52,18 @@ def test_shared_review_prefers_read_only_subagent_without_review_worktree() -> N
     assert "existing ticket workspace" in review_words
     assert "second Git worktree is not required" in review
     assert "separate task or worktree only when" in review_words
+
+
+def test_project_policy_keeps_routine_quality_validation_ci_owned() -> None:
+    testing = (ROOT / "docs" / "TESTING.md").read_text(encoding="utf-8")
+    development = (ROOT / "docs" / "DEVELOPMENT_WORKFLOW.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "CI-owned quality validation" in testing
+    assert "Do not normally\nduplicate pytest, Pyflakes, Ruff, coverage" in testing
+    assert "same PR" in testing
+    assert "one draft implementation\npull request" in development
 
 
 def test_shared_policy_does_not_embed_project_specific_details() -> None:

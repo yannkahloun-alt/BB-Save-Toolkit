@@ -2,7 +2,7 @@
 
 The same pytest suite is used locally and by the assistant.
 
-## Pre-merge correctness run
+## CI correctness contract and manual reference run
 
 From the toolkit root:
 
@@ -10,9 +10,10 @@ From the toolkit root:
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
 ```
 
-This is the functional-test gate used for pull requests into `main`. Routine
-development may run narrower targeted tests. The complete suite is reserved for
-pre-release/pre-production validation:
+This is the `tests` gate GitHub Actions runs for pull requests into `main`.
+For routine autonomous tickets, GitHub owns its execution on the exact PR head;
+the command remains available for explicit manual diagnosis. The complete suite
+is reserved for pre-release/pre-production validation:
 
 ```powershell
 .\run_tests.ps1
@@ -44,7 +45,7 @@ The terminal shows the branch-aware coverage percentage and missing lines. The
 shared configuration enforces the current baseline. The navigable HTML report
 is generated at `tests\coverage\html\index.html`.
 
-`coverage_slow` tests are excluded from pre-merge and instrumented coverage
+`coverage_slow` tests are excluded from routine PR CI and instrumented coverage
 because tracing makes their combinatorial projection workloads extremely slow.
 They remain mandatory at the pre-release/pre-production tier.
 

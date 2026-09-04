@@ -90,8 +90,11 @@ contract and compatibility policy.
 python -m pip install -r tests\requirements.txt
 ```
 
-Routine development uses targeted tests plus static analysis. The local
-pre-merge gates are:
+For routine autonomous tickets, GitHub PR CI owns the normal deterministic
+suite and static analysis on the exact pull-request head. Its stable checks are
+`tests`, `ruff`, and `pyflakes`; agents do not normally duplicate them locally.
+The commands below are manual/reference tooling for explicit local diagnosis
+or validation CI cannot perform:
 
 ```powershell
 python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
@@ -99,7 +102,7 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 .\run_ruff.ps1 -Tests
 ```
 
-Pull requests targeting `main` run those same three gates in GitHub Actions.
+Pull requests targeting `main` run those three gates in GitHub Actions.
 Branch protection should require the checks `tests`, `ruff`, and `pyflakes`;
 see `docs/GITHUB_BRANCH_PROTECTION.md`. Coverage remains available as an
 explicit local validation and pre-release gate while its runtime is optimized.

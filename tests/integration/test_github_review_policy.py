@@ -219,6 +219,19 @@ def test_review_contract_is_shared_subagent_first_and_project_guards_remain():
     assert "project-specific pull-request and independent-review protocol" not in agent_instructions
 
 
+def test_project_policy_delegates_generic_lifecycle_and_ci_execution():
+    testing = _read("docs/TESTING.md")
+    development = _read("docs/DEVELOPMENT_WORKFLOW.md")
+    dependency = _read("docs/AGENT_WORKFLOW_DEPENDENCY.md")
+
+    assert "one draft implementation\npull request" in development
+    assert "same PR" in testing
+    assert "Do not normally\nduplicate pytest, Pyflakes, Ruff, coverage" in testing
+    assert "authoritative\nexecutor" in testing
+    assert "fresh read-only subagent" in _read(".agent-workflow/REVIEW_AGENT.md")
+    assert "does not require\nagents to duplicate equivalent local execution" in dependency
+
+
 def test_selected_ticket_deferral_requires_traceable_comment_without_closure():
     agent_instructions = _read("AGENTS.md")
     workflow = _read("docs/DEVELOPMENT_WORKFLOW.md")

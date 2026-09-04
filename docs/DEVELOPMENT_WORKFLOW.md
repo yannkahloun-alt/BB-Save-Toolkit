@@ -72,9 +72,13 @@ recreate parser/projection orchestration or infer failures from CLI output.
 
 ### Validate incrementally
 
-Run focused tests during iteration, then the applicable pre-merge gate in
-`docs/TESTING.md`. Do not start `coverage_slow` or mutation testing during
-routine development or normal pre-merge validation.
+Add or update deterministic regression coverage when the change requires it,
+then push the coherent implementation to the ticket's one draft implementation
+pull request. GitHub PR CI owns routine execution of the normal suite, Ruff,
+and Pyflakes on that exact head; do not require equivalent local gates during a
+normal autonomous ticket. The project-specific CI contract and genuine
+local-only exceptions are in `docs/TESTING.md`. Do not start `coverage_slow`
+or mutation testing during routine development or normal pre-merge validation.
 
 ### Review the diff
 
