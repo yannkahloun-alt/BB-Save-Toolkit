@@ -27,6 +27,8 @@ const WARNING_LABELS = {
 const state = {
   followedSave: null,
   result: null,
+  analysisHealth: null,
+  activeJob: null,
 };
 
 function requestedWorkspace() {
@@ -101,7 +103,7 @@ function renderFollowedSave() {
 }
 
 function renderHealth() {
-  const health = state.result?.analysis_health;
+  const health = state.analysisHealth;
   const button = document.getElementById('health-button');
   const heading = document.getElementById('health-heading');
   const detail = document.getElementById('health-detail');
@@ -145,7 +147,7 @@ function humanizeStage(stage) {
 
 function renderProgress() {
   const region = document.getElementById('progress-region');
-  const job = state.result?.active_job;
+  const job = state.activeJob;
   const freshness = freshnessFromState();
   const activeFreshness = ['stabilizing', 'queued', 'analyzing'].includes(freshness?.status);
   const activeJob = job && ['stabilizing', 'queued', 'running'].includes(job.status);
@@ -179,12 +181,11 @@ function render() {
 
 async function refreshApplicationState() {
   try {
-    const [followedSave, result] = await Promise.all([
-      fetchData('/api/v1/followed-save'),
-      fetchData('/api/v1/analysis/result'),
-    ]);
-    state.followedSave = followedSave;
-    state.result = result;
+    const shell = await fetchData('/api/v1/shell');
+    state.followedSave = shell.followed_save;
+    state.result = shell.result;
+    state.analysisHealth = shell.analysis_health;
+    state.activeJob = shell.active_job;
     render();
   } catch (_error) {
     const status = document.getElementById('freshness-status');
