@@ -206,6 +206,16 @@ definitions, and retired-ID tombstones; see
 [`USER_ARCHETYPES.md`](USER_ARCHETYPES.md). Assigned-build semantics remain a
 downstream concern.
 
+`bbtool/app/analysis_coordinator.py` owns background scheduling for future local
+web adapters. CPU-heavy analysis runs through the application service in a
+spawned worker process, with one active job and only the newest desired job
+pending. Exact source/configuration fingerprints, desired generations, and an
+injected artifact-signature validity boundary prevent superseded work from
+publishing. Failures preserve the last successful publication and expose only
+older artifacts independently revalidated by the dependency owner. See
+[`BACKGROUND_ANALYSIS.md`](BACKGROUND_ANALYSIS.md). HTTP routing and filesystem
+stabilization remain outside this module.
+
 ### `bbtool/html_report.py`, `report.js`, `report.css`
 
 Presentation layer. Report/UI-only changes should not invalidate numerical caches.
