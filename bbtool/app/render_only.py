@@ -15,6 +15,11 @@ from .output import (
     write_html,
 )
 from .health import PUBLIC_ANALYSIS_HEALTH_SCHEMA
+from .target_presentation import (
+    DATASET_SCHEMA as TARGET_DATASET_SCHEMA,
+    LEGACY_DATASET_SCHEMAS,
+    validate_target_presentation,
+)
 
 DATASET_SCHEMA = REPORT_DATASET_SCHEMA
 REQUIRED_FILES = frozenset({
@@ -22,6 +27,7 @@ REQUIRED_FILES = frozenset({
     "archetypes", "classification_config",
     "analysis_health",
 })
+TARGET_REQUIRED_FILES = REQUIRED_FILES | {"presentation"}
 
 
 class RenderDatasetError(ValueError):
@@ -40,6 +46,7 @@ class RenderDataset:
     roles: list[dict]
     classification: dict
     analysis_health: dict
+    presentation: dict | None
     files: tuple[Path, ...]
 
 
@@ -180,19 +187,23 @@ def load_render_dataset(source: Path) -> RenderDataset:
     manifest = _load_json(manifest_path, "manifest")
     if not isinstance(manifest, dict):
         raise _fail("manifest root must be an object")
-    if manifest.get("schema") != DATASET_SCHEMA:
+    schema = manifest.get("schema")
+    supported = LEGACY_DATASET_SCHEMAS | {TARGET_DATASET_SCHEMA}
+    if schema not in supported:
         raise _fail(
-            f"unsupported schema {manifest.get('schema')!r}; expected {DATASET_SCHEMA!r}"
+            f"unsupported schema {schema!r}; expected one of {sorted(supported)!r}"
         )
     entries = manifest.get("files")
-    if not isinstance(entries, dict) or set(entries) != REQUIRED_FILES:
-        missing = sorted(REQUIRED_FILES - set(entries or {}))
-        extra = sorted(set(entries or {}) - REQUIRED_FILES)
+    required_files = TARGET_REQUIRED_FILES if schema == TARGET_DATASET_SCHEMA else REQUIRED_FILES
+    if not isinstance(entries, dict) or set(entries) != required_files:
+        missing = sorted(required_files - set(entries or {}))
+        extra = sorted(set(entries or {}) - required_files)
         raise _fail(f"manifest files mismatch; missing={missing}, extra={extra}")
 
     payloads = {}
     paths = []
-    for label in sorted(REQUIRED_FILES):
+    artifact_hashes = {}
+    for label in sorted(required_files):
         entry = entries[label]
         if not isinstance(entry, dict):
             raise _fail(f"manifest entry {label!r} must be an object")
@@ -209,6 +220,7 @@ def load_render_dataset(source: Path) -> RenderDataset:
         if expected_hash != actual_hash:
             raise _fail(f"SHA-256 mismatch for {label} file {relative}")
         payloads[label] = _load_json(path, label)
+        artifact_hashes[label] = actual_hash
         paths.append(path)
 
     for label in ("roster", "recruits", "role_fit", "classification"):
@@ -219,7 +231,8 @@ def load_render_dataset(source: Path) -> RenderDataset:
     private_identity_fields = ("NativeEntityToken", "BrotherIdentity")
     if any(
         _contains_key(payload, field)
-        for payload in payloads.values()
+        for label, payload in payloads.items()
+        if label != "presentation"
         for field in private_identity_fields
     ):
         raise _fail("public report inputs must not contain private identity fields")
@@ -231,7 +244,6 @@ def load_render_dataset(source: Path) -> RenderDataset:
     if not isinstance(payloads["classification_config"], dict):
         raise _fail("classification_config root must be an object")
     _validate_analysis_health(payloads["analysis_health"])
-
     bros = []
     for index, raw in enumerate(payloads["roster"]):
         if not isinstance(raw, dict):
@@ -280,12 +292,12 @@ def load_render_dataset(source: Path) -> RenderDataset:
         raise _fail("classification must contain exactly one row per brother")
     if any(row.get("BestRole") not in role_names for row in summaries):
         raise _fail("classification BestRole values do not match archetypes")
-
     dataset = RenderDataset(
         root=root, manifest_path=manifest_path, manifest=manifest, bros=bros,
         recruits=payloads["recruits"], fits=fits, summaries=summaries,
         roles=roles, classification=payloads["classification_config"],
         analysis_health=payloads["analysis_health"],
+        presentation=payloads.get("presentation"),
         files=tuple(paths),
     )
     try:
@@ -300,6 +312,14 @@ def load_render_dataset(source: Path) -> RenderDataset:
             "renderer contract rejected the dataset before output creation: "
             f"{type(exc).__name__}: {exc}"
         ) from exc
+    if schema == TARGET_DATASET_SCHEMA:
+        try:
+            validate_target_presentation(
+                payloads["presentation"], payloads=payloads,
+                artifact_hashes=artifact_hashes, bros=bros,
+            )
+        except ValueError as exc:
+            raise _fail(str(exc)) from exc
     return dataset
 
 
@@ -309,7 +329,7 @@ def run_render_only(options: CliOptions) -> tuple:
     step = Step("Validate report dataset")
     step.__enter__()
     dataset = load_render_dataset(options.render_only)
-    step.done(DATASET_SCHEMA)
+    step.done(str(dataset.manifest["schema"]))
 
     source = Path(f"{dataset.root.name or 'report-dataset'}.json")
     workspace = create_workspace(source, options.out)
@@ -319,6 +339,7 @@ def run_render_only(options: CliOptions) -> tuple:
         workspace, dataset.bros, dataset.recruits, dataset.fits,
         dataset.summaries, dataset.roles, dataset.classification,
         dataset.analysis_health,
+        presentation_payload=dataset.presentation,
     )
     step.done("analysis not executed")
 

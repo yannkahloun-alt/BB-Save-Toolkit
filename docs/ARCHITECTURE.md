@@ -231,7 +231,13 @@ Health payload. It exposes result-quality status and category counts while
 keeping projection-validation status distinct and excluding diagnostic samples,
 paths, save contents, and hidden rolls.
 `app/render_only.py` is a presentation-only entry point. It validates the
-versioned public report dataset, reconstructs display models, and calls the
+Version 3 adds the separately versioned Target presentation foundation. It
+binds the unchanged renderer payloads to durable Campaign/Brother and Build
+identity, Mechanical Facts, Run Health, Recruitment analytical state,
+publication provenance, and #122 result-local dependency signatures. See
+[`TARGET_PRESENTATION_CONTRACT.md`](TARGET_PRESENTATION_CONTRACT.md).
+
+The versioned public report dataset reconstructs display models and calls the
 same HTML/output functions as a normal analysis run. It does not parse a save,
 prepare runtime references, or invoke projection, classification, Advisor, or
 incremental-cache logic.

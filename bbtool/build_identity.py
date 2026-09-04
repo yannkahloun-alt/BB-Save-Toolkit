@@ -32,6 +32,11 @@ def build_identity(role: dict) -> str | None:
     return validate_build_identity(value, role_name=str(role.get("name", "<unnamed>")))
 
 
+def build_result_key(role: dict) -> str:
+    """Return the analytical storage key without implying durable identity."""
+    return build_identity(role) or f"legacy-name:{role['name']}"
+
+
 def build_definition(role: dict) -> dict:
     """Return canonical semantic inputs, without identity/display/derived fields."""
     definition = deepcopy({key: value for key, value in role.items() if key not in {"id", "name"}})

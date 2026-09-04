@@ -252,6 +252,7 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             config.roles,
             config.classification,
             public_analysis_health,
+            service_result.presentation_context,
         )
         stage_timings["generate_html_report"] = step.done()
         refresh_resources(run_metadata)

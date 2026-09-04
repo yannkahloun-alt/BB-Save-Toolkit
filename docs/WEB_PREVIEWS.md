@@ -2,7 +2,7 @@
 
 The `Render-only preview build` workflow turns the approved public JSON fixture
 catalog into static interactive reports. It validates the same
-`bbtool.reference_analysis.v2` contract as local `--render-only` mode and never
+`bbtool.reference_analysis.v3` contract as local `--render-only` mode and never
 opens a save or invokes references, projection, Fit, classification, cache, or
 Level-Up Advisor computation.
 

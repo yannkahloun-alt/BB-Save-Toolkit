@@ -16,6 +16,10 @@
       "path": "reference-classification-config.json",
       "sha256": "47a3b9d213863a2e1641e36979f8f831f6bed36bb767d257a7dd27012bca6011"
     },
+    "presentation": {
+      "path": "reference-target-presentation.json",
+      "sha256": "daa370ab20a1cbbbaf9eba44324b94cb618011e92a3e90a8b819f0d231cbc469"
+    },
     "recruits": {
       "path": "reference-recruits.json",
       "sha256": "121602914ab017a5e339f329bc9bfebcb13150e66febbae3a3bcc03e9cd712f6"
@@ -30,6 +34,6 @@
     }
   },
   "purpose": "versioned public inputs for report demos and contract tests",
-  "schema": "bbtool.reference_analysis.v2",
+  "schema": "bbtool.reference_analysis.v3",
   "source": "synthetic Brother and recruit records declared in generate.py"
 }

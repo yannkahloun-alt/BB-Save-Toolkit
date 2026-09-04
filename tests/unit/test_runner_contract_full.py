@@ -111,6 +111,23 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
             },
             timings={"analysis": 0.25, "validation": 0.05, "total": 0.4},
             projection_validation={"summary": {"roll_range_violations": 0}},
+            presentation_context={
+                "campaign_identity": CampaignIdentity(
+                    None, confidence="unavailable", reason="fixture"
+                ),
+                "brother_identities": {},
+                "source_fingerprint": "sha256:" + "0" * 64,
+                "configuration_fingerprints": {
+                    "archetypes": "sha256:" + "1" * 64,
+                    "classification": "sha256:" + "2" * 64,
+                },
+                "recruitment_analysis": [],
+                "result_signatures": {
+                    "role_projection": [], "strategic_classification": [],
+                    "level_advisor": [],
+                },
+                "company_intrinsic_coverage": [],
+            },
         )
     monkeypatch.setattr(runner, "analyze_save", fake_analyze_save)
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: calls["profile"].append(x))
@@ -208,7 +225,7 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
         (tmp_path / "archive.zip", tmp_path / "performance.json", tmp_path),
     ]
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
-    public_health = calls["html_args"][0][-1]
+    public_health = calls["html_args"][0][-2]
     assert public_health["schema"] == "bbtool.analysis_health.v1"
     assert public_health["status"] == "healthy"
     assert public_health["projection_validation"]["status"] == "pass"

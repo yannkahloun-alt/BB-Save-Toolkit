@@ -11,7 +11,28 @@ import bbtool.app.render_only as render_only
 from bbtool.app.render_only import RenderDatasetError, load_render_dataset, run_render_only
 from bbtool.app.report_server import render_served_report
 from bbtool.app.health import build_public_analysis_health, build_run_health
+from bbtool.app.target_presentation import (
+    DATASET_SCHEMA as TARGET_DATASET_SCHEMA,
+    _validate_recruitment_analysis,
+    build_recruitment_presentation,
+    build_target_presentation,
+)
+from bbtool.app.config import _normalize_role
+from bbtool.build_identity import build_definition_hash, build_result_key
+from bbtool.company_planning import build_intrinsic_company_coverage
+from bbtool.incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
+from bbtool.incremental.fingerprint import (
+    advisor_fingerprint,
+    brother_projection_fingerprint,
+    brother_summary_fingerprint,
+    role_fingerprint,
+)
 from bbtool.html_report import render_report_launcher
+from bbtool.models import BrotherIdentity, CampaignIdentity
+from bbtool.recruitment_prior import (
+    load_background_potential_reference,
+    recruit_candidate_estimate,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,11 +59,113 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
     payload_path = source / manifest["files"][label]["path"]
     payload = json.loads(payload_path.read_text(encoding="utf-8"))
     mutate(payload)
+    if manifest.get("schema") == TARGET_DATASET_SCHEMA and label == "presentation":
+        payload["publication"]["provenance"]["content_hashes"] = {
+            key: stable_hash(payload[key]) for key in (
+                "brothers", "builds", "campaign_identity", "company", "pending",
+                "recruitment", "run_health", "validity",
+            )
+        }
+        payload["publication"]["coherence_signature"] = stable_hash(
+            payload["publication"]["provenance"]
+        )
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
     manifest["files"][label]["sha256"] = hashlib.sha256(
         payload_path.read_bytes()
     ).hexdigest()
+    if manifest.get("schema") == TARGET_DATASET_SCHEMA and label != "presentation":
+        presentation_path = source / manifest["files"]["presentation"]["path"]
+        presentation = json.loads(presentation_path.read_text(encoding="utf-8"))
+        presentation["publication"]["provenance"]["artifact_hashes"][label] = \
+            manifest["files"][label]["sha256"]
+        if label == "analysis_health":
+            presentation["run_health"] = payload
+        presentation["publication"]["provenance"]["content_hashes"] = {
+            key: stable_hash(presentation[key]) for key in (
+                "brothers", "builds", "campaign_identity", "company", "pending",
+                "recruitment", "run_health", "validity",
+            )
+        }
+        presentation["publication"]["coherence_signature"] = stable_hash(
+            presentation["publication"]["provenance"]
+        )
+        presentation_path.write_text(json.dumps(presentation), encoding="utf-8")
+        manifest["files"]["presentation"]["sha256"] = hashlib.sha256(
+            presentation_path.read_bytes()
+        ).hexdigest()
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+
+def _upgrade_to_target_v3(source: Path) -> Path:
+    dataset = load_render_dataset(source)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    hashes = {key: value["sha256"] for key, value in manifest["files"].items()}
+    identities = {
+        bro.BrotherID: BrotherIdentity(77, index + 1, confidence="exact")
+        for index, bro in enumerate(dataset.bros)
+    }
+    recruitment = build_recruitment_presentation(
+        dataset.recruits, dataset.roles, source / "unused-backgrounds.json"
+    )
+    presentation = build_target_presentation(
+        bros=dataset.bros, recruits=dataset.recruits, roles=dataset.roles,
+        analysis_health=dataset.analysis_health,
+        campaign_identity=CampaignIdentity(77, confidence="exact"),
+        brother_identities=identities,
+        source_fingerprint=stable_hash({"save": "fixture"}),
+        configuration_fingerprints={
+            "archetypes": stable_hash(dataset.roles),
+            "classification": stable_hash(dataset.classification),
+        },
+        recruitment_analysis=recruitment, artifact_hashes=hashes,
+        result_signatures={
+            "role_projection": [
+                {
+                    "brother_id": bro.BrotherID,
+                    "build_key": build_result_key(role),
+                    "dependency_signature": stable_hash({
+                        "artifact": "role_projection",
+                        "brother_state": brother_projection_fingerprint(bro),
+                        "build_definition": role_fingerprint(role),
+                        "engine_version": ENGINE_VERSIONS[
+                            ArtifactKind.ROLE_PROJECTION
+                        ],
+                    }),
+                }
+                for bro in dataset.bros
+                for role in dataset.roles
+            ],
+            "strategic_classification": [
+                {
+                    "brother_id": bro.BrotherID,
+                    "dependency_signature": brother_summary_fingerprint(
+                        bro, dataset.roles, dataset.classification
+                    ),
+                }
+                for bro in dataset.bros
+            ],
+            "level_advisor": [
+                {
+                    "brother_id": bro.BrotherID,
+                    "dependency_signature": advisor_fingerprint(bro, dataset.roles),
+                }
+                for bro in dataset.bros
+            ],
+        },
+        company_intrinsic_coverage=build_intrinsic_company_coverage(
+            dataset.bros, dataset.roles, dataset.fits, dataset.classification,
+            identities,
+        ),
+    )
+    path = source / "reference-target-presentation.json"
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+    manifest["schema"] = TARGET_DATASET_SCHEMA
+    manifest["files"]["presentation"] = {
+        "path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    return source
 
 
 def test_cli_accepts_render_only_without_save():
@@ -90,6 +213,316 @@ def test_load_render_dataset_validates_relations_and_builds_brothers():
     assert dataset.roles
     assert dataset.fits
     assert dataset.analysis_health["status"] == "healthy"
+    assert dataset.presentation["schema"] == "bbtool.target_presentation.v1"
+
+
+def test_target_v3_exposes_authoritative_foundation_and_loads_for_all_consumers(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    dataset = load_render_dataset(source)
+    assert dataset.manifest["schema"] == TARGET_DATASET_SCHEMA
+    assert dataset.presentation["campaign_identity"]["value"] == 77
+    assert dataset.presentation["brothers"][0]["brother_identity"]["value"].startswith(
+        "campaign:77/entity:"
+    )
+    assert all(item["build_identity"] for item in dataset.presentation["builds"])
+    assert dataset.presentation["run_health"] == dataset.analysis_health
+    assert dataset.presentation["pending"] == {
+        "assigned_build": 107, "intent_aware_advisor": 108,
+        "intent_aware_company_planning": 166, "relevant_roster_need": 112,
+    }
+    assert render_served_report(source)[1]
+
+
+def test_target_v3_round_trips_idless_legacy_role_with_nondurable_result_key(tmp_path):
+    source = _copy_fixture(tmp_path)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    presentation = manifest["files"].pop("presentation")
+    manifest["schema"] = "bbtool.reference_analysis.v2"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (source / presentation["path"]).unlink()
+    _rewrite_payload_and_hash(
+        source, "archetypes", lambda value: value["roles"][0].pop("id")
+    )
+
+    dataset = load_render_dataset(_upgrade_to_target_v3(source))
+
+    assert dataset.presentation["builds"][0]["build_identity"] is None
+    assert any(
+        row["build_key"] == "legacy-name:Reach DPS"
+        for row in dataset.presentation["validity"]["artifacts"]["role_projection"]
+    )
+
+
+def test_target_v3_rejects_mixed_generation_even_when_manifest_hash_is_updated(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    path = source / manifest["files"]["classification_config"]["path"]
+    value = json.loads(path.read_text(encoding="utf-8"))
+    value["invest"] = 999
+    path.write_text(json.dumps(value), encoding="utf-8")
+    manifest["files"]["classification_config"]["sha256"] = hashlib.sha256(
+        path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="artifact generation mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_mismatched_build_definition(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["builds"][0].update(
+            build_definition_hash="sha256:" + "0" * 64
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="build identity mismatch"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["validity"]["artifacts"]["role_projection"].pop(),
+        lambda value: value["validity"]["artifacts"]["strategic_classification"].append(
+            dict(value["validity"]["artifacts"]["strategic_classification"][0])
+        ),
+        lambda value: value["validity"]["artifacts"]["level_advisor"][0].update(
+            dependency_signature="sha256:not-a-digest"
+        ),
+        lambda value: value["validity"]["artifacts"]["role_projection"][0].update(
+            unexpected="private-evidence"
+        ),
+    ],
+    ids=("missing", "duplicate", "bad-digest", "extra-field"),
+)
+def test_target_v3_rejects_incomplete_or_malformed_dependency_evidence(
+    tmp_path, mutate,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="dependency evidence"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_well_formed_but_incorrect_dependency_signature(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["validity"]["artifacts"]["role_projection"][0].update(
+            dependency_signature="sha256:" + "0" * 64
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="dependency evidence is mismatched"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize("field", ["archetypes", "classification"])
+def test_target_v3_rejects_well_formed_but_incorrect_config_fingerprint(
+    tmp_path, field,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["publication"]["provenance"][
+            "configuration_fingerprints"
+        ].update({field: "sha256:" + "0" * 64}),
+    )
+    with pytest.raises(RenderDatasetError, match="configuration fingerprints mismatch"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["campaign_identity"].update(value="not-an-integer"),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value="campaign:77/entity:0"
+        ),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value="campaign:78/entity:1"
+        ),
+    ],
+    ids=("campaign-shape", "brother-shape", "campaign-namespace"),
+)
+def test_target_v3_rejects_malformed_or_mismatched_exact_identity(
+    tmp_path, mutate,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="identity"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["campaign_identity"].update(
+            value=None, confidence="unavailable", basis={"not": "a string"},
+            reason=["not", "a string"],
+        ),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value=None, confidence="invalid", basis=123, reason=None,
+        ),
+    ],
+    ids=("campaign-unavailable", "brother-invalid"),
+)
+def test_target_v3_rejects_malformed_nonexact_identity_metadata(tmp_path, mutate):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="identity"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_stale_company_coverage(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["company"]["intrinsic_coverage"][0].update(
+            ViableCount=999
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="company generation mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_coherently_duplicated_malformed_mechanical_facts(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "roster",
+        lambda value: value[0].update(PerkGearFacts=["garbage"]),
+    )
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"][0].update(mechanical_facts=["garbage"]),
+    )
+    with pytest.raises(RenderDatasetError, match="mechanical facts mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_bogus_recruitment_result(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+
+    def replace_result(value):
+        analysis = value["recruitment"][0]["analyses"][0]
+        analysis.update(
+            state="prior_only", reason=None,
+            result={"schema": "bogus", "model_version": 999},
+        )
+
+    _rewrite_payload_and_hash(source, "presentation", replace_result)
+    with pytest.raises(RenderDatasetError, match="recruitment result is malformed"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_duplicate_recruitment_build_analysis(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["recruitment"][0]["analyses"].append(
+            dict(value["recruitment"][0]["analyses"][0])
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="recruitment build joins mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_duplicate_presentation_brother_row(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"].append(dict(value["brothers"][0])),
+    )
+    with pytest.raises(RenderDatasetError, match="brother joins do not match roster"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_duplicate_exact_brother_identity(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"][1].update(
+            brother_identity=dict(value["brothers"][0]["brother_identity"])
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="duplicate BrotherIdentity"):
+        load_render_dataset(source)
+
+
+def test_recruitment_analysis_must_match_bound_recruit_evidence():
+    role = _normalize_role({
+        "id": "melee_test", "name": "Melee test",
+        "stats": {"MAtk": {"baseline": 70, "target": 90, "weight": 1}},
+    })
+    reference = load_background_potential_reference(
+        ROOT / "tests" / "fixtures" / "background_prior_reference.json"
+    )
+    result = recruit_candidate_estimate(
+        {"BackgroundSaveHash": "AAAABBBB", "TryoutDone": False}, role, reference
+    )
+    with pytest.raises(ValueError, match="evidence generation mismatch"):
+        _validate_recruitment_analysis(
+            {
+                "build_identity": role["id"], "state": result["state"],
+                "reason": None, "result": result,
+            },
+            background_save_hash="AAAABBBB",
+            build_definition_hash_value=build_definition_hash(role),
+            recruit={
+                "BackgroundSaveHash": "AAAABBBB", "TryoutDone": True,
+                "RevealedTraitEvidence": [
+                    {"save_hash": "1234ABCD", "name": "Sure Footing"}
+                ],
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["company"]["intrinsic_coverage"][0].update(
+            ViableCount=999
+        ),
+        lambda value: value["recruitment"][0]["analyses"][0].update(
+            state="prior_only", reason=None,
+            result={"schema": "bogus", "model_version": 999},
+        ),
+    ],
+    ids=("company", "recruitment"),
+)
+def test_target_v3_content_hashes_reject_sidecar_tampering(tmp_path, mutate):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    path = source / manifest["files"]["presentation"]["path"]
+    presentation = json.loads(path.read_text(encoding="utf-8"))
+    mutate(presentation)
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+    manifest["files"]["presentation"]["sha256"] = hashlib.sha256(
+        path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="content generation mismatch"):
+        load_render_dataset(source)
+
+
+def test_v2_compatibility_is_preserved_and_v1_remains_explicitly_unsupported(tmp_path):
+    source = _copy_fixture(tmp_path)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    presentation = manifest["files"].pop("presentation")
+    manifest["schema"] = "bbtool.reference_analysis.v2"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (source / presentation["path"]).unlink()
+    assert load_render_dataset(source).presentation is None
+
+    manifest["schema"] = "bbtool.reference_analysis.v1"
+    manifest["files"].pop("analysis_health")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="unsupported schema"):
+        load_render_dataset(source)
 
 
 def test_served_report_renders_healthy_analysis_health():
@@ -387,8 +820,8 @@ def test_render_only_packages_public_json_and_report_without_analysis(tmp_path):
 def test_generated_manifest_is_self_contained_and_versioned(tmp_path):
     workspace, _archive = run_render_only(_options(FIXTURE, tmp_path / "out"))
     manifest = json.loads((workspace.root / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["schema"] == "bbtool.reference_analysis.v2"
-    assert set(manifest["files"]) == render_only.REQUIRED_FILES
+    assert manifest["schema"] == TARGET_DATASET_SCHEMA
+    assert set(manifest["files"]) == render_only.TARGET_REQUIRED_FILES
     assert all(
         (workspace.root / entry["path"]).is_file()
         for entry in manifest["files"].values()
