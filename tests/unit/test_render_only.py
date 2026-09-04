@@ -18,7 +18,7 @@ from bbtool.app.target_presentation import (
     build_target_presentation,
 )
 from bbtool.app.config import _normalize_role
-from bbtool.build_identity import build_definition_hash
+from bbtool.build_identity import build_definition_hash, build_result_key
 from bbtool.company_planning import build_intrinsic_company_coverage
 from bbtool.incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
 from bbtool.incremental.fingerprint import (
@@ -123,7 +123,7 @@ def _upgrade_to_target_v3(source: Path) -> Path:
             "role_projection": [
                 {
                     "brother_id": bro.BrotherID,
-                    "build_key": role["id"],
+                    "build_key": build_result_key(role),
                     "dependency_signature": stable_hash({
                         "artifact": "role_projection",
                         "brother_state": brother_projection_fingerprint(bro),
@@ -231,6 +231,27 @@ def test_target_v3_exposes_authoritative_foundation_and_loads_for_all_consumers(
         "intent_aware_company_planning": 166, "relevant_roster_need": 112,
     }
     assert render_served_report(source)[1]
+
+
+def test_target_v3_round_trips_idless_legacy_role_with_nondurable_result_key(tmp_path):
+    source = _copy_fixture(tmp_path)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    presentation = manifest["files"].pop("presentation")
+    manifest["schema"] = "bbtool.reference_analysis.v2"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (source / presentation["path"]).unlink()
+    _rewrite_payload_and_hash(
+        source, "archetypes", lambda value: value["roles"][0].pop("id")
+    )
+
+    dataset = load_render_dataset(_upgrade_to_target_v3(source))
+
+    assert dataset.presentation["builds"][0]["build_identity"] is None
+    assert any(
+        row["build_key"] == "legacy-name:Reach DPS"
+        for row in dataset.presentation["validity"]["artifacts"]["role_projection"]
+    )
 
 
 def test_target_v3_rejects_mixed_generation_even_when_manifest_hash_is_updated(tmp_path):

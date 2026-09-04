@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
-from ..build_identity import build_identity
+from ..build_identity import build_identity, build_result_key
 from .manifest import SCHEMA, campaign_identity_payload
 from .dependencies import stable_hash
 
@@ -81,7 +81,7 @@ class IncrementalCache:
 
     @staticmethod
     def _role_storage_key(role):
-        return build_identity(role) or f"legacy-name:{role['name']}"
+        return build_result_key(role)
 
     def get_role_row(self, bro, role):
         entry = self._entry_for_bro(bro)

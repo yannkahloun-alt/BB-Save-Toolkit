@@ -6,7 +6,7 @@ from dataclasses import asdict
 import re
 from typing import Any
 
-from ..build_identity import build_definition_hash, build_identity
+from ..build_identity import build_definition_hash, build_identity, build_result_key
 from ..company_planning import build_intrinsic_company_coverage
 from ..incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
 from ..incremental.fingerprint import (
@@ -293,7 +293,7 @@ def validate_target_presentation(
     } or any(not isinstance(rows, list) for rows in artifacts.values()):
         raise ValueError("target presentation validity artifacts are malformed")
     role_keys = {
-        role["name"]: role.get("id", role["name"])
+        role["name"]: build_result_key(role)
         for role in payloads["archetypes"]["roles"]
     }
     role_by_key = {role_keys[role["name"]]: role for role in payloads["archetypes"]["roles"]}
