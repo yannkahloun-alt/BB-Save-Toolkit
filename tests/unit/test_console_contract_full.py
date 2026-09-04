@@ -163,10 +163,11 @@ def test_print_reference_status_reports_provenance_and_persistence(capsys):
         fallback_used=False,
         download_sources={
             "bbedit_dictionary": {
-                "selected_revision": "master",
+                "immutable_revision": "a" * 40,
                 "size_bytes": 3,
                 "sha256": "abc123",
-                "url": "https://example.invalid/dictionary.json",
+                "requested_url": "https://example.invalid/dictionary.json",
+                "upstream_source": "https://github.com/example/dictionary",
             }
         },
         final_cache={
@@ -180,9 +181,11 @@ def test_print_reference_status_reports_provenance_and_persistence(capsys):
     )
     status["scripts_download_stats"].update(
         source="network",
-        selected_revision="main",
+        selected_revision="b" * 40,
+        immutable_revision="b" * 40,
         sha256="def456",
-        url="https://example.invalid/scripts.zip",
+        requested_url="https://example.invalid/scripts.zip",
+        upstream_source="https://github.com/example/scripts",
     )
 
     console.print_reference_status(status)
@@ -191,9 +194,11 @@ def test_print_reference_status_reports_provenance_and_persistence(capsys):
     assert "bbtool.reference_status.v1 · cache C:/cache/references" in out
     assert "dictionary=bbtool.enriched_dictionary.v1" in out
     assert "reference fallback          none" in out
-    assert "network · ref master · 3 B · SHA-256 abc123" in out
-    assert "network · ref main" in out
+    assert f"network · ref {'a' * 40} · 3 B · SHA-256 abc123" in out
+    assert f"network · ref {'b' * 40}" in out
     assert "scripts.zip · SHA-256 def456" in out
+    assert "upstream https://github.com/example/dictionary" in out
+    assert "upstream https://github.com/example/scripts" in out
     assert "dictionary: network-generated · valid · 1.0 KiB" in out
 
 

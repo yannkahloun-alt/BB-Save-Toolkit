@@ -74,11 +74,17 @@ def print_reference_status(status: dict) -> None:
         for name, source in status.get("download_sources", {}).items():
             if name == "vanilla_scripts":
                 continue
+            revision = source.get(
+                "immutable_revision", source.get("selected_revision", "unknown")
+            )
+            requested_url = source.get("requested_url", source.get("url", "unknown"))
+            upstream = source.get("upstream_source")
             print(
                 f"        reference source {name:<11}"
-                f"network · ref {source['selected_revision']} · "
+                f"network · ref {revision} · "
                 f"{format_bytes(source['size_bytes'])} · "
-                f"SHA-256 {source['sha256']} · {source['url']}"
+                f"SHA-256 {source['sha256']} · {requested_url}"
+                + (f" · upstream {upstream}" if upstream else "")
             )
     print(
         "        cache at start              "
@@ -91,17 +97,23 @@ def print_reference_status(status: dict) -> None:
 
     scripts = status.get("scripts_download_stats")
     if scripts:
+        revision = scripts.get(
+            "immutable_revision", scripts.get("selected_revision", "unknown")
+        )
         print(
             "        vanilla scripts download    "
             f"{scripts['archive_bytes'] / (1024 * 1024):.2f} MiB · "
             f"{scripts['seconds']:.3f}s · "
             f"{scripts.get('source', 'network')} · "
-            f"ref {scripts.get('selected_revision', 'unknown')}"
+            f"ref {revision}"
         )
         if scripts.get("sha256"):
+            requested_url = scripts.get("requested_url", scripts.get("url", "unknown"))
+            upstream = scripts.get("upstream_source")
             print(
                 "        vanilla scripts provenance  "
-                f"{scripts.get('url', 'unknown')} · SHA-256 {scripts['sha256']}"
+                f"{requested_url} · SHA-256 {scripts['sha256']}"
+                + (f" · upstream {upstream}" if upstream else "")
             )
         print(
             "        vanilla scripts archive     "
