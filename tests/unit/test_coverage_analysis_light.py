@@ -51,10 +51,13 @@ def test_reused_summary_skips_unused_effective_stat_profile(monkeypatch, bro_fac
         def get_role_row(self, bro, role): return row(role['name'])
         def store_role_row(self, bro, role, value): pass
         def get_summary(self, bro, roles, cfg): return {'Name': bro.Name}
+        def get_advisor(self, bro, roles): return {'cached': True}
 
     monkeypatch.setattr(
         an, 'effective_stat_profile',
         lambda bro: (_ for _ in ()).throw(AssertionError('must not be called')),
     )
     out = an.analyze_brothers([bro_factory(Name='Cached')], [role('A')], {}, Cache())
-    assert out.summaries == [{'Name': 'Cached'}]
+    assert out.summaries == [{
+        'Name': 'Cached', 'LevelUpAdvice': {'cached': True},
+    }]

@@ -1,18 +1,13 @@
 from __future__ import annotations
-import hashlib
-import json
-from typing import Any
 from ..models import STATS
+from .dependencies import (
+    ArtifactKind, ENGINE_VERSIONS, current_advisor_payload,
+    stable_hash, strategic_classification_payload, validation_oracle_payload,
+)
 
-ROLE_PROJECTION_ENGINE_VERSION = 6
-BROTHER_SUMMARY_ENGINE_VERSION = 6
-VALIDATION_ORACLE_ENGINE_VERSION = 1
-
-def canonical_json(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
-
-def stable_hash(value: Any) -> str:
-    return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+ROLE_PROJECTION_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.ROLE_PROJECTION]
+BROTHER_SUMMARY_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.STRATEGIC_CLASSIFICATION]
+VALIDATION_ORACLE_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.VALIDATION_ORACLE]
 
 def brother_projection_state(bro) -> dict:
     return {
@@ -36,29 +31,26 @@ def role_fingerprint(role: dict) -> str:
 
 
 def validation_oracle_fingerprint(bro, role: dict) -> str:
-    return stable_hash({
-        "brother_state": brother_projection_state(bro),
-        "role": role_fingerprint(role),
-        "role_projection_engine": ROLE_PROJECTION_ENGINE_VERSION,
-        "validation_oracle_engine": VALIDATION_ORACLE_ENGINE_VERSION,
-    })
+    return stable_hash(validation_oracle_payload(
+        brother_projection_state(bro), role_fingerprint(role),
+        ROLE_PROJECTION_ENGINE_VERSION, VALIDATION_ORACLE_ENGINE_VERSION,
+    ))
 
 
 def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:
-    return stable_hash({
-        "brother_state": brother_projection_state(bro),
-        "roles": {role["name"]: role_fingerprint(role) for role in roles},
-        "classification": classification_cfg,
-        "engine_version": BROTHER_SUMMARY_ENGINE_VERSION,
-    })
+    return stable_hash(strategic_classification_payload(
+        brother_projection_state(bro),
+        {role["name"]: role_fingerprint(role) for role in roles},
+        classification_cfg, BROTHER_SUMMARY_ENGINE_VERSION,
+    ))
 
 
-ADVISOR_ENGINE_VERSION = 4
+ADVISOR_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.LEVEL_ADVISOR]
 
 
 def advisor_fingerprint(bro, roles) -> str:
-    return stable_hash({
-        "brother_state": brother_projection_state(bro),
-        "roles": {role["name"]: role_fingerprint(role) for role in roles},
-        "engine_version": ADVISOR_ENGINE_VERSION,
-    })
+    return stable_hash(current_advisor_payload(
+        brother_projection_state(bro),
+        {role["name"]: role_fingerprint(role) for role in roles},
+        ADVISOR_ENGINE_VERSION,
+    ))

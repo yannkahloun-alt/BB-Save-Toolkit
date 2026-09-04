@@ -238,16 +238,21 @@ class IncrementalCache:
         summary["Perks"] = "; ".join(getattr(bro, "Perks", []) or [])
         summary["Traits"] = "; ".join(getattr(bro, "Traits", []) or [])
         summary["Injuries"] = "; ".join(getattr(bro, "Injuries", []) or [])
+        # Advisor has an independent validity domain. Old manifests may have
+        # embedded it in summary; never publish that unvalidated copy.
+        summary.pop("LevelUpAdvice", None)
         return summary
 
     def store_summary(self, bro, roles, classification_cfg, summary):
         entry = self._current_entry(bro)
+        intrinsic_summary = dict(summary)
+        intrinsic_summary.pop("LevelUpAdvice", None)
         entry["summary"] = {
             "input_hash": brother_summary_fingerprint(
                 bro, roles, classification_cfg
             ),
             "engine_version": BROTHER_SUMMARY_ENGINE_VERSION,
-            "result": dict(summary),
+            "result": intrinsic_summary,
         }
 
     def mark_summary_computed(self):

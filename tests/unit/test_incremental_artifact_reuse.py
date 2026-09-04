@@ -1,4 +1,5 @@
 from bbtool.incremental.cache import IncrementalCache
+from bbtool.app import analysis as analysis_module
 from bbtool.incremental.fingerprint import (
     ADVISOR_ENGINE_VERSION,
     BROTHER_SUMMARY_ENGINE_VERSION,
@@ -54,6 +55,42 @@ def test_valid_summary_carries_downstream_artifacts_into_new_manifest(bro_factor
     entry=next(iter(new["brothers"].values()))
     assert "summary" in entry
     assert "advisor" in entry
+
+
+def test_summary_and_advisor_remain_independently_validatable(bro_factory,simple_role):
+    bro=bro_factory()
+    roles=[simple_role(("HP","MAtk","MDef"))]
+    cfg={"invest":0.8}
+    manifest=manifest_with_downstream(bro,roles,cfg)
+    manifest["brothers"]["previous"]["summary"]["result"]["LevelUpAdvice"]={"stale":True}
+    cache=IncrementalCache(manifest)
+
+    summary=cache.get_summary(bro,roles,cfg)
+    advice=cache.get_advisor(bro,roles)
+
+    assert "LevelUpAdvice" not in summary
+    assert advice=={"Recommended":{"Stats":["HP","MAtk","MDef"]}}
+
+
+def test_valid_intrinsic_summary_composes_recomputed_advisor(
+    monkeypatch,bro_factory,simple_role
+):
+    bro=bro_factory(Level=11)
+    roles=[simple_role(("HP","MAtk","MDef"))]
+    cfg={"invest":0.8}
+    manifest=manifest_with_downstream(bro,roles,cfg)
+    manifest["brothers"]["previous"]["advisor"]["input_hash"]="stale"
+    expected={"Recommended":{"Stats":["MAtk","MDef","HP"]}}
+    monkeypatch.setattr(analysis_module,"advise_levelup",lambda *_args: expected)
+    cache=IncrementalCache(manifest)
+
+    result=analysis_module.analyze_brothers([bro],roles,cfg,cache)
+
+    assert result.summaries[0]["LevelUpAdvice"]==expected
+    assert cache.stats.summary_reused==1
+    assert cache.stats.summary_computed==0
+    assert cache.stats.advisor_reused==0
+    assert cache.stats.advisor_computed==1
 
 
 def test_projection_range_schema_change_rejects_old_downstream_artifacts(bro_factory,simple_role):
