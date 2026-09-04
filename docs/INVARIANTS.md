@@ -54,6 +54,23 @@ These are architectural contracts, not implementation suggestions.
   finite game-generated integer is mathematically collision-free. See
   [`CAMPAIGN_IDENTITY.md`](CAMPAIGN_IDENTITY.md).
 
+## Assigned build intent
+
+- `AssignedBuild` is campaign-global current player intent keyed by exact
+  `CampaignIdentity + BrotherIdentity` and valued by `BuildIdentity` plus its
+  last acknowledged `BuildDefinitionHash`.
+- Save lineage and snapshot history do not select or roll back current intent.
+- Names, titles, `HumanOffset`, save-local `BrotherID`, `BestRole`, and build
+  display names are never assignment identity or migration evidence.
+- AssignedBuild never changes intrinsic projections, Fit, `BestRole`,
+  Alternatives, or recruit intrinsic potential.
+- Missing brothers and removed/redefined builds preserve intent conservatively;
+  no assignment is guessed, automatically discarded, or fuzzily remapped.
+- Assignment writes invalidate only declared intent-aware consumers. A valid
+  write remains authoritative if recomputation fails, while affected old
+  artifacts remain explicitly stale or unavailable. See
+  [`ASSIGNED_BUILD.md`](ASSIGNED_BUILD.md).
+
 ## Traits and injuries
 
 - Serialized trait IDs are Battle Brothers 4-byte save hashes.
