@@ -335,6 +335,26 @@ def test_target_v3_rejects_malformed_or_mismatched_exact_identity(
         load_render_dataset(source)
 
 
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["campaign_identity"].update(
+            value=None, confidence="unavailable", basis={"not": "a string"},
+            reason=["not", "a string"],
+        ),
+        lambda value: value["brothers"][0]["brother_identity"].update(
+            value=None, confidence="invalid", basis=123, reason=None,
+        ),
+    ],
+    ids=("campaign-unavailable", "brother-invalid"),
+)
+def test_target_v3_rejects_malformed_nonexact_identity_metadata(tmp_path, mutate):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="identity"):
+        load_render_dataset(source)
+
+
 def test_target_v3_rejects_stale_company_coverage(tmp_path):
     source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
     _rewrite_payload_and_hash(

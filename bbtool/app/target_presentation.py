@@ -346,9 +346,14 @@ def _validate_identity(value: Any, *, brother: bool) -> int | None:
         "value", "basis", "confidence", "reason",
     } or value["confidence"] not in {"exact", "unavailable", "invalid"}:
         raise ValueError("target presentation identity is malformed")
+    expected = "native_campaign_entity_token" if brother else "native_campaign_id"
+    if value["confidence"] == "unavailable" and value["basis"] is None:
+        if value["reason"] != "not_provided":
+            raise ValueError("target presentation unavailable identity is malformed")
+    elif value["basis"] != expected:
+        raise ValueError("target presentation identity basis is malformed")
     if value["confidence"] == "exact":
-        expected = "native_campaign_entity_token" if brother else "native_campaign_id"
-        if value["basis"] != expected or value["value"] is None:
+        if value["reason"] is not None or value["value"] is None:
             raise ValueError("target presentation exact identity is malformed")
         if brother:
             if not isinstance(value["value"], str):
@@ -364,8 +369,9 @@ def _validate_identity(value: Any, *, brother: bool) -> int | None:
                 or not 0 <= value["value"] <= CAMPAIGN_ID_MAX:
             raise ValueError("target presentation exact identity is malformed")
         return value["value"]
-    elif value["value"] is not None:
-        raise ValueError("target presentation non-exact identity exposes a value")
+    elif value["value"] is not None or not isinstance(value["reason"], str) \
+            or not value["reason"]:
+        raise ValueError("target presentation non-exact identity is malformed")
     return None
 
 
