@@ -230,6 +230,7 @@ def test_project_policy_delegates_generic_lifecycle_and_ci_execution():
     assert "authoritative\nexecutor" in testing
     assert "fresh read-only subagent" in _read(".agent-workflow/REVIEW_AGENT.md")
     assert "does not require\nagents to duplicate equivalent local execution" in dependency
+    assert "Agent B review" not in _read("docs/CHANGELOG.md")
 
 
 def test_selected_ticket_deferral_requires_traceable_comment_without_closure():

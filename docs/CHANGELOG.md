@@ -112,7 +112,7 @@
 - Places projected minimum/maximum, Baseline, Target, and Expected on one live numeric axis, with fixed semantic colors and collision-safe numeric labels.
 - Extends projection-range output with archetype baseline, target, and weight while preserving projection and Fit semantics.
 - Invalidates stale role, structural-path, and summary cache artifacts that predate the expanded projection-detail payload.
-- Adds GitHub Actions validation for tests, Ruff, and Pyflakes plus an independent exact-head Agent B review and automatic verified squash-merge workflow.
+- Adds GitHub Actions validation for tests, Ruff, and Pyflakes plus an independent exact-head review and automatic verified squash-merge workflow.
 
 ## v3.84 — Incremental hardening and permanent injuries
 - Splits serialized traits from temporary/permanent injuries; `TraitIDs` now represent actual traits only.
