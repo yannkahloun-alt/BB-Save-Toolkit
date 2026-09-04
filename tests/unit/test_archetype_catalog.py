@@ -245,6 +245,46 @@ def test_explicit_legacy_import_assigns_authoritative_ids_once(tmp_path):
     assert service(tmp_path).load().roles[-1]["id"] == "custom_legacyone"
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [None, "bb-archetypes-v9.0", ["bb-archetypes-v0.9"]],
+)
+def test_unknown_or_invalid_legacy_schema_cannot_erase_existing_state(tmp_path, schema):
+    catalog = service(tmp_path, ids=["custom_existing"])
+    definition = editable(base_roles()[0])
+    definition["name"] = "Existing custom"
+    existing = catalog.create_custom(definition, expected_revision=0)
+    state_path = catalog.store.path_for("archetypes")
+    before_bytes = state_path.read_bytes()
+    before_roles = existing.roles
+
+    candidate = editable(base_roles()[1])
+    candidate.pop("id")
+    payload = {"roles": [candidate]}
+    if schema is not None:
+        payload["schema"] = schema
+    with pytest.raises(CatalogValidationError, match="unsupported archetype import schema"):
+        catalog.import_json(json.dumps(payload), expected_revision=existing.state.revision)
+
+    assert state_path.read_bytes() == before_bytes
+    assert catalog.load().roles == before_roles
+
+
+def test_export_schema_with_roles_fallback_is_rejected_without_state_change(tmp_path):
+    catalog = service(tmp_path, ids=["custom_existing"])
+    definition = editable(base_roles()[0])
+    definition["name"] = "Existing custom"
+    existing = catalog.create_custom(definition, expected_revision=0)
+    state_path = catalog.store.path_for("archetypes")
+    before_bytes = state_path.read_bytes()
+    payload = {"schema": "bbtool.user-archetypes-export.v1", "roles": []}
+
+    with pytest.raises(CatalogValidationError, match="must contain exactly"):
+        catalog.import_json(json.dumps(payload), expected_revision=existing.state.revision)
+    assert state_path.read_bytes() == before_bytes
+    assert catalog.load().roles == existing.roles
+
+
 def test_invalid_retired_identity_fails_with_field_path():
     state = ArchetypeState(entries=({"kind": "retired", "id": "Not Valid"},))
     with pytest.raises(CatalogValidationError) as caught:

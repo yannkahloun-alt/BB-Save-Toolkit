@@ -52,9 +52,12 @@ records. Replace import round-trips that state. Merge import accepts identical
 records idempotently and reports any same-kind/same-ID differing record as a
 conflict; IDs are never remapped. Local retired-ID tombstones are monotonic and
 survive replacement imports, so an older export cannot resurrect a deleted ID
-as a different logical build. Explicit import of a legacy object containing
-an id-less `roles` array is the supported migration into managed state: each
+as a different logical build. Explicit import of a
+`bb-archetypes-v0.9` legacy object containing an id-less `roles` array is the
+supported migration into managed state: each
 id-less role receives an opaque ID once, and that ID is then persisted.
+Missing, mistyped, unknown, and future schema identifiers are rejected; the
+presence of a `roles` field alone never selects legacy migration.
 
 The resulting normalized roles are supplied unchanged to `AnalyzerConfig` and
 the transport-independent analysis service. Existing artifact-specific role

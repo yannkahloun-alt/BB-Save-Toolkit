@@ -24,6 +24,7 @@ from .config import AnalyzerConfig, _normalize_role
 from .user_state import ArchetypeState, StateValidationError, UserStateStore
 
 EXPORT_SCHEMA = "bbtool.user-archetypes-export.v1"
+LEGACY_IMPORT_SCHEMAS = frozenset({"bb-archetypes-v0.9"})
 _ENTRY_KINDS = frozenset({"override", "disabled", "custom", "retired"})
 
 
@@ -512,11 +513,22 @@ class ArchetypeCatalogStore:
             ) from exc
         if not isinstance(payload, dict):
             raise CatalogValidationError(["import root must be an object"])
-        if payload.get("schema") == EXPORT_SCHEMA and isinstance(
-            payload.get("entries"), list
-        ):
+        schema = payload.get("schema")
+        if schema == EXPORT_SCHEMA:
+            if set(payload) != {"schema", "entries"} or not isinstance(
+                payload.get("entries"), list
+            ):
+                raise CatalogValidationError(
+                    [
+                        f"{EXPORT_SCHEMA} import must contain exactly schema and an entries array"
+                    ]
+                )
             incoming = payload["entries"]
-        elif isinstance(payload.get("roles"), list):
+        elif isinstance(schema, str) and schema in LEGACY_IMPORT_SCHEMAS:
+            if not isinstance(payload.get("roles"), list):
+                raise CatalogValidationError(
+                    [f"legacy import schema {schema} must contain a roles array"]
+                )
             # Explicit import is the one supported transition from an id-less
             # legacy analysis catalog to authoritative managed custom builds.
             incoming = []
@@ -529,7 +541,7 @@ class ArchetypeCatalogStore:
         else:
             raise CatalogValidationError(
                 [
-                    f"import must use schema {EXPORT_SCHEMA} with an entries array, or contain a legacy roles array"
+                    f"unsupported archetype import schema {schema!r}; expected {EXPORT_SCHEMA} or one of {sorted(LEGACY_IMPORT_SCHEMAS)}"
                 ]
             )
         if not merge:
@@ -586,6 +598,7 @@ class ArchetypeCatalogStore:
 
 __all__ = [
     "EXPORT_SCHEMA",
+    "LEGACY_IMPORT_SCHEMAS",
     "ArchetypeCatalogStore",
     "CatalogConflictError",
     "CatalogValidationError",
