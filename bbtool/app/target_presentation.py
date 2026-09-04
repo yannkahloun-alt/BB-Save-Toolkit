@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import asdict
+import re
 from typing import Any
 
 from ..build_identity import build_definition_hash, build_identity
@@ -22,6 +23,7 @@ BOUND_ARTIFACTS = frozenset({
     "roster", "recruits", "role_fit", "classification", "archetypes",
     "classification_config", "analysis_health",
 })
+SHA256_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
 
 
 def build_recruitment_presentation(recruits, roles, reference_path) -> list[dict]:
@@ -228,12 +230,26 @@ def validate_target_presentation(
         "role_projection", "strategic_classification", "level_advisor",
     } or any(not isinstance(rows, list) for rows in artifacts.values()):
         raise ValueError("target presentation validity artifacts are malformed")
-    for rows in artifacts.values():
-        for item in rows:
-            if not isinstance(item, dict) or item.get("brother_id") not in roster \
-                    or not isinstance(item.get("dependency_signature"), str) \
-                    or not item["dependency_signature"].startswith("sha256:"):
-                raise ValueError("target presentation dependency signature is malformed")
+    role_keys = {
+        role["name"]: role.get("id", role["name"])
+        for role in payloads["archetypes"]["roles"]
+    }
+    expected_role_evidence = {
+        (row["BrotherID"], role_keys[row["Role"]])
+        for row in payloads["role_fit"]
+    }
+    _validate_signature_evidence(
+        artifacts["role_projection"], expected=expected_role_evidence,
+        key_fields=("brother_id", "build_key"), roster=roster,
+    )
+    expected_brother_evidence = {
+        (row["BrotherID"],) for row in payloads["classification"]
+    }
+    for artifact in ("strategic_classification", "level_advisor"):
+        _validate_signature_evidence(
+            artifacts[artifact], expected=expected_brother_evidence,
+            key_fields=("brother_id",), roster=roster,
+        )
     company = payload["company"]
     if not isinstance(company, dict) or set(company) != {"intrinsic_coverage"} \
             or not isinstance(company["intrinsic_coverage"], list):
@@ -263,3 +279,24 @@ def _validate_identity(value: Any, *, brother: bool) -> None:
             raise ValueError("target presentation exact identity is malformed")
     elif value["value"] is not None:
         raise ValueError("target presentation non-exact identity exposes a value")
+
+
+def _validate_signature_evidence(
+    rows: list[Any], *, expected: set[tuple], key_fields: tuple[str, ...], roster: dict,
+) -> None:
+    """Require one exact, well-formed dependency signature per public result."""
+    keys = []
+    expected_fields = {*key_fields, "dependency_signature"}
+    for item in rows:
+        if not isinstance(item, dict) or set(item) != expected_fields:
+            raise ValueError("target presentation dependency evidence is malformed")
+        if any(not isinstance(item[field], str) for field in key_fields):
+            raise ValueError("target presentation dependency evidence is malformed")
+        key = tuple(item[field] for field in key_fields)
+        signature = item["dependency_signature"]
+        if item["brother_id"] not in roster or not isinstance(signature, str) \
+                or SHA256_PATTERN.fullmatch(signature) is None:
+            raise ValueError("target presentation dependency evidence is malformed")
+        keys.append(key)
+    if len(keys) != len(set(keys)) or set(keys) != expected:
+        raise ValueError("target presentation dependency evidence is incomplete")

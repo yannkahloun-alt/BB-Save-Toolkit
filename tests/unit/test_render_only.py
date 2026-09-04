@@ -90,8 +90,31 @@ def _upgrade_to_target_v3(source: Path) -> Path:
         },
         recruitment_analysis=recruitment, artifact_hashes=hashes,
         result_signatures={
-            "role_projection": [], "strategic_classification": [],
-            "level_advisor": [],
+            "role_projection": [
+                {
+                    "brother_id": fit["BrotherID"],
+                    "build_key": next(
+                        role["id"] for role in dataset.roles
+                        if role["name"] == fit["Role"]
+                    ),
+                    "dependency_signature": stable_hash({"fit": fit}),
+                }
+                for fit in dataset.fits
+            ],
+            "strategic_classification": [
+                {
+                    "brother_id": row["BrotherID"],
+                    "dependency_signature": stable_hash({"classification": row}),
+                }
+                for row in dataset.summaries
+            ],
+            "level_advisor": [
+                {
+                    "brother_id": row["BrotherID"],
+                    "dependency_signature": stable_hash({"advisor": row}),
+                }
+                for row in dataset.summaries
+            ],
         },
         company_intrinsic_coverage=[],
     )
@@ -195,6 +218,31 @@ def test_target_v3_rejects_mismatched_build_definition(tmp_path):
         ),
     )
     with pytest.raises(RenderDatasetError, match="build identity mismatch"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["validity"]["artifacts"]["role_projection"].pop(),
+        lambda value: value["validity"]["artifacts"]["strategic_classification"].append(
+            dict(value["validity"]["artifacts"]["strategic_classification"][0])
+        ),
+        lambda value: value["validity"]["artifacts"]["level_advisor"][0].update(
+            dependency_signature="sha256:not-a-digest"
+        ),
+        lambda value: value["validity"]["artifacts"]["role_projection"][0].update(
+            unexpected="private-evidence"
+        ),
+    ],
+    ids=("missing", "duplicate", "bad-digest", "extra-field"),
+)
+def test_target_v3_rejects_incomplete_or_malformed_dependency_evidence(
+    tmp_path, mutate,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(source, "presentation", mutate)
+    with pytest.raises(RenderDatasetError, match="dependency evidence"):
         load_render_dataset(source)
 
 
