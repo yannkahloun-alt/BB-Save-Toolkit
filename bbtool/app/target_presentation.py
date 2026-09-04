@@ -197,14 +197,15 @@ def validate_target_presentation(
     }
     if provenance["content_hashes"] != expected_content_hashes:
         raise ValueError("target presentation content generation mismatch")
-    if not isinstance(provenance["source_fingerprint"], str) or not \
-            provenance["source_fingerprint"].startswith("sha256:"):
+    if not isinstance(provenance["source_fingerprint"], str) or \
+            SHA256_PATTERN.fullmatch(provenance["source_fingerprint"]) is None:
         raise ValueError("target presentation source fingerprint is malformed")
     config = provenance["configuration_fingerprints"]
-    if not isinstance(config, dict) or set(config) != {"archetypes", "classification"} \
-            or any(not isinstance(value, str) or not value.startswith("sha256:")
-                   for value in config.values()):
-        raise ValueError("target presentation configuration fingerprints are malformed")
+    if not isinstance(config, dict) or config != {
+        "archetypes": stable_hash(payloads["archetypes"]["roles"]),
+        "classification": stable_hash(payloads["classification_config"]),
+    }:
+        raise ValueError("target presentation configuration fingerprints mismatch")
     if payload["run_health"] != payloads["analysis_health"]:
         raise ValueError("target presentation run health generation mismatch")
 

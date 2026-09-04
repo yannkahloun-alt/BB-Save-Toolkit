@@ -298,6 +298,21 @@ def test_target_v3_rejects_well_formed_but_incorrect_dependency_signature(tmp_pa
         load_render_dataset(source)
 
 
+@pytest.mark.parametrize("field", ["archetypes", "classification"])
+def test_target_v3_rejects_well_formed_but_incorrect_config_fingerprint(
+    tmp_path, field,
+):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["publication"]["provenance"][
+            "configuration_fingerprints"
+        ].update({field: "sha256:" + "0" * 64}),
+    )
+    with pytest.raises(RenderDatasetError, match="configuration fingerprints mismatch"):
+        load_render_dataset(source)
+
+
 @pytest.mark.parametrize(
     "mutate",
     [
