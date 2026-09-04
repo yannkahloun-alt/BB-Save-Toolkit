@@ -191,35 +191,32 @@ def test_full_preview_is_manual_exact_revision_bound_and_fail_closed():
             assert all(character in "0123456789abcdef" for character in revision)
 
 
-def test_agent_b_contract_is_fresh_task_exact_sha_bound_and_fail_closed():
-    policy = _read("docs/AGENT_B_REVIEW.md")
-    policy_lower = policy.lower()
+def test_review_contract_is_shared_subagent_first_and_project_guards_remain():
+    shared = _read(".agent-workflow/REVIEW_AGENT.md")
+    shared_lower = shared.lower()
+    shared_words = " ".join(shared.split())
+    development = _read("docs/DEVELOPMENT_WORKFLOW.md")
+    testing = _read("docs/TESTING.md")
     agent_instructions = _read("AGENTS.md")
 
-    assert "automatically creates a fresh Codex task" in policy
-    assert "isolated worktree" in policy_lower
-    assert "Independent review — PR #<number>" in policy
-    assert "$review-bb-pr" in policy
-    assert "full 40-character" in policy
-    assert "APPROVE" in policy
-    assert "DO NOT APPROVE" in policy
-    assert "malformed" in policy
-    assert "new commit" in policy_lower
-    assert "wait for agent b" in policy_lower
-    assert "not a github-enforced status check" in policy_lower
-    assert "no openai api key" in policy_lower
-    assert "remain strictly read-only" in policy_lower
-    assert "docs/AGENT_B_REVIEW.md" in agent_instructions
-    assert "state transition belongs exclusively to Agent A" in policy
-    assert "After the exact current head passes every" in policy
-    assert "verifies that it is" in policy and "non-draft" in policy
-    assert "after the pull request has been pushed" not in policy
-    assert "DO NOT APPROVE" in policy
-    assert "if the PR is still a draft" in policy
-    assert "never mark a PR ready" in policy
-    assert "Automatically squash-merge" in policy
-    assert "Do not wait for a separate" in policy
-    assert "owner confirmation" in policy
+    assert not (ROOT / "docs" / ("AGENT_B_" + "REVIEW.md")).exists()
+    assert "fresh read-only subagent" in shared_lower
+    assert "existing ticket workspace" in shared_words
+    assert "second Git worktree is not required" in shared
+    assert "separate task or worktree only when" in shared_words
+    assert "remain read-only" in shared_lower
+    assert "full 40-character" in shared
+    assert "any new implementation commit invalidates" in shared_lower
+    assert "complete GitHub pull-request diff" in development
+    assert "explicit `APPROVE`" in development
+    assert "any verdict other than" in development
+    assert "automatically squash-merge" in development
+    assert "must never be changed or" in development
+    assert "tests`, `ruff`, and `pyflakes" in testing
+    assert "coverage_slow" in testing
+    assert "real-save smoke tests" in testing
+    assert "shared workflow owns generic" in agent_instructions
+    assert "project-specific pull-request and independent-review protocol" not in agent_instructions
 
 
 def test_selected_ticket_deferral_requires_traceable_comment_without_closure():
@@ -248,7 +245,7 @@ def test_branch_protection_requires_all_checks_without_native_approval():
     assert "temporarily excluded" in protection
     assert "zero required approving reviews" in protection
     assert "not a GitHub-enforced status check" in protection
-    assert "exact current head SHA" in protection
+    assert "current head SHA" in protection
     assert "Require branches to be up to date before merging" in protection
     assert "Restrict who can push to matching branches" in protection
     assert "Do not allow bypassing the above settings" in protection

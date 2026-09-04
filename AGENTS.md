@@ -58,5 +58,7 @@ per branch/worktree, inspect existing tests first, add regression tests for bug
 fixes, run the documented gates, review the complete diff, and keep commits
 task-focused.
 
-The exact project-specific pull-request and independent-review protocol is in
-`docs/AGENT_B_REVIEW.md`; release policy is in `docs/RELEASE.md`.
+Project-specific test and CI gates are in `docs/TESTING.md`, merge guards are
+in `docs/DEVELOPMENT_WORKFLOW.md`, and release policy is in `docs/RELEASE.md`.
+The pinned shared workflow owns generic coordinator, worktree, review, handoff,
+freshness, and cleanup mechanics.

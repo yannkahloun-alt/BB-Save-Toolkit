@@ -31,7 +31,18 @@ def test_project_agent_file_is_an_adapter() -> None:
     assert "git submodule update --init --recursive" in project
     assert "docs/INVARIANTS.md" in project
     assert "docs/TESTING.md" in project
-    assert "docs/AGENT_B_REVIEW.md" in project
+    assert "shared workflow owns generic" in project
+    assert "project-specific pull-request and independent-review protocol" not in project
+
+
+def test_shared_review_prefers_read_only_subagent_without_review_worktree() -> None:
+    review = (SHARED / "REVIEW_AGENT.md").read_text(encoding="utf-8")
+    review_words = " ".join(review.split())
+
+    assert "fresh read-only subagent" in review
+    assert "existing ticket workspace" in review_words
+    assert "second Git worktree is not required" in review
+    assert "separate task or worktree only when" in review_words
 
 
 def test_shared_policy_does_not_embed_project_specific_details() -> None:
