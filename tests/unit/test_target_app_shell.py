@@ -28,7 +28,14 @@ class ShellApplication:
             }
         )
         self.coordinator = SimpleNamespace(
-            last_success=SimpleNamespace(result=result),
+            last_success=SimpleNamespace(
+                result=result,
+                job_id=6,
+                generation=4,
+                source_fingerprint="sha256:" + "1" * 64,
+                configuration_fingerprints={"archetypes": "a", "classification": "b"},
+                artifact_signatures={"role_projection": "sig"},
+            ),
             desired_job_id=7,
         )
 
@@ -38,16 +45,15 @@ class ShellApplication:
             "selected_path": "C:/private/quicksave.sav",
             "name": "quicksave.sav",
             "available": True,
-            "freshness": {"status": "analyzing"},
+            "freshness": {
+                "status": "analyzing",
+                "reason": "selected_save_content_changed",
+                "desired_source_fingerprint": "sha256:" + "2" * 64,
+            },
         }
 
     def last_result(self):
-        return {
-            "available": True,
-            "freshness": {"status": "stale", "reason": "selected_save_content_changed"},
-            "warnings": [{"code": "must_not_be_polled"}],
-            "data": {"fits": [{"large": "analytical payload"}]},
-        }
+        raise AssertionError("shell polling must not rebuild the full analytical result")
 
     def analysis_job(self, job_id):
         assert job_id == 7
@@ -126,10 +132,8 @@ def test_shell_endpoint_composes_bounded_health_freshness_and_progress():
     assert set(data) == {"followed_save", "result", "analysis_health", "active_job"}
     assert data["followed_save"]["name"] == "quicksave.sav"
     assert set(data["result"]) == {"available", "freshness"}
-    assert data["result"]["freshness"] == {
-        "status": "stale",
-        "reason": "selected_save_content_changed",
-    }
+    assert data["result"]["freshness"]["status"] == "stale"
+    assert data["result"]["freshness"]["reason"] == "selected_save_content_changed"
     assert data["analysis_health"]["schema"] == "bbtool.analysis_health.v1"
     assert data["analysis_health"]["status"] == "degraded"
     assert data["analysis_health"]["counts"]["result_affecting_warnings"] == 1
