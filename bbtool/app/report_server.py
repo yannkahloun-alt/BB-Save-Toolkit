@@ -26,7 +26,7 @@ def render_served_report(source: Path) -> tuple[Path, str]:
     html = render_html_report(
         Path(source_name), dataset.bros, dataset.fits, dataset.summaries,
         dataset.roles, dataset.classification, generated_at=generated_at,
-        recruits=dataset.recruits,
+        recruits=dataset.recruits, analysis_health=dataset.analysis_health,
     )
     return dataset.root, html
 

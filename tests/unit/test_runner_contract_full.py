@@ -57,6 +57,7 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
         "prune_calls": [],
         "debug_args": [],
         "performance_args": [],
+        "html_args": [],
     }
 
     monkeypatch.setattr(runner, "Step", FakeStep)
@@ -114,7 +115,9 @@ def _patch_runner(monkeypatch, tmp_path, *, reference_status, open_result=True):
     monkeypatch.setattr(runner, "analyze_save", fake_analyze_save)
     monkeypatch.setattr(runner, "print_projection_profile", lambda x: calls["profile"].append(x))
     monkeypatch.setattr(runner, "write_analysis_json", lambda *a: None)
-    monkeypatch.setattr(runner, "write_html", lambda *a: report)
+    monkeypatch.setattr(
+        runner, "write_html", lambda *a: calls["html_args"].append(a) or report
+    )
     monkeypatch.setattr(runner, "write_projection_validation_payload", lambda *a: validation)
     monkeypatch.setattr(
         runner,
@@ -205,6 +208,10 @@ def test_runner_total_timing_reference_contract_and_generated_dictionary(monkeyp
         (tmp_path / "archive.zip", tmp_path / "performance.json", tmp_path),
     ]
     assert calls["prune_calls"] == [(tmp_path, "x", tmp_path / "archive.zip")]
+    public_health = calls["html_args"][0][-1]
+    assert public_health["schema"] == "bbtool.analysis_health.v1"
+    assert public_health["status"] == "healthy"
+    assert public_health["projection_validation"]["status"] == "pass"
     performance = calls["debug_args"][0][-1]
     assert calls["performance_args"][0][1] is performance
     assert performance["format"] == "bbtool.performance_diagnostics.v1"

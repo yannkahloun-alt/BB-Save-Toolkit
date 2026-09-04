@@ -19,7 +19,11 @@ from .analysis_service import (
 from ..incremental import find_previous_manifest, prune_manifests, write_manifest
 from .cli import CliOptions
 from .config import load_config
-from .health import build_run_health, print_run_health
+from .health import (
+    build_public_analysis_health,
+    build_run_health,
+    print_run_health,
+)
 from .report_server import launch_report_server
 from .telemetry import (
     build_run_metadata,
@@ -213,19 +217,6 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
         )
         stage_timings["write_analysis_outputs"] = step.done()
 
-        step = Step("Generate HTML report")
-        step.__enter__()
-        report_path = write_html(
-            workspace,
-            bros,
-            recruits,
-            analysis.fits,
-            analysis.summaries,
-            config.roles,
-            config.classification,
-        )
-        stage_timings["generate_html_report"] = step.done()
-
         step = Step("Write projection validation")
         step.__enter__()
         validation_path = write_projection_validation_payload(
@@ -248,6 +239,21 @@ def _run(options: CliOptions, resource_monitor_started: bool) -> tuple:
             incremental_cache=incremental_cache,
             validation_payload=validation_payload,
         )
+        public_analysis_health = build_public_analysis_health(run_health)
+
+        step = Step("Generate HTML report")
+        step.__enter__()
+        report_path = write_html(
+            workspace,
+            bros,
+            recruits,
+            analysis.fits,
+            analysis.summaries,
+            config.roles,
+            config.classification,
+            public_analysis_health,
+        )
+        stage_timings["generate_html_report"] = step.done()
         refresh_resources(run_metadata)
 
         performance_diagnostics = {

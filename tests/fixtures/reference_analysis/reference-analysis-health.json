@@ -1,0 +1,16 @@
+{
+  "counts": {
+    "recoverable_parsing_failures": 0,
+    "result_affecting_warnings": 0,
+    "unresolved_backgrounds_relevant_to_save": 0,
+    "unresolved_recruit_equipment_relevant_to_save": 0,
+    "unresolved_references_relevant_to_save": 0
+  },
+  "projection_validation": {
+    "roll_range_violations": 0,
+    "status": "pass"
+  },
+  "schema": "bbtool.analysis_health.v1",
+  "status": "healthy",
+  "warning_categories": []
+}
