@@ -218,6 +218,10 @@ stabilization remain outside this module.
 
 `bbtool/app/local_application.py` is the typed local-application facade over
 durable preferences, effective archetypes, and the background coordinator.
+`bbtool/app/save_watcher.py` restores the selected save, watches its pathname
+and parent for modify/replace behavior, and accepts only repeatedly readable,
+content-fingerprint-stable bytes before delegating refresh scheduling to the
+background coordinator. See [`SAVE_WATCHING.md`](SAVE_WATCHING.md).
 `bbtool/app/app_server.py` is its bounded loopback HTTP adapter and the only
 browser mutation transport. It binds `127.0.0.1`, requires exact-origin plus a
 same-session capability for typed revision-checked mutations, and exposes no

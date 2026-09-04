@@ -302,6 +302,21 @@ class AnalysisCoordinator:
                 self._active_handle = None
             self._wake.set()
 
+    def mark_desired_stale(self) -> None:
+        """Prevent publication while a newer filesystem snapshot stabilizes.
+
+        Unlike a configuration mutation, a source notification does not kill the
+        active worker.  The next stable submission uses the normal newest-pending
+        coalescing path; completion before then is still rejected because there is
+        no current desired generation.
+        """
+        with self._lock:
+            self._desired_id = None
+            if self._pending is not None:
+                self._pending.status = JobStatus.SUPERSEDED
+                self._pending = None
+            self._wake.set()
+
     def poll(self) -> None:
         """Advance worker state once; public for deterministic event-loop tests."""
         with self._lock:

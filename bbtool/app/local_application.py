@@ -6,7 +6,6 @@ not read saves, mutate user-state files, or invoke analysis directly.
 from __future__ import annotations
 
 from collections.abc import Callable
-from contextlib import suppress
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +18,7 @@ from .analysis_service import AnalysisServiceRequest, SaveSource
 from .archetype_catalog import ArchetypeCatalogStore, EffectiveCatalog
 from .config import AnalyzerConfig
 from .user_state import LastSuccessState, PreferencesState, UserStateStore
+from .save_watcher import SaveWatcher, StableSave
 
 
 class ApplicationOperationError(RuntimeError):
@@ -66,8 +66,52 @@ class LocalApplication:
         self._invalidated_generation: int | None = None
         self._invalidation_reason: str | None = None
         self._command_lock = threading.RLock()
+        self._save_watcher: SaveWatcher | None = None
+
+    def start_save_watcher(
+        self, *, monitor: bool = True, poll_interval: float = 0.25,
+        stable_probes: int = 2,
+    ) -> SaveWatcher:
+        """Restore and watch the persisted selection; safe to drive manually in tests."""
+        with self._command_lock:
+            if self._save_watcher is not None:
+                return self._save_watcher
+            self._save_watcher = SaveWatcher(
+                self._watch_selection,
+                self._watch_change_detected,
+                self._watch_stable,
+                monitor=monitor,
+                poll_interval=poll_interval,
+                stable_probes=stable_probes,
+                read_bytes=self._read_save,
+            )
+            return self._save_watcher
+
+    def _watch_selection(self) -> tuple[str | None, bool]:
+        value = self.store.load("preferences")
+        return value.selected_save_path, value.auto_refresh
+
+    def _watch_change_detected(self, reason: str) -> None:
+        with self._command_lock:
+            self.coordinator.mark_desired_stale()
+            publication = self.coordinator.last_success
+            self._invalidated_generation = (
+                publication.generation if publication is not None else None
+            )
+            self._invalidation_reason = reason
+
+    def _watch_stable(self, snapshot: StableSave, auto_refresh: bool) -> None:
+        if not auto_refresh:
+            return
+        with self._command_lock:
+            current = self.store.load("preferences")
+            if current.selected_save_path != str(snapshot.path):
+                return
+            self._submit_content(snapshot.path, snapshot.content, snapshot.modified_at)
 
     def close(self) -> None:
+        if self._save_watcher is not None:
+            self._save_watcher.close()
         self.coordinator.shutdown()
 
     def followed_save(self) -> dict[str, Any]:
@@ -94,6 +138,8 @@ class LocalApplication:
                     "code": "selected_save_unavailable",
                     "message": str(exc),
                 }
+        if self._save_watcher is not None:
+            info["freshness"] = self._save_watcher.status()
         return info
 
     def select_followed_save(
@@ -126,6 +172,8 @@ class LocalApplication:
             expected_revision=expected_revision,
         )
         self._invalidate_publication("selected_save_changed")
+        if self._save_watcher is not None:
+            self._save_watcher.notify()
         return self.followed_save() | {
             "revision": saved.revision,
             "freshness": {"status": "stale", "reason": "selected_save_changed"},
@@ -143,6 +191,8 @@ class LocalApplication:
             expected_revision=expected_revision,
         )
         self._invalidate_publication("selected_save_forgotten")
+        if self._save_watcher is not None:
+            self._save_watcher.notify()
         return self.followed_save() | {
             "revision": saved.revision,
             "freshness": {"status": "unavailable", "reason": "selected_save_forgotten"},
@@ -248,12 +298,23 @@ class LocalApplication:
         if preferences.selected_save_path is None:
             raise ApplicationOperationError("no_selected_save", "no save is currently selected")
         path = Path(preferences.selected_save_path)
+        accepted = self._save_watcher.accepted if self._save_watcher is not None else None
+        if self._save_watcher is not None:
+            if accepted is None or accepted.path != path:
+                raise ApplicationOperationError(
+                    "selected_save_stabilizing", "the selected save is not yet stable"
+                )
+            return self._submit_content(path, accepted.content, accepted.modified_at)
         try:
             content = self._read_save(path)
+            modified_at = path.stat().st_mtime
         except OSError as exc:
             raise ApplicationOperationError(
                 "selected_save_unavailable", "the selected save could not be read"
             ) from exc
+        return self._submit_content(path, content, modified_at)
+
+    def _submit_content(self, path: Path, content: bytes, modified_at: float) -> dict[str, Any]:
         config: AnalyzerConfig = self.catalog.analyzer_config(self.classification)
         desired = DesiredAnalysis(
             AnalysisServiceRequest(
@@ -263,8 +324,9 @@ class LocalApplication:
             )
         )
         job_id = self.coordinator.submit(desired)
-        with suppress(OSError):
-            self._source_timestamps[job_id] = _utc_timestamp(path.stat().st_mtime)
+        self._source_timestamps[job_id] = _utc_timestamp(modified_at)
+        if self._save_watcher is not None:
+            self._save_watcher.set_job_state(self.coordinator.job(job_id).status.value)
         return self.analysis_job(job_id)
 
     def analysis_job(self, job_id: int) -> dict[str, Any]:
@@ -277,6 +339,8 @@ class LocalApplication:
         except KeyError as exc:
             raise ApplicationOperationError("job_not_found", "analysis job was not found") from exc
         self._persist_publication()
+        if self._save_watcher is not None:
+            self._save_watcher.set_job_state(job.status.value)
         return {
             "id": job.id,
             "status": job.status.value,
@@ -297,12 +361,22 @@ class LocalApplication:
 
     def _last_result(self) -> dict[str, Any]:
         self._persist_publication()
+        desired_job_id = self.coordinator.desired_job_id
+        if self._save_watcher is not None and desired_job_id is not None:
+            self._save_watcher.set_job_state(
+                self.coordinator.job(desired_job_id).status.value
+            )
         publication = self.coordinator.last_success
         durable = self.store.load("last_success")
         if publication is None:
+            freshness = (
+                self._save_watcher.status()
+                if self._save_watcher is not None
+                else {"status": "unavailable"}
+            )
             return {
                 "available": False,
-                "freshness": {"status": "unavailable"},
+                "freshness": freshness,
                 "last_success": asdict(durable),
                 "warning": self._publication_warning,
             }
@@ -321,6 +395,16 @@ class LocalApplication:
         }
         if invalidated:
             freshness["reason"] = self._invalidation_reason
+        if self._save_watcher is not None:
+            watcher = self._save_watcher.status()
+            desired = watcher.get("desired_source_fingerprint")
+            if desired is not None and desired != publication.source_fingerprint:
+                freshness["status"] = "stale"
+                freshness["reason"] = "selected_save_content_changed"
+            elif watcher["status"] in {"detected", "stabilizing", "queued", "analyzing", "failed", "unavailable"}:
+                freshness["status"] = watcher["status"]
+                if "reason" in watcher:
+                    freshness["reason"] = watcher["reason"]
         return {
             "available": True,
             "freshness": freshness,

@@ -297,6 +297,7 @@ def serve_local_application(
         store, ArchetypeCatalogStore(store, config.roles),
         config.classification,
     )
+    application.start_save_watcher()
     server = ThreadingHTTPServer((LOOPBACK_HOST, port), BaseHTTPRequestHandler)
     actual_port = server.server_address[1]
     origin = f"http://{LOOPBACK_HOST}:{actual_port}"
