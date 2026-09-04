@@ -55,3 +55,8 @@ Shutdown cancels queued/stabilizing work, terminates the active child, and never
 publishes its partial result. #98 should expose this state machine without
 running analysis in request handlers. #99 should submit immutable bytes and own
 source stabilization/coalescing notifications.
+
+The local application may call `invalidate_desired()` after a committed durable
+source/configuration mutation. This cancels queued and active pre-mutation work,
+clears the desired generation, and prevents that obsolete snapshot from
+publishing. A later explicit submission establishes the new desired generation.

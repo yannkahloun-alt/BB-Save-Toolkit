@@ -59,6 +59,17 @@ Generate only the HTML report from an existing versioned public JSON dataset:
 python .\bb_analyze.py --render-only .\tests\fixtures\reference_analysis --out .\output
 ```
 
+Run the interactive loopback application (the only browser surface that may
+perform validated durable-state mutations):
+
+```powershell
+python .\bb_analyze.py --serve-app --open-report
+```
+
+The application binds only `127.0.0.1`; its API and security contract are in
+[`docs/LOCAL_APPLICATION_API.md`](docs/LOCAL_APPLICATION_API.md). Generated and
+served reports remain read-only.
+
 Maintainers can also publish the approved JSON scenarios as browser-accessible
 render-only previews; see [docs/WEB_PREVIEWS.md](docs/WEB_PREVIEWS.md).
 Manual approved-save full-application previews are documented in the same guide.

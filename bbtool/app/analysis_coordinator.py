@@ -196,6 +196,12 @@ class AnalysisCoordinator:
         with self._lock:
             return dict(self._retained_artifacts)
 
+    @property
+    def desired_job_id(self) -> int | None:
+        """Newest requested generation, for transport-independent freshness views."""
+        with self._lock:
+            return self._desired_id
+
     def job(self, job_id: int) -> AnalysisJob:
         with self._lock:
             return self._jobs[job_id]
@@ -276,6 +282,25 @@ class AnalysisCoordinator:
                 self._active = None
                 self._active_handle = None
                 self._promote_pending()
+
+    def invalidate_desired(self) -> None:
+        """Prevent every pre-invalidation job from publishing.
+
+        Durable application mutations call this after commit.  The next explicit
+        submission establishes the new desired source/configuration generation.
+        """
+        with self._lock:
+            self._desired_id = None
+            if self._pending is not None:
+                self._pending.status = JobStatus.CANCELLED
+                self._pending = None
+            if self._active is not None and self._active_handle is not None:
+                self._active.status = JobStatus.CANCELLED
+                self._active_handle.terminate()
+                self._active_handle.join()
+                self._active = None
+                self._active_handle = None
+            self._wake.set()
 
     def poll(self) -> None:
         """Advance worker state once; public for deterministic event-loop tests."""
