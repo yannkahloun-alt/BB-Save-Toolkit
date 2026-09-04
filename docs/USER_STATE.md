@@ -34,8 +34,9 @@ disagreeing copies. Explicit recovery operations can repair from one valid
 copy; loss of both copies fails conservatively.
 Preferences contain the selected-save path hint and auto-refresh preference.
 Last-success state contains source/config fingerprints and source/completion
-timestamps. The archetype file is only a versioned catalog container; #96 owns
-custom/override semantics and validation. Paths are preferences/provenance, not
+timestamps. The archetype file is a versioned catalog container whose domain
+semantics are specified in [`USER_ARCHETYPES.md`](USER_ARCHETYPES.md). Paths
+are preferences/provenance, not
 stable domain identity. Downstream persistent build references must use the
 BuildIdentity contract in `docs/BUILD_IDENTITY.md`.
 
