@@ -86,6 +86,7 @@ class AnalysisServiceResult:
     incremental_cache: IncrementalCache
     projection_validation: dict
     recruitment_analysis: list[dict]
+    assigned_builds: Mapping[str, Mapping[str, Any]] | None = None
 
     @property
     def presentation_context(self) -> dict:
@@ -97,6 +98,9 @@ class AnalysisServiceResult:
             "recruitment_analysis": self.recruitment_analysis,
             "result_signatures": self.incremental_cache.publication_signatures(),
             "company_intrinsic_coverage": self.analysis.company_intrinsic_coverage,
+            "company_intended_coverage": self.analysis.company_intended_coverage,
+            "summaries": self.analysis.summaries,
+            "assigned_builds": self.assigned_builds,
         }
 
     @property
@@ -342,6 +346,7 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
             incremental_cache=cache,
             projection_validation=projection_validation,
             recruitment_analysis=recruitment_analysis,
+            assigned_builds=assigned_builds,
         )
     except AnalysisServiceError:
         raise

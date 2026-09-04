@@ -1,6 +1,361 @@
 {
+  "advisors": [
+    {
+      "advice": null,
+      "brother_id": "human:101"
+    },
+    {
+      "advice": null,
+      "brother_id": "human:202"
+    },
+    {
+      "advice": null,
+      "brother_id": "human:303"
+    },
+    {
+      "advice": {
+        "AdvisorEligibleStats": [
+          "HP",
+          "Fatigue",
+          "MAtk",
+          "MDef"
+        ],
+        "AdvisorExcludedStats": {
+          "Initiative": "role weight 0",
+          "RAtk": "role weight 0",
+          "RDef": "role weight 0",
+          "Resolve": "role weight 0"
+        },
+        "AllRolls": {
+          "Fatigue": {
+            "Average": 3.0,
+            "Label": "AVG",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 0.5,
+            "Roll": 3
+          },
+          "HP": {
+            "Average": 3.0,
+            "Label": "MAX",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 1.0,
+            "Roll": 4
+          },
+          "Initiative": {
+            "Average": 4.0,
+            "Label": "AVG",
+            "Max": 5,
+            "Min": 3,
+            "Quality": 0.5,
+            "Roll": 4
+          },
+          "MAtk": {
+            "Average": 2.0,
+            "Label": "MAX",
+            "Max": 3,
+            "Min": 1,
+            "Quality": 1.0,
+            "Roll": 3
+          },
+          "MDef": {
+            "Average": 2.0,
+            "Label": "MAX",
+            "Max": 3,
+            "Min": 1,
+            "Quality": 1.0,
+            "Roll": 3
+          },
+          "RAtk": {
+            "Average": 3.0,
+            "Label": "AVG",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 0.5,
+            "Roll": 3
+          },
+          "RDef": {
+            "Average": 3.0,
+            "Label": "AVG",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 0.5,
+            "Roll": 3
+          },
+          "Resolve": {
+            "Average": 3.0,
+            "Label": "AVG",
+            "Max": 4,
+            "Min": 2,
+            "Quality": 0.5,
+            "Roll": 3
+          }
+        },
+        "Alternative": {
+          "AnchorFitAfterPct": 85.3,
+          "AnchorFitBeforePct": 90.1,
+          "Consequences": {
+            "AssignedBuild": null,
+            "BestFit": {
+              "BuildIdentity": "nimble_frontline_dps",
+              "FitAfterPct": 85.3,
+              "FitBeforePct": 90.1,
+              "FitDeltaPct": -4.8,
+              "FitFeasibilityAfterPct": 0.0,
+              "FitFeasibilityBeforePct": 0.0,
+              "FitLikelyMaxAfterPct": 91.6,
+              "FitLikelyMinAfterPct": 79.4,
+              "FitMaxAfterPct": 91.6,
+              "FitMinAfterPct": 78.2,
+              "Role": "Nimble Frontline DPS"
+            }
+          },
+          "FitDeltaPct": -4.8,
+          "FitFeasibilityAfterPct": 0.0,
+          "FitFeasibilityBeforePct": 0.0,
+          "FitLikelyMaxAfterPct": 91.6,
+          "FitLikelyMinAfterPct": 79.4,
+          "FitMaxAfterPct": 91.6,
+          "FitMinAfterPct": 78.2,
+          "Gamble": {
+            "AvgDownsideWhenLosesPct": 4.8,
+            "AvgUpsideWhenWinsPct": 0.0,
+            "ChanceToBeatPrimaryPct": 0.0,
+            "IsGamble": false,
+            "MaxDownsidePct": 4.8,
+            "MaxUpsidePct": 0.0,
+            "MeanDeltaPct": -4.8,
+            "PrimaryWinsPct": 100.0,
+            "Samples": 512,
+            "TiePct": 0.0
+          },
+          "RoleAfter": "Nimble Frontline DPS",
+          "RoleBefore": "Nimble Frontline DPS",
+          "RollQuality": {
+            "Fatigue": 0.5,
+            "MAtk": 1.0,
+            "MDef": 1.0
+          },
+          "Rolls": {
+            "Fatigue": 3,
+            "MAtk": 3,
+            "MDef": 3
+          },
+          "Stats": [
+            "Fatigue",
+            "MAtk",
+            "MDef"
+          ]
+        },
+        "Anchor": {
+          "AssignmentStatus": "unassigned",
+          "BuildIdentity": "nimble_frontline_dps",
+          "Role": "Nimble Frontline DPS",
+          "Source": "BestFitFallback"
+        },
+        "AnchorRole": "Nimble Frontline DPS",
+        "AssignedBuild": {
+          "AssignedDefinitionHash": null,
+          "BuildIdentity": null,
+          "CurrentDefinitionHash": null,
+          "Status": "unassigned",
+          "ValidAdvisorAnchor": false
+        },
+        "BestFit": {
+          "BuildIdentity": "nimble_frontline_dps",
+          "ProjectedFitPct": 90.1,
+          "Role": "Nimble Frontline DPS"
+        },
+        "CombinationsEvaluated": 4,
+        "ConditionalBranch": null,
+        "DistinctFitDecisionsEvaluated": 2,
+        "FreePickCandidates": [],
+        "FreePickMode": false,
+        "FreePickStats": [],
+        "Method": "Fit-only advisor: score current 3-pick combinations drawn from positively weighted Fit stats using the shared blind trajectory engine; when fewer than three are available, remaining slots are explicit Fit-neutral free picks; paired deterministic scenarios are used only for runner-up gamble diagnostics",
+        "PickReasons": {
+          "HP": "Fit stat · weight 24 · current +4 is MAX",
+          "MAtk": "Fit stat · weight 40 · current +3 is MAX",
+          "MDef": "Fit stat · weight 24 · current +3 is MAX"
+        },
+        "Primary": {
+          "AnchorFitAfterPct": 90.1,
+          "AnchorFitBeforePct": 90.1,
+          "Consequences": {
+            "AssignedBuild": null,
+            "BestFit": {
+              "BuildIdentity": "nimble_frontline_dps",
+              "FitAfterPct": 90.1,
+              "FitBeforePct": 90.1,
+              "FitDeltaPct": 0.0,
+              "FitFeasibilityAfterPct": 0.0,
+              "FitFeasibilityBeforePct": 0.0,
+              "FitLikelyMaxAfterPct": 96.4,
+              "FitLikelyMinAfterPct": 84.2,
+              "FitMaxAfterPct": 96.4,
+              "FitMinAfterPct": 83.0,
+              "Role": "Nimble Frontline DPS"
+            }
+          },
+          "FitDeltaPct": 0.0,
+          "FitFeasibilityAfterPct": 0.0,
+          "FitFeasibilityBeforePct": 0.0,
+          "FitLikelyMaxAfterPct": 96.4,
+          "FitLikelyMinAfterPct": 84.2,
+          "FitMaxAfterPct": 96.4,
+          "FitMinAfterPct": 83.0,
+          "RoleAfter": "Nimble Frontline DPS",
+          "RoleBefore": "Nimble Frontline DPS",
+          "RollQuality": {
+            "HP": 1.0,
+            "MAtk": 1.0,
+            "MDef": 1.0
+          },
+          "Rolls": {
+            "HP": 4,
+            "MAtk": 3,
+            "MDef": 3
+          },
+          "Stats": [
+            "HP",
+            "MAtk",
+            "MDef"
+          ]
+        },
+        "Recommended": {
+          "AnchorFitAfterPct": 90.1,
+          "AnchorFitBeforePct": 90.1,
+          "Consequences": {
+            "AssignedBuild": null,
+            "BestFit": {
+              "BuildIdentity": "nimble_frontline_dps",
+              "FitAfterPct": 90.1,
+              "FitBeforePct": 90.1,
+              "FitDeltaPct": 0.0,
+              "FitFeasibilityAfterPct": 0.0,
+              "FitFeasibilityBeforePct": 0.0,
+              "FitLikelyMaxAfterPct": 96.4,
+              "FitLikelyMinAfterPct": 84.2,
+              "FitMaxAfterPct": 96.4,
+              "FitMinAfterPct": 83.0,
+              "Role": "Nimble Frontline DPS"
+            }
+          },
+          "FitDeltaPct": 0.0,
+          "FitFeasibilityAfterPct": 0.0,
+          "FitFeasibilityBeforePct": 0.0,
+          "FitLikelyMaxAfterPct": 96.4,
+          "FitLikelyMinAfterPct": 84.2,
+          "FitMaxAfterPct": 96.4,
+          "FitMinAfterPct": 83.0,
+          "RoleAfter": "Nimble Frontline DPS",
+          "RoleBefore": "Nimble Frontline DPS",
+          "RollQuality": {
+            "HP": 1.0,
+            "MAtk": 1.0,
+            "MDef": 1.0
+          },
+          "Rolls": {
+            "HP": 4,
+            "MAtk": 3,
+            "MDef": 3
+          },
+          "Stats": [
+            "HP",
+            "MAtk",
+            "MDef"
+          ]
+        },
+        "RunnerUp": {
+          "AnchorFitAfterPct": 85.3,
+          "AnchorFitBeforePct": 90.1,
+          "Consequences": {
+            "AssignedBuild": null,
+            "BestFit": {
+              "BuildIdentity": "nimble_frontline_dps",
+              "FitAfterPct": 85.3,
+              "FitBeforePct": 90.1,
+              "FitDeltaPct": -4.8,
+              "FitFeasibilityAfterPct": 0.0,
+              "FitFeasibilityBeforePct": 0.0,
+              "FitLikelyMaxAfterPct": 91.6,
+              "FitLikelyMinAfterPct": 79.4,
+              "FitMaxAfterPct": 91.6,
+              "FitMinAfterPct": 78.2,
+              "Role": "Nimble Frontline DPS"
+            }
+          },
+          "FitDeltaPct": -4.8,
+          "FitFeasibilityAfterPct": 0.0,
+          "FitFeasibilityBeforePct": 0.0,
+          "FitLikelyMaxAfterPct": 91.6,
+          "FitLikelyMinAfterPct": 79.4,
+          "FitMaxAfterPct": 91.6,
+          "FitMinAfterPct": 78.2,
+          "Gamble": {
+            "AvgDownsideWhenLosesPct": 4.8,
+            "AvgUpsideWhenWinsPct": 0.0,
+            "ChanceToBeatPrimaryPct": 0.0,
+            "IsGamble": false,
+            "MaxDownsidePct": 4.8,
+            "MaxUpsidePct": 0.0,
+            "MeanDeltaPct": -4.8,
+            "PrimaryWinsPct": 100.0,
+            "Samples": 512,
+            "TiePct": 0.0
+          },
+          "RoleAfter": "Nimble Frontline DPS",
+          "RoleBefore": "Nimble Frontline DPS",
+          "RollQuality": {
+            "Fatigue": 0.5,
+            "MAtk": 1.0,
+            "MDef": 1.0
+          },
+          "Rolls": {
+            "Fatigue": 3,
+            "MAtk": 3,
+            "MDef": 3
+          },
+          "Stats": [
+            "Fatigue",
+            "MAtk",
+            "MDef"
+          ]
+        },
+        "SkippedImportant": [
+          {
+            "Core": true,
+            "Reason": "Fit stat · current +3 is AVG for its +2–+4 range",
+            "Roll": {
+              "Average": 3.0,
+              "Label": "AVG",
+              "Max": 4,
+              "Min": 2,
+              "Quality": 0.5,
+              "Roll": 3
+            },
+            "Stat": "Fatigue",
+            "Weight": 12.0
+          }
+        ]
+      },
+      "brother_id": "human:505"
+    },
+    {
+      "advice": null,
+      "brother_id": "human:404"
+    }
+  ],
   "brothers": [
     {
+      "assigned_build": {
+        "assigned_definition_hash": null,
+        "build_identity": null,
+        "current_definition_hash": null,
+        "display_name": null,
+        "status": "unassigned"
+      },
       "brother_id": "human:101",
       "brother_identity": {
         "basis": "native_campaign_entity_token",
@@ -20,6 +375,13 @@
       ]
     },
     {
+      "assigned_build": {
+        "assigned_definition_hash": null,
+        "build_identity": null,
+        "current_definition_hash": null,
+        "display_name": null,
+        "status": "unassigned"
+      },
       "brother_id": "human:202",
       "brother_identity": {
         "basis": "native_campaign_entity_token",
@@ -30,6 +392,13 @@
       "mechanical_facts": []
     },
     {
+      "assigned_build": {
+        "assigned_definition_hash": null,
+        "build_identity": null,
+        "current_definition_hash": null,
+        "display_name": null,
+        "status": "unassigned"
+      },
       "brother_id": "human:303",
       "brother_identity": {
         "basis": "native_campaign_entity_token",
@@ -40,6 +409,13 @@
       "mechanical_facts": []
     },
     {
+      "assigned_build": {
+        "assigned_definition_hash": null,
+        "build_identity": null,
+        "current_definition_hash": null,
+        "display_name": null,
+        "status": "unassigned"
+      },
       "brother_id": "human:505",
       "brother_identity": {
         "basis": "native_campaign_entity_token",
@@ -50,6 +426,13 @@
       "mechanical_facts": []
     },
     {
+      "assigned_build": {
+        "assigned_definition_hash": null,
+        "build_identity": null,
+        "current_definition_hash": null,
+        "display_name": null,
+        "status": "unassigned"
+      },
       "brother_id": "human:404",
       "brother_identity": {
         "basis": "native_campaign_entity_token",
@@ -124,6 +507,314 @@
     "value": 4242
   },
   "company": {
+    "intended_coverage": [
+      {
+        "ArtifactSignature": "sha256:e249529f35d136b848d151e9d66421f86677afc0958994bf6969c9a8a53f4741",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:e81d2071f11daffc5d38221646f61183e98836757ca909916324935aee7491a6",
+        "BuildIdentity": "archer",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:fc19589f1760d243256831018ada43df284f6288d4937854fbe58a467e7faa61",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:651fcc1e533238c5cb1256b077a39c098cf74255387cb1078b081888b04dc612",
+        "BuildIdentity": "banner",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:b878c2d7a4c743f7d1c7c192c7cf24fda2c18a1ab2452698f7723f5d6f695c34",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:5d69d37fb97e30f5628273189551654f3d054b888cd6669fa0894cc10fef1f71",
+        "BuildIdentity": "battle_forged_frontline_dps",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": true,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 3,
+        "NeedBases": [],
+        "ViableAvailability": [
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:101",
+            "BrotherIdentity": "campaign:4242/entity:1001",
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:202",
+            "BrotherIdentity": "campaign:4242/entity:1002",
+            "FitLabel": "GOOD",
+            "FitPct": 88.8
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:505",
+            "BrotherIdentity": "campaign:4242/entity:1004",
+            "FitLabel": "GOOD",
+            "FitPct": 82.9
+          }
+        ]
+      },
+      {
+        "ArtifactSignature": "sha256:062b515b80ad1f0a6c792767d0a9b06068edaef13823109b8ca741a7809a87d8",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:c7ee5fada75c7716e8c292a2f81e5cedd1a08b4b383b175db5570388de8c324c",
+        "BuildIdentity": "battle_forged_tank",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:6336ebc42637cd995d1f99328d7a4c7092327efb0210fab441ea49d61c791b64",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:7bac03f53686e7a0cef0df8cdd68c6a7aed75341b407b252edb43ce68246b27b",
+        "BuildIdentity": "crossbow",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:c60a8628cca062fc29209191d6fb84b3c375f0d65f8b17986022fd4a68a703ce",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:44cfad228a9098b97464755def31f2b5364be16a3e49c0a0020b8501b07511d4",
+        "BuildIdentity": "fat_neutral",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": true,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 1,
+        "NeedBases": [],
+        "ViableAvailability": [
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:101",
+            "BrotherIdentity": "campaign:4242/entity:1001",
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          }
+        ]
+      },
+      {
+        "ArtifactSignature": "sha256:205fb1cfe4bc833d09741512a8a4389cb69f09ecea18c292e4cb31440dcdf8af",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:b0f18e22307a1a67c5e4851c698e666cba9a60441da67f7fa2e0ebed02f88664",
+        "BuildIdentity": "nimble_frontline_dps",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": true,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 3,
+        "NeedBases": [],
+        "ViableAvailability": [
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:101",
+            "BrotherIdentity": "campaign:4242/entity:1001",
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:505",
+            "BrotherIdentity": "campaign:4242/entity:1004",
+            "FitLabel": "GOOD",
+            "FitPct": 90.1
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:202",
+            "BrotherIdentity": "campaign:4242/entity:1002",
+            "FitLabel": "GOOD",
+            "FitPct": 88.4
+          }
+        ]
+      },
+      {
+        "ArtifactSignature": "sha256:f321b2032c5f5f854ff7039d901656c3a0bef21bcc2e4973fa0cbc02c6130469",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:588ee764c0064530ab7454cb512a57f74468957e85995ff8ac19b998d5b0d80a",
+        "BuildIdentity": "nimble_tank",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:a9586294d9ef9f03d10252a5862e6f25b94572619c7ff22fb442587b35d21e07",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:f62a2c76ce3f4641d5603f28599a5d1df059bbe007a0068fb488778fb34f89b7",
+        "BuildIdentity": "reach_dps",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": true,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 3,
+        "NeedBases": [],
+        "ViableAvailability": [
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:101",
+            "BrotherIdentity": "campaign:4242/entity:1001",
+            "FitLabel": "PREMIUM",
+            "FitPct": 100.0
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:505",
+            "BrotherIdentity": "campaign:4242/entity:1004",
+            "FitLabel": "VIABLE",
+            "FitPct": 76.3
+          },
+          {
+            "Availability": "unassigned",
+            "BrotherID": "human:202",
+            "BrotherIdentity": "campaign:4242/entity:1002",
+            "FitLabel": "VIABLE",
+            "FitPct": 71.3
+          }
+        ]
+      },
+      {
+        "ArtifactSignature": "sha256:1a6dae2e5ff8662e43ed3d128da377bd2b977b73ac5fbcb172ce20602e54b683",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:fb399193db6d9aadda6421412201a415329fdf7d87f541e3e9bcd93a1bc8252b",
+        "BuildIdentity": "thrower",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      },
+      {
+        "ArtifactSignature": "sha256:0d22046b19ef6cce2cac681c0b83ea26a5e5f4fe39da1b686ffc6a4a29fe793f",
+        "AssignedBelowViableCount": 0,
+        "AssignedBrothers": [],
+        "AssignedCount": 0,
+        "AssignedViableCount": 0,
+        "BuildDefinitionHash": "sha256:b02eefaee6e2e030578e3dcd5ff194d9291eee61a625408c02497a522c6a4586",
+        "BuildIdentity": "thrower_hybrid",
+        "ContestedViableBackupCount": 0,
+        "FragilityFacts": {
+          "AssignedButNoViableHolder": false,
+          "ContestedBackupOnly": false,
+          "FreeBackupAvailable": false,
+          "MultiHolderDepth": false,
+          "NoIntent": true,
+          "SinglePointOfFailure": false
+        },
+        "FreeViableBackupCount": 0,
+        "NeedBases": [],
+        "ViableAvailability": []
+      }
+    ],
+    "intent_available": true,
     "intrinsic_coverage": [
       {
         "ArtifactSignature": "sha256:1f0c05e1ed1c38ddf027972e4c27ffccac68a7e9b70a832729fcf2ae897b61b2",
@@ -312,14 +1003,8 @@
       }
     ]
   },
-  "pending": {
-    "assigned_build": 107,
-    "intent_aware_advisor": 108,
-    "intent_aware_company_planning": 166,
-    "relevant_roster_need": 112
-  },
   "publication": {
-    "coherence_signature": "sha256:9377761b0196b1980a91344f6abd0f3d3e3158ea2e7299cdce9b5b7c584c9cc0",
+    "coherence_signature": "sha256:cdd211dd19d161a430696b5780ddc9b1f40896f1b129ff7919f0d0630b74c3d2",
     "provenance": {
       "artifact_hashes": {
         "analysis_health": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2",
@@ -335,12 +1020,13 @@
         "classification": "sha256:e5efbf29051cca044a0680c1b5ebfaf0ede966a2845e67797d6e8faf046ad7cc"
       },
       "content_hashes": {
-        "brothers": "sha256:26ef804e1fb305ec18d3d36e36f2b2c269a869fd6901bc12c5bc5eb0c08005a7",
+        "advisors": "sha256:f206e6f598ad8b437acfdea85954e81355f2a52a209e60c9375b34ae5daeb159",
+        "brothers": "sha256:7d6bda987174f81c920be990e5c6e980ce805e65a0936c474a416c024d2041ce",
         "builds": "sha256:8f58b344d76bea55514920ae54bd7d8affa8ea6b5eb2b5b188dd4f517cc5c150",
         "campaign_identity": "sha256:305085d74134d5fbfae8c4f41a9c9c90eb8c601298f4c3c97d0432f403a12588",
-        "company": "sha256:caaf1bc8fb2a72af78bf0a46d67c84e23367126e31c24c0d5ca1c0771a6ccbcc",
-        "pending": "sha256:fb8fae9680dbd70bed1fa5a82893fe91a9724a10dd3bf99a109deab3fa914636",
+        "company": "sha256:2bb320bcc2aa179b1b392f97f03f7bd4eb0df249ca4e5fe895f7fce71f816a22",
         "recruitment": "sha256:af98a408ce2861e320cb8abe79423fb1833010981c361996b54bf3595c1341b2",
+        "relevant_roster_need": "sha256:fc5b96efcc9065040501ca573c1fe27646aa1b7d39f3bb6fa753b6f476d3e2e8",
         "run_health": "sha256:78a9bd8413f61db8fabe47ad6bfa4e771f9500371e63c131bf97f64bbb81bf4e",
         "validity": "sha256:e7790a952b559a3f3acbdf2c9655c6ff80784718494df1c722d6da4a2c745b85"
       },
@@ -491,6 +1177,34 @@
       ],
       "background_save_hash": null,
       "recruit_index": 1
+    }
+  ],
+  "relevant_roster_need": [
+    {
+      "recruit_index": 0,
+      "result": {
+        "artifact_signature": "sha256:98ca1a034c70ab82bff4eb09ac776ac8aaa70d562abb6c31647940da5aba0468",
+        "candidate_plausible_roles": [],
+        "no_match": true,
+        "other_company_gaps": [],
+        "relevant_need": null,
+        "relevant_need_matches": [],
+        "schema": "bbtool.relevant_roster_need.v1"
+      },
+      "state": "available"
+    },
+    {
+      "recruit_index": 1,
+      "result": {
+        "artifact_signature": "sha256:98ca1a034c70ab82bff4eb09ac776ac8aaa70d562abb6c31647940da5aba0468",
+        "candidate_plausible_roles": [],
+        "no_match": true,
+        "other_company_gaps": [],
+        "relevant_need": null,
+        "relevant_need_matches": [],
+        "schema": "bbtool.relevant_roster_need.v1"
+      },
+      "state": "available"
     }
   ],
   "run_health": {

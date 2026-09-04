@@ -83,7 +83,7 @@ def _payloads() -> dict[str, object]:
     }
     cache = IncrementalCache(None, enabled=False)
     result = analyze_brothers(
-        bros, cfg.roles, cfg.classification, cache, brother_identities
+        bros, cfg.roles, cfg.classification, cache, brother_identities, {}
     )
     _decorate_fit_rows(result.fits)
     raw_archetypes = json.loads((ROOT / "config/archetypes.json").read_text(encoding="utf-8"))
@@ -115,6 +115,8 @@ def _payloads() -> dict[str, object]:
         ),
         result_signatures=cache.publication_signatures(),
         company_intrinsic_coverage=result.company_intrinsic_coverage,
+        company_intended_coverage=result.company_intended_coverage,
+        assigned_builds={}, summaries=result.summaries,
         artifact_hashes=artifact_hashes,
     )
     return payloads
