@@ -228,6 +228,13 @@ Its OS-appropriate `UserStateRoot` is outside repository, installation, output,
 manifest, and reference-cache trees. Bounded feature files use typed validation,
 atomic replacement, feature locks, optimistic revisions, explicit migrations,
 and feature-scoped recovery. See [`USER_STATE.md`](USER_STATE.md).
+
+Persistent AssignedBuild state is campaign-global player intent with the exact
+key/value contract `CampaignIdentity + BrotherIdentity -> BuildIdentity` plus
+the last acknowledged `BuildDefinitionHash`. It is a future bounded user-state
+feature owned by #107, not report, cache, or browser-local state. It may affect
+only declared intent-aware consumers and never intrinsic Fit or `BestRole`; see
+[`ASSIGNED_BUILD.md`](ASSIGNED_BUILD.md).
 `bbtool/app/archetype_catalog.py` composes the immutable shipped catalog with
 sparse conflict-detecting overrides, disabled base IDs, complete custom
 definitions, and retired-ID tombstones; see

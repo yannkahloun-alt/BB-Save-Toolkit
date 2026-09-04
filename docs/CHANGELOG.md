@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Finalizes the campaign-global AssignedBuild contract for #107: exact
+  CampaignIdentity/BrotherIdentity keys, durable BuildIdentity plus acknowledged
+  definition hash, conservative lifecycle/migration behavior, and targeted
+  intent-only invalidation without changing intrinsic Fit or BestRole.
 - Establishes exact campaign-local `BrotherIdentity` from the native
   `CampaignIdentity` plus the unique non-zero container entity token preceding
   each `battleBrother` record. Missing, duplicate, malformed, or non-exact
