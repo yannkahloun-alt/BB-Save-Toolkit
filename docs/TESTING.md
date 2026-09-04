@@ -2,161 +2,87 @@
 
 ## Install development dependencies
 
-```powershell
-python -m pip install -r tests\requirements.txt
-```
+    python -m pip install -r tests\requirements.txt
 
-## Routine development / task iteration
+## Routine autonomous tickets: CI-owned quality validation
 
-Run targeted tests for changed behavior and affected modules, followed by lint
-and Ruff. Routine iteration excludes both `coverage_slow` and mutation testing.
+Implementation changes still require deterministic regression coverage where the
+project contract calls for it. Push the coherent change to the named ticket's
+single draft implementation pull request; GitHub Actions is the authoritative
+executor of routine CI-equivalent automated quality validation. Do not normally
+duplicate pytest, Pyflakes, Ruff, coverage, mutation testing, or other static
+analysis locally during autonomous ticket work.
 
-Examples:
+For every exact PR head targeting main, GitHub Actions owns these stable
+merge-readiness checks:
 
-```powershell
-python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest tests/unit/test_incremental_core.py -q
-python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -k advisor -q
-.\run_tests.ps1 parser
-```
+- tests: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+- ruff: .\run_ruff.ps1 -Tests
+- pyflakes: .\run_lint.ps1 -Tests
 
-Changed behavior must still have explicit regression coverage. This policy
-changes when expensive gates run; it does not weaken correctness requirements.
+The stable CI identities are `tests`, `ruff`, and `pyflakes`.
 
-## Pre-merge to main
+CI evidence must be green for the exact current head before independent review
+and merge. A changed implementation head receives new evidence on the same PR;
+it never creates another implementation PR for the named ticket.
 
-Before merging to `main`, run the full normal suite excluding
-`coverage_slow`, lint, and Ruff:
+## Manual, reference, and local-only validation
 
-```powershell
-python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
-.\run_lint.ps1 -Tests
-.\run_ruff.ps1 -Tests
-```
+These commands remain useful for explicit user-directed diagnosis, local
+development, or validation CI cannot reasonably perform. They are not routine
+autonomous-ticket gates:
 
-Pull requests targeting `main` run the same three gates in GitHub Actions as
-the stable checks `tests`, `ruff`, and `pyflakes`.
+    python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not coverage_slow" -q
+    .\run_lint.ps1 -Tests
+    .\run_ruff.ps1 -Tests
+    .\run_coverage.ps1
 
-Branch coverage is temporarily excluded from normal PR CI and the routine
-pre-merge gate because its runtime is too high. The coverage tooling and
-baseline remain intact for explicit local validation and pre-release work. This
-temporary exception must be revisited when a safe optimization is selected.
+Private real-save smoke validation remains local-only when relevant save or game
+data is unavailable to CI. Record its scope and result when it is used. Branch
+coverage is intentionally excluded from normal PR CI; its 89.4% baseline applies
+whenever explicit local or pre-release coverage validation is run.
 
-The independent review required by the shared workflow must verify these three
-checks on the exact current PR head SHA. That operational review does not
-replace any deterministic GitHub check and is not itself a required status
-check in the free single-account design. Generic review execution, exact-head
-invalidation, and fallback isolation are defined only by the shared workflow.
-The reviewer must also confirm that normal PR CI excludes branch coverage,
-`coverage_slow`, mutation testing, real-save smoke tests, and release ZIP
-generation under the documented policies below.
+The independent review required by the shared workflow verifies the stable
+checks on the exact current PR head. It does not replace deterministic GitHub
+checks. Generic review execution, exact-head invalidation, and fallback
+isolation are defined only by the shared workflow. The reviewer also confirms
+that normal PR CI excludes branch coverage, coverage_slow, mutation testing,
+real-save smoke tests, and release ZIP generation.
 
 ## Pre-release / pre-production
 
 Before a release or production handoff, additionally run:
 
-```powershell
-.\run_tests.ps1
-.\run_mutation.ps1 -Target <changed-or-high-risk-module>
-```
+    .\run_tests.ps1
+    .\run_mutation.ps1 -Target <changed-or-high-risk-module>
+    python tools\verify_release_zip.py <release.zip>
 
-`run_tests.ps1` includes `coverage_slow`, but the manually dispatched GitHub
-**Release validation** workflow excludes that marker by default. It runs the
-remaining reproducible tests, coverage, lint, and Ruff gates, then builds and
-verifies the release ZIP and retains it as a downloadable artifact. Its stable
-job results and run summary bind the outcome to the selected ref and exact
-commit SHA. Real-save smoke tests remain local because private game data and
-game files are not available in CI.
-
-Neither `coverage_slow` nor mutation testing is invoked or required by that
-workflow. Both remain separate, explicitly requested pre-release work. Mutation
-campaigns target changed or high-risk areas; broader campaigns such as
-`-Target all` run only when explicitly requested.
-
-The reproducible slow-test performance baseline and its current optimization
-contract are documented in `docs/SLOW_TEST_PERFORMANCE.md`.
-
-## Static analysis
-
-```powershell
-.\run_lint.ps1 -Tests
-.\run_ruff.ps1 -Tests
-```
-
-Both must pass for changed Python code unless a documented repository-wide pre-existing failure exists. Do not introduce new warnings.
-
-## Branch coverage
-
-For parser, projection, scoring, classification, advisor, incremental, trait/permanent-injury, and other correctness-critical changes:
-
-```powershell
-.\run_coverage.ps1
-```
-
-Coverage excludes `coverage_slow` because tracing makes those combinatorial
-tests too expensive. The shared configuration enforces the documented 89.4%
-branch-aware v3.84 baseline whenever coverage is explicitly run.
-
-Coverage percentage alone is not the goal. New branches affecting correctness need explicit assertions.
+run_tests.ps1 includes coverage_slow. The manually dispatched Release validation
+workflow runs reproducible tests excluding that marker, coverage, lint, Ruff,
+and verified release-ZIP packaging. Neither coverage_slow nor mutation testing
+is invoked automatically by that workflow; both remain separate, explicitly
+requested pre-release work. Real-save smoke tests remain local because private
+game data and game files are unavailable in CI.
 
 ## Incremental cache verification
 
-When modifying cache fingerprints, dependencies, identity, engine versions, projection semantics, classification, or advisor behavior, exercise:
+When modifying cache fingerprints, dependencies, identity, engine versions,
+projection semantics, classification, or advisor behavior, exercise:
 
-```powershell
-python .\bb_analyze.py <save.sav> --verify-cache --cache-debug
-```
+    python .\bb_analyze.py <save.sav> --verify-cache --cache-debug
 
-The invariant is:
+The invariant is incremental == independent full recomputation.
 
-```text
-incremental == independent full recomputation
-```
+## Completion evidence for a normal ticket
 
-## Mutation testing (pre-release / pre-production only)
+A normal ticket is ready to merge when:
 
-Mutation testing is not a per-task Definition of Done and must not be started
-automatically during routine implementation or normal pre-merge validation.
+1. changed behavior has deterministic regression coverage where applicable;
+2. the coherent implementation is on the named ticket's one implementation PR;
+3. the CI-owned tests, ruff, and pyflakes checks are green on its exact current head;
+4. the shared-workflow independent review approves that exact head under the project-specific review guard; and
+5. docs/specs are updated if the contract changed.
 
-List available targets, dependency counts, mutant counts, and qualitative cost:
-
-```powershell
-.\run_mutation.ps1 -ListTargets
-```
-
-Run the touched module:
-
-```powershell
-.\run_mutation.ps1 -Target projection/scoring
-.\run_mutation.ps1 -Target incremental/cache
-```
-
-Mutation policy:
-
-- fix every survivor in touched correctness logic or add the missing test that kills it;
-- do not cherry-pick only "interesting" survivors;
-- module/file-oriented campaigns are required for normal pre-release checks;
-- `-Target all` is an orchestrator for an explicitly requested broad campaign.
-
-## Release archive test
-
-A release ZIP must pass:
-
-```powershell
-python tools\verify_release_zip.py <release.zip>
-```
-
-## Definition of done for a bug fix
-
-A bug fix is done when:
-
-1. the bug is reproduced by a test/fixture;
-2. the implementation is corrected;
-3. focused tests pass;
-4. the applicable routine or pre-merge suite passes;
-5. static analysis passes;
-6. relevant tests are exercised, with branch coverage run when explicitly
-   requested or required for pre-release work;
-7. docs/specs are updated if the contract changed.
-
-`coverage_slow` and targeted mutation testing are additional
-pre-release/pre-production gates, not per-task completion requirements.
+coverage_slow, branch coverage, targeted mutation testing, and release ZIP
+validation are explicit local or pre-release/pre-production work, not routine
+ticket CI or local completion requirements.

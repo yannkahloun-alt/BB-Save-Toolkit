@@ -31,6 +31,13 @@ guards, and release procedures.
 Project policy may explicitly specialize shared defaults. It must not silently
 duplicate or contradict them.
 
+For routine autonomous tickets, GitHub PR CI owns execution of the normal
+deterministic suite and static-quality checks. Project documentation records
+the stable check names and their commands as a CI contract; it does not require
+agents to duplicate equivalent local execution before a pull request is
+created or updated. Local-only validation remains available where CI cannot
+reasonably perform it, or when explicitly requested.
+
 ## Initialization and approved selector
 
 Initialize after a clone or in a new worktree:

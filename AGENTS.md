@@ -55,8 +55,8 @@ Before editing, read in order:
 
 Update relevant documentation when a contract changes. Keep one coherent task
 per branch/worktree, inspect existing tests first, add regression tests for bug
-fixes, run the documented gates, review the complete diff, and keep commits
-task-focused.
+fixes, use the CI-owned routine quality gates documented in `docs/TESTING.md`,
+review the complete diff, and keep commits task-focused.
 
 Project-specific test and CI gates are in `docs/TESTING.md`, merge guards are
 in `docs/DEVELOPMENT_WORKFLOW.md`, and release policy is in `docs/RELEASE.md`.
