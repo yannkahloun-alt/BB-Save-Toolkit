@@ -6,8 +6,42 @@ import pytest
 pytestmark=pytest.mark.unit
 import bbtool.projection.trajectory as trajectory
 from bbtool.models import STATS
-from bbtool.html_report import classification_ceiling_html,classification_summary_html,classification_metric_html,classification_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html,optimized_allocation_help_html
+from bbtool.html_report import best_fit_copy_control_html,best_fit_copy_text,classification_ceiling_html,classification_summary_html,classification_metric_html,classification_fit_range_html,current_stat_chips,archetype_detail_body_html,development_focus_html,target_profile_html,fit_measure_help_html,optimized_allocation_help_html
 ROOT=Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize(
+    ("role", "fit", "expected"),
+    [
+        ("BF Tank", 87, "BF Tank 87.0%"),
+        ("Reach DPS", 92.04, "Reach DPS 92.0%"),
+        ("Pure Bow Archer", 74.06, "Pure Bow Archer 74.1%"),
+    ],
+)
+def test_best_fit_copy_text_reuses_displayed_summary_values(role, fit, expected):
+    summary = {"Name": "Must Not Be Copied", "BestRole": role, "ProjectedFitPct": fit}
+
+    assert best_fit_copy_text(summary) == expected
+    assert summary["Name"] not in best_fit_copy_text(summary)
+
+
+def test_best_fit_copy_control_contains_only_exact_escaped_value():
+    summary = {"Name": "Ignored", "BestRole": "Tank & <Shield>", "ProjectedFitPct": 87}
+
+    html = best_fit_copy_control_html(summary)
+
+    assert 'data-copy-text="Tank &amp; &lt;Shield&gt; 87.0%"' in html
+    assert "Ignored" not in html
+    assert "Best Fit:" not in html
+    assert " · " not in html and " - " not in html
+
+
+def test_best_fit_copy_control_uses_shared_browser_behavior():
+    source = (ROOT / "bbtool/report.js").read_text(encoding="utf-8")
+
+    assert 'button.dataset.copyText' in source
+    assert 'navigator.clipboard.writeText(value)' in source
+    assert 'document.execCommand("copy")' in source
 
 def test_strategic_result_classes_consistent():
     p={'Category':'Invest','BestRole':'Nimble Tank','ProjectedFitPct':88.1,'ProjectedFitLikelyMinPct':80,'ProjectedFitLikelyMaxPct':95,'ProjectedFitFullMinPct':70,'ProjectedFitFullMaxPct':105,'FitFeasibilityPct':12.3}
