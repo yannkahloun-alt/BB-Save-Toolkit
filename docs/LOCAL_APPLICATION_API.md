@@ -81,6 +81,8 @@ cannot publish. The previous successful publication remains available as
 explicitly stale until a new requested generation succeeds.
 The application command boundary serializes the short save/config snapshot and
 job submission step against durable mutation commit plus invalidation. Analysis
-itself remains asynchronous in the worker process and never holds this lock.
+result/status reads use the same boundary, so they cannot observe a committed
+mutation before its publication invalidation. Analysis itself remains
+asynchronous in the worker process and never holds this lock.
 No watcher or automatic source stabilization is implemented here; those belong
 to #99. The complete Target UI belongs to #100.

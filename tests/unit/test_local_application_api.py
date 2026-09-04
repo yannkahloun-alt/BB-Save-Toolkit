@@ -378,6 +378,61 @@ def test_snapshot_submit_and_mutation_invalidation_are_serialized(tmp_path):
     assert coordinator.desired_job_id is None
 
 
+def test_result_read_cannot_observe_commit_before_invalidation(tmp_path):
+    publication = SimpleNamespace(
+        generation=3,
+        job_id=7,
+        source_fingerprint="sha256:source",
+        configuration_fingerprints={"archetypes": "sha256:a", "classification": "sha256:c"},
+        artifact_signatures={},
+        result=SimpleNamespace(warnings=[], public_data={"fits": []}),
+    )
+
+    class PublishedCoordinator:
+        last_success = publication
+        desired_job_id = 7
+
+        def shutdown(self):
+            pass
+
+        def invalidate_desired(self):
+            pass
+
+    app = make_application(tmp_path, coordinator=PublishedCoordinator())
+    committed = threading.Event()
+    release_mutation = threading.Event()
+    read_finished = threading.Event()
+    original = app.catalog.set_override
+
+    def pausing_override(*args, **kwargs):
+        result = original(*args, **kwargs)
+        committed.set()
+        assert release_mutation.wait(2)
+        return result
+
+    app.catalog.set_override = pausing_override
+    mutation_thread = threading.Thread(target=lambda: app.mutate_archetypes(
+        "set_override",
+        {"id": "reach_dps", "patch": {"name": "Polearm"}, "expected_revision": 0},
+    ))
+    observed = []
+    read_thread = threading.Thread(
+        target=lambda: (observed.append(app.last_result()), read_finished.set())
+    )
+
+    mutation_thread.start()
+    assert committed.wait(2)
+    read_thread.start()
+    assert not read_finished.wait(0.05)
+    release_mutation.set()
+    mutation_thread.join(2)
+    read_thread.join(2)
+
+    assert read_finished.is_set()
+    assert observed[0]["freshness"]["status"] == "stale"
+    assert observed[0]["freshness"]["reason"] == "effective_archetypes_changed"
+
+
 def test_server_bind_is_fixed_to_ipv4_loopback(monkeypatch, tmp_path):
     observed = {}
 

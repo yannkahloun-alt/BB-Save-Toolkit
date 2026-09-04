@@ -268,6 +268,10 @@ class LocalApplication:
         return self.analysis_job(job_id)
 
     def analysis_job(self, job_id: int) -> dict[str, Any]:
+        with self._command_lock:
+            return self._analysis_job(job_id)
+
+    def _analysis_job(self, job_id: int) -> dict[str, Any]:
         try:
             job = self.coordinator.job(job_id)
         except KeyError as exc:
@@ -288,6 +292,10 @@ class LocalApplication:
         }
 
     def last_result(self) -> dict[str, Any]:
+        with self._command_lock:
+            return self._last_result()
+
+    def _last_result(self) -> dict[str, Any]:
         self._persist_publication()
         publication = self.coordinator.last_success
         durable = self.store.load("last_success")
