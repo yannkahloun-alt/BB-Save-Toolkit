@@ -12,7 +12,7 @@ Start with:
 - `docs/AGENT_WORKFLOW_DEPENDENCY.md` — workflow version, policy boundary, and update procedure;
 - `docs/INVARIANTS.md` — contracts that must not regress;
 - `docs/ARCHITECTURE.md` — current architecture;
-- `docs/DEVELOPMENT_WORKFLOW.md` — branch/worktree workflow;
+- `docs/DEVELOPMENT_WORKFLOW.md` — project-specific development and merge policy;
 - `docs/TESTING.md` — required quality gates;
 - `docs/target-ui/README.md` — validated Target UI product contract and
   repository-local implementation references;

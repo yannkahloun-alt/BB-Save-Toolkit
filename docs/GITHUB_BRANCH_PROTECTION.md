@@ -1,9 +1,8 @@
 # GitHub branch protection
 
 GitHub Actions provides deterministic validation gates for pull requests into
-`main`. Independent Agent B review is orchestrated automatically by Agent A as
-a separate Codex task, as documented in `docs/AGENT_B_REVIEW.md`.
-It is not a GitHub-enforced status check in the free single-account design.
+`main`. The shared workflow orchestrates independent read-only review. Its
+verdict is not a GitHub-enforced status check in the free single-account design.
 Repository owners must configure branch protection separately; workflows do
 not change repository settings.
 
@@ -15,8 +14,8 @@ pattern `main` and enable:
 - **Require branches to be up to date before merging**;
 - the exact required checks `tests`, `ruff`, and `pyflakes`;
 - **zero required approving reviews**; the same human account cannot provide a
-  distinct native approval, and Agent B instead reviews in a separate Codex
-  task;
+  distinct native approval, so the shared workflow supplies the independent
+  operational review gate;
 - **Do not allow bypassing the above settings**, where appropriate for the
   repository owner;
 - **Restrict who can push to matching branches**, so routine changes reach
@@ -28,12 +27,11 @@ temporarily excluded from PR CI and branch protection until its runtime is
 optimized. Configure
 strict/up-to-date checks so success on an old head SHA cannot satisfy a changed
 pull request. Restrict bypass permission to an explicitly documented emergency
-owner path; routine automation identities must not bypass the rule. After the
-separate Codex Agent B task returns `APPROVE`, Agent A verifies the
-exact current head SHA and required checks again, then automatically
-squash-merges.
-GitHub cannot enforce the Agent B verdict without a distinct external identity
-or service.
+owner path; routine automation identities must not bypass the rule. After an
+exact-head `APPROVE`, the coordinator verifies the current head SHA and required
+checks again, then automatically squash-merges.
+GitHub cannot enforce the independent verdict without a distinct external
+identity or service.
 
 The manually dispatched release workflow's stable `release-tests`,
 `release-quality`, `release-package`, and `release-summary` jobs are

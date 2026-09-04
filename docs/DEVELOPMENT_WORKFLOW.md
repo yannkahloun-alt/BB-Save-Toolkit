@@ -1,24 +1,17 @@
 # Development Workflow
 
-Generic role lifecycles and context-isolation rules come from the pinned shared
-workflow described in `docs/AGENT_WORKFLOW_DEPENDENCY.md`. This document defines
-the Battle Brothers Save Toolkit-specific implementation of those rules.
+Generic coordinator, implementation, review, worktree, handoff, freshness, and
+cleanup mechanics come from the pinned shared workflow described in
+`docs/AGENT_WORKFLOW_DEPENDENCY.md`. This document contains only Battle Brothers
+Save Toolkit-specific development policy.
 
 ## Source of truth
 
 Git is the only development source of truth. Do not exchange modified source trees as numbered ZIPs during development.
 
-Recommended local layout:
-
-```text
-BattleBrothers/
-  BB_Save_Toolkit/          # main checkout
-  worktrees/
-    task-identity/
-    task-parser-fix/
-```
-
-Codex may work in a task branch/worktree while the main checkout remains stable.
+The shared-workflow coordinator owns Git and workspace boundaries. Delegated
+implementation and review agents must use the checkout they are assigned and
+must not choose, create, move, or clean up branches or worktrees themselves.
 
 ## Ticket selection and deferral
 
@@ -40,25 +33,9 @@ unless it independently meets the repository's closure rules. Do not post a
 duplicate deferral comment when equivalent current context is already present.
 Do not imply that implementation or validation was completed when it was not.
 
-## Task lifecycle
+## Project implementation rules
 
-### 1. Start from a clean main branch
-
-```powershell
-git status
-git switch main
-git pull --ff-only
-```
-
-For a new task:
-
-```powershell
-git switch -c task/<short-name>
-```
-
-or create a worktree if parallel work is useful.
-
-### 2. Read the contract
+### Read the contract
 
 Before code changes, inspect:
 
@@ -70,11 +47,11 @@ relevant spec in docs/specs/
 existing tests around the target module
 ```
 
-### 3. Reproduce first
+### Reproduce first
 
 For bugs, create or identify a failing test/fixture before changing implementation whenever possible.
 
-### 4. Implement minimally
+### Implement minimally
 
 Prefer changes that preserve module boundaries:
 
@@ -93,13 +70,13 @@ New transports (for example a local HTTP API or hosted worker) must call the
 typed application service in `bbtool/app/analysis_service.py`. They must not
 recreate parser/projection orchestration or infer failures from CLI output.
 
-### 5. Validate incrementally
+### Validate incrementally
 
 Run focused tests during iteration, then the applicable pre-merge gate in
 `docs/TESTING.md`. Do not start `coverage_slow` or mutation testing during
 routine development or normal pre-merge validation.
 
-### 6. Review the diff
+### Review the diff
 
 ```powershell
 git diff --check
@@ -116,7 +93,7 @@ Look specifically for:
 - broad invalidation where a narrower dependency is possible;
 - display names used as technical identity.
 
-### 7. Commit
+### Commit
 
 Use task-oriented messages, for example:
 
@@ -128,20 +105,23 @@ Harden advisor cache invalidation
 
 Avoid meaningless release-style commit names such as `v3.85` during normal development.
 
-### 8. Independent pull-request review
+### Project-specific review and merge guards
 
-After Agent A's adversarial self-review, fixes, and required green CI, Agent A
-marks the PR **Ready for review**. Only then does Agent A automatically create a
-fresh Codex task in an isolated worktree and wait for Agent B to review the
-complete GitHub PR diff at the exact current head SHA. Agent B is strictly
-read-only and returns `DO NOT APPROVE` without a full review if the PR is still
-draft. Every new commit invalidates the old verdict and requires Agent A to
-complete its gates before launching a new Agent B task. The verdict is an
-operational Codex gate rather than a GitHub status check because both agents use
-one human GitHub account and no paid external integration is configured. See
-`docs/AGENT_B_REVIEW.md`. After an exact-head `APPROVE`, Agent A re-fetches
-the PR, verifies that the SHA and required checks are unchanged, and
-automatically squash-merges it.
+The shared workflow owns independent-review dispatch, freshness, exact-head
+invalidation, follow-up review, and fallback isolation. BB-Save requires the
+reviewer to remain read-only and inspect the complete GitHub pull-request diff,
+all commits, and the stable `tests`, `ruff`, and `pyflakes` checks. A draft pull
+request, incomplete evidence, or any verdict other than explicit `APPROVE` for
+the exact current 40-character head SHA fails the operational review gate.
+
+This gate is operational rather than a GitHub status check because the agents
+use one human GitHub account and no paid external review integration is
+configured. After approval, the coordinator must re-fetch the pull request and
+require the head SHA and all required checks to remain unchanged and green,
+then automatically squash-merge. Branch protection must never be changed or
+bypassed as part of this flow. An ordinary issue handoff does not authorize a
+release, deployment, tag, or publication; those remain governed by
+`docs/RELEASE.md`.
 
 ## Branch discipline
 

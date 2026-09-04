@@ -3,8 +3,7 @@
 Battle Brothers Save Toolkit consumes the reusable
 [`codex-agent-workflow`](https://github.com/yannkahloun-alt/codex-agent-workflow)
 repository as the `.agent-workflow` Git submodule. The gitlink recorded by each
-toolkit commit is the authoritative workflow revision; the initial integration
-pins tag `v1.0.0` at commit `a77aa5f7884adaede37e2929ef6ebb28e2862ff1`.
+toolkit commit is the authoritative workflow revision.
 
 ## Why a submodule
 
@@ -21,15 +20,18 @@ command, and GitHub workflows request submodules during checkout.
 
 ## Policy boundary
 
-The shared repository owns generic role lifecycles, context isolation, handoffs,
-instruction precedence, and taskless startup. This repository owns application
-architecture and invariants, concrete tests and CI checks, release procedures,
-issue-history requirements, and the exact single-account Agent B/merge protocol.
+The shared repository owns generic coordinator and role lifecycles, Git and
+worktree ownership, context isolation, independent-review execution and
+exact-head generations, handoffs, pre-ticket freshness and workflow bumps,
+post-merge cleanup, instruction precedence, and taskless startup. This
+repository owns application architecture and invariants, concrete tests and CI
+checks, issue-history requirements, project-specific review criteria and merge
+guards, and release procedures.
 
 Project policy may explicitly specialize shared defaults. It must not silently
 duplicate or contradict them.
 
-## Initialize and update
+## Initialization and approved selector
 
 Initialize after a clone or in a new worktree:
 
@@ -37,16 +39,22 @@ Initialize after a clone or in a new worktree:
 git submodule update --init --recursive
 ```
 
-To update, fetch tags inside `.agent-workflow`, check out a reviewed tag or
-commit, run the toolkit validation gates, and commit the changed gitlink. Do not
+The authoritative upstream is `yannkahloun-alt/codex-agent-workflow`. The
+approved stable selector is the greatest non-prerelease Semantic Version tag in
+the `v1.x` series. The shared workflow owns the pre-ticket freshness and
+dedicated workflow-bump lifecycle that resolves this selector to an exact
+commit, validates and reviews the gitlink-only proposal, merges it under
+BB-Save's guards, refreshes the default branch, and verifies the resulting pin.
+A new major series requires an explicit BB-Save policy change and review. Never
 configure the effective workflow to follow a floating branch.
 
 ## Migration summary
 
 - Generic orchestration, implementation, review, context, handoff, precedence,
   and startup rules moved to the shared repository.
-- Domain invariants, repository commands, CI names, release rules, and the exact
-  Agent B trust boundary remain project-specific.
+- Domain invariants, repository commands, CI names, release rules,
+  issue-history rules, review criteria, and merge guards remain
+  project-specific.
 - `AGENTS.md` and `CODEX_START_HERE.md` were rewritten as concise entry points.
 - Repeated generic lifecycle text was removed from the project entry point;
   project documents now link to the shared policy where appropriate.

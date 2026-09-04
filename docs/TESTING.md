@@ -41,10 +41,14 @@ pre-merge gate because its runtime is too high. The coverage tooling and
 baseline remain intact for explicit local validation and pre-release work. This
 temporary exception must be revisited when a safe optimization is selected.
 
-Agent A additionally launches and waits for an independent Agent B Codex task
-that reviews the exact current PR head SHA. This operational review does not
-replace any of the three deterministic GitHub checks and is not itself a required
-status check in the free single-account design. See `docs/AGENT_B_REVIEW.md`.
+The independent review required by the shared workflow must verify these three
+checks on the exact current PR head SHA. That operational review does not
+replace any deterministic GitHub check and is not itself a required status
+check in the free single-account design. Generic review execution, exact-head
+invalidation, and fallback isolation are defined only by the shared workflow.
+The reviewer must also confirm that normal PR CI excludes branch coverage,
+`coverage_slow`, mutation testing, real-save smoke tests, and release ZIP
+generation under the documented policies below.
 
 ## Pre-release / pre-production
 
