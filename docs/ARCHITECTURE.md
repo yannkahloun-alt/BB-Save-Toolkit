@@ -117,6 +117,15 @@ blind level-11 trajectory/Fit outcome oracle as Brother analysis. Its API has no
 candidate, roster-need, intent, or economy input. See
 [`BACKGROUND_ARCHETYPE_PRIOR.md`](BACKGROUND_ARCHETYPE_PRIOR.md).
 
+### `bbtool/company_planning.py`
+
+Owns presentation-independent intrinsic Company coverage per authoritative
+BuildIdentity. It aggregates existing Brother × Build Fit evidence using the
+configured display thresholds and publishes artifact signatures through the
+central dependency registry. It has no player-intent input; intended coverage,
+availability, fragility, and need facts remain blocked on AssignedBuild. See
+[`COMPANY_PLANNING.md`](COMPANY_PLANNING.md).
+
 ### `bbtool/classification.py` and `bbtool/app/analysis.py`
 
 Classification derives Invest / Use / Fodder / Trash from Fit outputs and configured thresholds. Analysis orchestrates brother × archetype rows, advisor output, and summaries.

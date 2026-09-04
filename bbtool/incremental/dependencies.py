@@ -78,7 +78,11 @@ ARTIFACT_DEPENDENCIES: Mapping[ArtifactKind, ArtifactDependency] = {
         InputKind.ENGINE_SEMANTICS,
     })),
     ArtifactKind.COMPANY_INTRINSIC_COVERAGE: ArtifactDependency(
-        frozenset({InputKind.ROSTER_STATE, InputKind.ENGINE_SEMANTICS}),
+        frozenset({
+            InputKind.ROSTER_STATE,
+            InputKind.CLASSIFICATION_CONFIG,
+            InputKind.ENGINE_SEMANTICS,
+        }),
         frozenset({ArtifactKind.ROLE_PROJECTION}),
     ),
     ArtifactKind.COMPANY_INTENDED_COVERAGE: ArtifactDependency(frozenset({
@@ -111,6 +115,7 @@ ENGINE_VERSIONS: Mapping[ArtifactKind, int] = {
     ArtifactKind.STRATEGIC_CLASSIFICATION: 7,
     ArtifactKind.LEVEL_ADVISOR: 5,
     ArtifactKind.VALIDATION_ORACLE: 2,
+    ArtifactKind.COMPANY_INTRINSIC_COVERAGE: 1,
 }
 
 

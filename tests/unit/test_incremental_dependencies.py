@@ -64,9 +64,10 @@ def test_assigned_build_change_preserves_intrinsic_artifacts_and_closure_is_mini
     assert ArtifactKind.RECRUIT_INTRINSIC_POTENTIAL not in invalid
 
 
-def test_classification_change_preserves_role_projection_but_invalidates_summary_only():
+def test_classification_change_preserves_role_projection_but_invalidates_consumers():
     invalid = recomputation_closure({InputKind.CLASSIFICATION_CONFIG})
     assert ArtifactKind.STRATEGIC_CLASSIFICATION in invalid
+    assert ArtifactKind.COMPANY_INTRINSIC_COVERAGE in invalid
     assert ArtifactKind.ROLE_PROJECTION not in invalid
     assert ArtifactKind.LEVEL_ADVISOR not in invalid
 

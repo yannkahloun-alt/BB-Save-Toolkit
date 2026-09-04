@@ -1,8 +1,9 @@
 """Strategic analysis pipeline: Brother -> Fit role matrix + summary."""
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import time
 from ..classification import classify_bro, fit_label, perk_compatibility, role_sort_key
+from ..company_planning import build_intrinsic_company_coverage
 from ..levelup_advisor import advise_levelup
 from ..projection import (
     effective_stat_profile,
@@ -16,6 +17,7 @@ from ..projection.runtime import PROFILE
 class AnalysisResult:
     fits: list[dict]
     summaries: list[dict]
+    company_intrinsic_coverage: list[dict] = field(default_factory=list)
 
 def _role_row(bro, role: dict, *, fast: bool=False) -> dict:
     projection = project_role_fast(bro, role) if fast else project_role(bro, role)
@@ -44,7 +46,9 @@ def _summary(bro,best,class_cfg,effective_stats,levelup_advice):
         "LevelUpAdvice":levelup_advice,
     }
 
-def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
+def analyze_brothers(
+    bros, roles, class_cfg, incremental_cache=None, brother_identities=None
+):
     fits=[]; summaries=[]
     for bro in bros:
         t=time.perf_counter(); rows=[]
@@ -87,4 +91,11 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
             if incremental_cache is not None:
                 incremental_cache.mark_summary_computed()
                 incremental_cache.store_summary(bro, roles, class_cfg, summary)
-    return AnalysisResult(fits=fits,summaries=summaries)
+    coverage = build_intrinsic_company_coverage(
+        bros, roles, fits, class_cfg, brother_identities
+    )
+    return AnalysisResult(
+        fits=fits,
+        summaries=summaries,
+        company_intrinsic_coverage=coverage,
+    )
