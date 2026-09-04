@@ -118,6 +118,7 @@ ENGINE_VERSIONS: Mapping[ArtifactKind, int] = {
     ArtifactKind.VALIDATION_ORACLE: 2,
     ArtifactKind.COMPANY_INTRINSIC_COVERAGE: 1,
     ArtifactKind.COMPANY_INTENDED_COVERAGE: 1,
+    ArtifactKind.RELEVANT_ROSTER_NEED: 1,
 }
 
 

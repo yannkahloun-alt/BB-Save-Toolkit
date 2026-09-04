@@ -55,6 +55,24 @@ The API accepts no roster or Company input. Extra recruit fields are ignored,
 and tests prove that roster need, assignment, economics, hidden stats, stars,
 and future rolls cannot affect the result.
 
+## Relevant roster need (#112)
+
+`bbtool.relevant_roster_need.v1` is a downstream mixed artifact. It first
+marks a role candidate-plausible when the existing #110/#111 prior or known-
+evidence distribution has mean Fit at or above the configured viable-fit
+threshold. It then intersects that set with #166 `NeedBases` only:
+`assigned_but_no_viable_holder`, `single_point_of_failure`, and
+`contested_backup_only`. `NoIntent` therefore contributes no need.
+
+The result exposes deterministic `relevant_need_matches`, an explicit
+`relevant_need` or `no_match`, and separately inspectable `other_company_gaps`.
+Need bases are ordered by the fixed basis precedence and then BuildIdentity.
+Company intent cannot alter candidate evidence, potential, intrinsic Fit, or
+BestRole. Its signature includes the viability threshold, candidate evidence,
+and distinct authoritative intrinsic-coverage and intended-coverage artifact
+signatures, so either Company input invalidates only this mixed artifact (and
+its transitive dependents). Target presentation integration remains #174.
+
 ## Known prerequisite limits
 
 The current contract has no legitimately public observed base stats or talent
