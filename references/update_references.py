@@ -19,7 +19,7 @@ DOWNLOAD_RETRY_BACKOFF_SECONDS = 0.25
 _TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
 REFERENCE_CACHE_SCHEMAS = {
     "dictionary": "bbtool.enriched_dictionary.v1",
-    "backgrounds": "legacy-unversioned",
+    "backgrounds": "bbtool.backgrounds.v2",
     "perks": "bbtool.perk_effects.v2",
     "traits": "bbtool.trait_effects.v2",
     "permanent_injuries": "bbtool.permanent_injury_effects.v1",
@@ -105,6 +105,31 @@ DAILY_COST_RE = re.compile(
     r'(?:this\.)?m\.DailyCost\s*=\s*(-?\d+(?:\.\d+)?)',
     re.MULTILINE,
 )
+
+BACKGROUND_STAT_PROPERTIES = {
+    "Hitpoints": "HP", "Stamina": "Fatigue", "Bravery": "Resolve",
+    "Initiative": "Initiative", "MeleeSkill": "MAtk",
+    "RangedSkill": "RAtk", "MeleeDefense": "MDef", "RangedDefense": "RDef",
+}
+BACKGROUND_STAT_RANGE_RE = re.compile(
+    r"\b(" + "|".join(BACKGROUND_STAT_PROPERTIES) + r")\s*=\s*\[\s*"
+    r"(-?\d+)\s*,\s*(-?\d+)\s*\]",
+    re.MULTILINE,
+)
+EXCLUDED_TALENTS_RE = re.compile(
+    r"(?:this\.)?m\.ExcludedTalents\s*=\s*\[(.*?)\]", re.DOTALL,
+)
+EXCLUDED_TALENT_ENTRY_RE = re.compile(
+    r"this\.Const\.Attributes\.([A-Za-z]+)"
+)
+UNTALENTED_RE = re.compile(r"(?:this\.)?m\.IsUntalented\s*=\s*true\b")
+TALENT_MUTATION_RE = re.compile(r"(?:getTalents\s*\(|\bm\.Talents\b)")
+CREATE_BACKGROUND_PARENT_RE = re.compile(
+    r"function\s+create\s*\([^)]*\)\s*\{\s*"
+    r"this\.([a-z0-9_]+_background)\.create\s*\(\s*\)\s*;",
+    re.DOTALL,
+)
+CHANGE_ATTRIBUTES_RE = re.compile(r"function\s+onChangeAttributes\s*\(")
 
 
 INHERIT_RE = re.compile(
@@ -240,7 +265,12 @@ def background_dictionary_is_present(
         raw = _read_json(path)
     except (OSError, json.JSONDecodeError):
         return False
-    if not isinstance(raw, dict) or len(raw) < 50:
+    if not isinstance(raw, dict):
+        return False
+    if raw.get("_meta", {}).get("format") != "bbtool.backgrounds.v2":
+        return False
+    entries = raw.get("backgrounds")
+    if not isinstance(entries, dict) or len(entries) < 50:
         return False
     return all(
         isinstance(k, str)
@@ -248,7 +278,7 @@ def background_dictionary_is_present(
         and "HiringCostBase" in v
         and "DailyCostBase" in v
         and "Script" in v
-        for k, v in raw.items()
+        for k, v in entries.items()
     )
 
 
@@ -1185,7 +1215,7 @@ def build_background_dictionary(
     timeout: int = 45,
 ) -> dict:
     """
-    Build background economy refs with inheritance.
+    Build versioned background economy and intrinsic-potential refs.
 
     Child scripts inherit HiringCost/DailyCost from their parent when they do
     not override them. Missing IDs are inferred from the script stem solely as
@@ -1201,6 +1231,7 @@ def build_background_dictionary(
 
     archive_stats = _archive_stats(scripts_archive)
     scripts = {}
+    base_attribute_ranges = None
     scanned_scripts = 0
     decode_failures = 0
 
@@ -1223,6 +1254,7 @@ def build_background_dictionary(
             rel = path.split("/", 1)[-1]
             script_path = rel.removesuffix(".nut")
             parent_match = INHERIT_RE.search(text)
+            create_parent_match = CREATE_BACKGROUND_PARENT_RE.search(text)
             id_match = BACKGROUND_ID_RE.search(text)
             hiring_match = HIRING_COST_RE.search(text)
             daily_match = DAILY_COST_RE.search(text)
@@ -1233,15 +1265,45 @@ def build_background_dictionary(
                 val = float(match.group(1))
                 return int(val) if val.is_integer() else val
 
+            range_matches = BACKGROUND_STAT_RANGE_RE.findall(text)
+            ranges = {
+                BACKGROUND_STAT_PROPERTIES[prop]: [int(lo), int(hi)]
+                for prop, lo, hi in range_matches
+            }
+            if _stem_slug(path) == "character":
+                first_ranges = {}
+                for prop, lo, hi in range_matches:
+                    first_ranges.setdefault(
+                        BACKGROUND_STAT_PROPERTIES[prop], [int(lo), int(hi)]
+                    )
+                if set(first_ranges) == set(BACKGROUND_STAT_PROPERTIES.values()):
+                    base_attribute_ranges = first_ranges
+            excluded_match = EXCLUDED_TALENTS_RE.search(text)
+            excluded = [] if excluded_match is None else [
+                BACKGROUND_STAT_PROPERTIES[prop]
+                for prop in EXCLUDED_TALENT_ENTRY_RE.findall(excluded_match.group(1))
+                if prop in BACKGROUND_STAT_PROPERTIES
+            ]
             scripts[script_path] = {
                 "Script": rel,
                 "ScriptPath": script_path,
                 "SaveHash": battle_brothers_save_hash(script_path),
-                "Parent": parent_match.group(1) if parent_match else None,
+                "Parent": (
+                    parent_match.group(1) if parent_match else
+                    "scripts/skills/backgrounds/" + create_parent_match.group(1)
+                    if create_parent_match else None
+                ),
                 "BackgroundID": id_match.group(1) if id_match else None,
                 "HiringCostBase": num(hiring_match),
                 "DailyCostBase": num(daily_match),
                 "Key": _stem_slug(path),
+                "AttributeOffsets": ranges,
+                "ExcludedTalents": sorted(set(excluded)),
+                "Untalented": bool(UNTALENTED_RE.search(text)),
+                "DefinesExcludedTalents": excluded_match is not None,
+                "DefinesUntalented": bool(UNTALENTED_RE.search(text)),
+                "HasTalentMutation": bool(TALENT_MUTATION_RE.search(text)),
+                "DefinesAttributeOffsets": bool(CHANGE_ATTRIBUTES_RE.search(text)),
             }
 
     parse_seconds = time.perf_counter() - t
@@ -1292,6 +1354,10 @@ def build_background_dictionary(
         daily = rec["DailyCostBase"]
         inherited_hiring = False
         inherited_daily = False
+        offsets = rec["AttributeOffsets"]
+        excluded = rec["ExcludedTalents"]
+        untalented = rec["Untalented"]
+        has_talent_mutation = rec["HasTalentMutation"]
 
         if hiring is None and parent is not None:
             hiring = parent["HiringCostBase"]
@@ -1299,6 +1365,16 @@ def build_background_dictionary(
         if daily is None and parent is not None:
             daily = parent["DailyCostBase"]
             inherited_daily = daily is not None
+        if not rec["DefinesAttributeOffsets"] and parent is not None:
+            offsets = parent["AttributeOffsets"]
+        if not rec["DefinesExcludedTalents"] and parent is not None:
+            excluded = parent["ExcludedTalents"]
+        if not rec["DefinesUntalented"] and parent is not None:
+            untalented = parent["Untalented"]
+        if parent is not None:
+            has_talent_mutation = (
+                has_talent_mutation or parent["HasTalentMutation"]
+            )
 
         resolving.discard(path)
         resolved = {
@@ -1307,6 +1383,10 @@ def build_background_dictionary(
             "DailyCostBase": daily,
             "InheritedHiringCost": inherited_hiring,
             "InheritedDailyCost": inherited_daily,
+            "AttributeOffsets": offsets,
+            "ExcludedTalents": excluded,
+            "Untalented": untalented,
+            "HasTalentMutation": has_talent_mutation,
         }
         memo[path] = resolved
         return resolved
@@ -1348,12 +1428,8 @@ def build_background_dictionary(
                 origin = "local"
             economy_fields[field_name][origin] += 1
 
-        # Keep only entries with both economic fields; unresolved scripts are
-        # tracked but not allowed to masquerade as usable economy refs.
-        if rec["HiringCostBase"] is None or rec["DailyCostBase"] is None:
-            continue
-
-        usable_background_scripts += 1
+        if rec["HiringCostBase"] is not None and rec["DailyCostBase"] is not None:
+            usable_background_scripts += 1
         out[rec["SaveHash"]] = {
             "BackgroundID": background_id,
             "Key": rec["Key"],
@@ -1365,12 +1441,41 @@ def build_background_dictionary(
             "InheritedHiringCost": rec["InheritedHiringCost"],
             "InheritedDailyCost": rec["InheritedDailyCost"],
         }
+        offsets = rec["AttributeOffsets"]
+        if rec["HasTalentMutation"]:
+            out[rec["SaveHash"]]["PotentialUnsupportedReason"] = "talent_mutation"
+        elif set(offsets) == set(BACKGROUND_STAT_PROPERTIES.values()):
+            base = base_attribute_ranges
+            if base is None:
+                raise ValueError("character background base attribute ranges are unresolved")
+            out[rec["SaveHash"]]["PotentialProfile"] = {
+                "level": 1,
+                "stat_ranges": {
+                    stat: [base[stat][0] + offsets[stat][0],
+                           base[stat][1] + offsets[stat][1]]
+                    for stat in base
+                },
+                "excluded_talents": rec["ExcludedTalents"],
+                "untalented": rec["Untalented"],
+            }
+        else:
+            out[rec["SaveHash"]]["PotentialUnsupportedReason"] = (
+                "non_static_attribute_offsets"
+            )
 
     if not out:
         raise ValueError("Generated background dictionary is empty.")
 
     t = time.perf_counter()
-    _write_json(output_path, out)
+    payload = {
+        "_meta": {
+            "format": "bbtool.backgrounds.v2",
+            "source_revision": BB_SCRIPTS_REVISION,
+            "potential_model_inputs": "vanilla_level_1_ranges_and_talent_eligibility",
+        },
+        "backgrounds": out,
+    }
+    _write_json(output_path, payload)
     write_seconds = time.perf_counter() - t
 
     return {

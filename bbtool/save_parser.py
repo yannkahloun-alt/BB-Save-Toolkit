@@ -1668,9 +1668,15 @@ def _load_background_economy(script_dir: Path) -> dict:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise RuntimeError("references/backgrounds.json is invalid.")
+    if raw.get("_meta", {}).get("format") == "bbtool.backgrounds.v2":
+        raw = raw.get("backgrounds")
+    if not isinstance(raw, dict):
+        raise RuntimeError("references/backgrounds.json is invalid.")
 
     out = {}
     for save_hash, rec in raw.items():
+        if rec.get("HiringCostBase") is None or rec.get("DailyCostBase") is None:
+            continue
         out[str(save_hash).upper()] = {
             "HiringCostBase": rec["HiringCostBase"],
             "DailyCostBase": rec["DailyCostBase"],

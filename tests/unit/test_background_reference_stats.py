@@ -1,4 +1,5 @@
 import io
+import json
 import zipfile
 
 from references.update_references import build_background_dictionary
@@ -56,7 +57,8 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
         "decode_failed": 1,
         "resolution_failed": 3,
     }
-    assert stats["backgrounds"] == 2
+    # Potential references are retained independently of economy completeness.
+    assert stats["backgrounds"] == 3
     assert stats["usable_background_scripts"] == 2
     assert stats["unusable_background_scripts"] == 1
     assert stats["economy_fields"] == {
@@ -71,6 +73,9 @@ def test_background_stats_use_exclusive_categories_and_reconcile_scan(tmp_path):
         stats["scripts"]["decoded"] + stats["scripts"]["decode_failed"]
         == stats["scripts"]["scanned"]
     )
+    payload = json.loads((tmp_path / "backgrounds.json").read_text(encoding="utf-8"))
+    assert payload["_meta"]["format"] == "bbtool.backgrounds.v2"
+    assert payload["_meta"]["source_revision"]
 
 
 def test_background_root_may_inherit_from_generic_skill_hierarchy(tmp_path):
@@ -95,3 +100,81 @@ def test_background_root_may_inherit_from_generic_skill_hierarchy(tmp_path):
 
     assert stats["backgrounds"] == 2
     assert stats["scripts"]["resolution_failed"] == 0
+
+
+def test_potential_inputs_derive_base_ranges_and_inherit_static_rules(tmp_path):
+    props = (
+        ("Hitpoints", 50, 60), ("Bravery", 30, 40), ("Stamina", 90, 100),
+        ("MeleeSkill", 47, 57), ("RangedSkill", 32, 42),
+        ("MeleeDefense", 0, 5), ("RangedDefense", 0, 5),
+        ("Initiative", 100, 110),
+    )
+    arrays = b"\n".join(
+        f"{name} = [{lo}, {hi}],".encode() for name, lo, hi in props
+    )
+    zeroes = b"\n".join(f"{name} = [0, 0],".encode() for name, _, _ in props)
+    archive = _background_archive({
+        "character": (
+            b'this.m.ID = "background.character";\nthis.m.HiringCost = 1;\n'
+            b"this.m.DailyCost = 1;\n" + arrays + b"\n" + zeroes
+        ),
+        "parent": (
+            b'this.inherit("scripts/skills/backgrounds/character_background");\n'
+            b'this.m.ID = "background.parent";\nthis.m.HiringCost = 2;\n'
+            b"this.m.DailyCost = 2;\n"
+            b"this.m.ExcludedTalents = [this.Const.Attributes.MeleeSkill];\n"
+            b"function onChangeAttributes() { return {\n" + b"\n".join(
+                f"{name} = [{1 if name == 'MeleeSkill' else 0}, 0],".encode()
+                for name, _, _ in props
+            ) + b"\n}; }\n"
+        ),
+        "child": b'this.inherit("scripts/skills/backgrounds/parent_background");\n',
+        "create_child": (
+            b"function create(this) {\n"
+            b"this.parent_background.create();\n"
+            b'this.new("scripts/items/weapons/knife");\n}\n'
+        ),
+        "fixed_talents": (
+            b'this.inherit("scripts/skills/backgrounds/character_background");\n'
+            b'this.m.ID = "background.fixed_talents";\n'
+            b"this.m.IsUntalented = true;\n"
+            b"function onChangeAttributes() { return {\n" + zeroes + b"\n}; }\n"
+            b"local talents = this.getContainer().getActor().getTalents();\n"
+            b"talents[this.Const.Attributes.RangedSkill] = 2;\n"
+        ),
+    })
+    output = tmp_path / "backgrounds.json"
+    build_background_dictionary(output_path=output, scripts_archive=archive)
+    records = json.loads(output.read_text(encoding="utf-8"))["backgrounds"]
+    child = next(rec for rec in records.values() if rec["Key"] == "child")
+    assert child["PotentialProfile"]["stat_ranges"]["MAtk"] == [48, 57]
+    assert child["PotentialProfile"]["excluded_talents"] == ["MAtk"]
+    create_child = next(
+        rec for rec in records.values() if rec["Key"] == "create_child"
+    )
+    assert create_child["PotentialProfile"] == child["PotentialProfile"]
+    fixed = next(rec for rec in records.values() if rec["Key"] == "fixed_talents")
+    assert "PotentialProfile" not in fixed
+    assert fixed["PotentialUnsupportedReason"] == "talent_mutation"
+
+
+def test_potential_is_retained_when_economy_is_incomplete(tmp_path):
+    props = ("Hitpoints", "Bravery", "Stamina", "MeleeSkill", "RangedSkill",
+             "MeleeDefense", "RangedDefense", "Initiative")
+    ranges = b"\n".join(f"{name} = [0, 0],".encode() for name in props)
+    archive = _background_archive({
+        "character": (
+            b'this.m.ID = "background.character";\n' + ranges + b"\n" + ranges
+        ),
+        "potential_only": (
+            b'this.inherit("scripts/skills/backgrounds/character_background");\n'
+            b'this.m.ID = "background.potential_only";\n' + ranges
+        ),
+    })
+    output = tmp_path / "backgrounds.json"
+    build_background_dictionary(output_path=output, scripts_archive=archive)
+    records = json.loads(output.read_text(encoding="utf-8"))["backgrounds"]
+    row = next(rec for rec in records.values() if rec["Key"] == "potential_only")
+    assert row["PotentialProfile"]
+    assert row["HiringCostBase"] is None
+    assert row["DailyCostBase"] is None
