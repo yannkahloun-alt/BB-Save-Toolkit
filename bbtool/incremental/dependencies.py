@@ -107,10 +107,10 @@ ARTIFACT_DEPENDENCIES: Mapping[ArtifactKind, ArtifactDependency] = {
 # Semantic versions live beside dependency declarations. A formatting-only
 # change must not bump these; a result-affecting engine change must.
 ENGINE_VERSIONS: Mapping[ArtifactKind, int] = {
-    ArtifactKind.ROLE_PROJECTION: 6,
-    ArtifactKind.STRATEGIC_CLASSIFICATION: 6,
-    ArtifactKind.LEVEL_ADVISOR: 4,
-    ArtifactKind.VALIDATION_ORACLE: 1,
+    ArtifactKind.ROLE_PROJECTION: 7,
+    ArtifactKind.STRATEGIC_CLASSIFICATION: 7,
+    ArtifactKind.LEVEL_ADVISOR: 5,
+    ArtifactKind.VALIDATION_ORACLE: 2,
 }
 
 
@@ -204,19 +204,19 @@ def validation_oracle_payload(
 
 
 def strategic_classification_payload(
-    brother_state: Any, build_signatures: Mapping[str, str],
+    brother_state: Any, build_signatures: Any,
     classification: Any, engine_version: int,
 ) -> dict[str, Any]:
     return {
         "brother_state": brother_state,
-        "roles": dict(build_signatures),
+        "roles": build_signatures,
         "classification": classification,
         "engine_version": engine_version,
     }
 
 
 def current_advisor_payload(
-    brother_state: Any, build_signatures: Mapping[str, str], engine_version: int
+    brother_state: Any, build_signatures: Any, engine_version: int
 ) -> dict[str, Any]:
     """Current pre-#108 intrinsic Advisor payload.
 
@@ -225,6 +225,6 @@ def current_advisor_payload(
     """
     return {
         "brother_state": brother_state,
-        "roles": dict(build_signatures),
+        "roles": build_signatures,
         "engine_version": engine_version,
     }

@@ -59,5 +59,6 @@ def test_reused_summary_skips_unused_effective_stat_profile(monkeypatch, bro_fac
     )
     out = an.analyze_brothers([bro_factory(Name='Cached')], [role('A')], {}, Cache())
     assert out.summaries == [{
-        'Name': 'Cached', 'LevelUpAdvice': {'cached': True},
+        'Name': 'Cached', 'BestRole': 'A',
+        'LevelUpAdvice': {'cached': True},
     }]

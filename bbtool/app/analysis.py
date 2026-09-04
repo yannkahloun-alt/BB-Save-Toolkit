@@ -78,6 +78,7 @@ def analyze_brothers(bros,roles,class_cfg,incremental_cache=None):
 
         if cached_summary is not None:
             summary = dict(cached_summary)
+            summary["BestRole"] = best["Role"]
             summary["LevelUpAdvice"] = advice
             summaries.append(summary)
         else:

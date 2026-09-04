@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ..build_identity import build_definition_hash
 from ..models import STATS
 from .dependencies import (
     ArtifactKind, ENGINE_VERSIONS, current_advisor_payload,
@@ -27,7 +28,12 @@ def brother_projection_fingerprint(bro) -> str:
     return stable_hash(brother_projection_state(bro))
 
 def role_fingerprint(role: dict) -> str:
-    return stable_hash(role)
+    return build_definition_hash(role)
+
+
+def role_signature_list(roles) -> list[str]:
+    """Preserve multiplicity without treating identity/display as validity."""
+    return sorted(role_fingerprint(role) for role in roles)
 
 
 def validation_oracle_fingerprint(bro, role: dict) -> str:
@@ -40,7 +46,7 @@ def validation_oracle_fingerprint(bro, role: dict) -> str:
 def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:
     return stable_hash(strategic_classification_payload(
         brother_projection_state(bro),
-        {role["name"]: role_fingerprint(role) for role in roles},
+        role_signature_list(roles),
         classification_cfg, BROTHER_SUMMARY_ENGINE_VERSION,
     ))
 
@@ -51,6 +57,6 @@ ADVISOR_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.LEVEL_ADVISOR]
 def advisor_fingerprint(bro, roles) -> str:
     return stable_hash(current_advisor_payload(
         brother_projection_state(bro),
-        {role["name"]: role_fingerprint(role) for role in roles},
+        role_signature_list(roles),
         ADVISOR_ENGINE_VERSION,
     ))

@@ -21,7 +21,8 @@ def test_stable_build_id_alone_does_not_validate_role_cache(simple_role):
 
 def _manifest(bro,role,result):
     state=brother_projection_fingerprint(bro)
-    return {"schema":"bb-incremental-v1","brothers":{state:{"projection_state_hash":state,"roles":{role["name"]:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":result}}}}}
+    key=IncrementalCache._role_storage_key(role)
+    return {"schema":"bb-incremental-v1","brothers":{state:{"projection_state_hash":state,"roles":{key:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":result}}}}}
 
 def test_exact_role_reuse_and_role_invalidation(bro_factory,simple_role):
     bro=bro_factory();role=simple_role(("HP","Fatigue"));result={"Role":role["name"],"ProjectedFitPct":75.0}
@@ -35,7 +36,8 @@ def test_changed_brother_is_not_reused(bro_factory,simple_role):
 
 def test_ambiguous_identical_state_is_not_reused(bro_factory,simple_role):
     bro=bro_factory();role=simple_role(("HP",));state=brother_projection_fingerprint(bro)
-    entry={"projection_state_hash":state,"roles":{role["name"]:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":{"Role":role["name"]}}}}
+    key=IncrementalCache._role_storage_key(role)
+    entry={"projection_state_hash":state,"roles":{key:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":{"Role":role["name"]}}}}
     cache=IncrementalCache({"schema":"bb-incremental-v1","brothers":{"x":entry,"y":dict(entry)}});assert cache.get_role_row(bro,role) is None;assert cache.stats.ambiguous_states==1
 
 def test_manifest_atomic_write_and_discovery(tmp_path):

@@ -6,7 +6,133 @@ from bbtool.incremental.fingerprint import (
     advisor_fingerprint,
     brother_projection_fingerprint,
     brother_summary_fingerprint,
+    role_fingerprint,
 )
+
+
+def test_cosmetic_build_rename_reuses_all_intrinsic_artifacts_and_matches_full(
+    bro_factory,simple_role,cfg
+):
+    bro=bro_factory(Level=11)
+    original={**simple_role(("HP","MAtk","MDef")),"id":"test_build"}
+    renamed={**original,"name":"Current Display Name"}
+    classification=cfg.classification
+
+    cold_cache=IncrementalCache(None)
+    analysis_module.analyze_brothers([bro],[original],classification,cold_cache)
+    manifest=cold_cache.manifest_payload(generated_at="cold",source_save="same.sav")
+    warm_cache=IncrementalCache(manifest)
+    warm=analysis_module.analyze_brothers([bro],[renamed],classification,warm_cache)
+    full=analysis_module.analyze_brothers([bro],[renamed],classification,None)
+
+    assert warm==full
+    assert warm.fits[0]["Role"]=="Current Display Name"
+    assert warm.summaries[0]["BestRole"]=="Current Display Name"
+    assert warm_cache.stats.role_reused==1
+    assert warm_cache.stats.summary_reused==1
+    assert warm_cache.stats.advisor_reused==1
+    assert warm_cache.get_validation_oracle(bro,renamed) is not None
+
+
+def test_cosmetic_rename_refreshes_reused_advisor_role_labels(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    original={**simple_role(("HP","MAtk","MDef")),"id":"test_build"}
+    renamed={**original,"name":"Renamed"}
+    cache=IncrementalCache(None)
+    cache.store_advisor(bro,[original],{
+        "AnchorRole":original["name"],
+        "Recommended":{"RoleBefore":original["name"],"RoleAfter":original["name"]},
+    })
+    warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
+
+    result=warm.get_advisor(bro,[renamed])
+
+    assert result["AnchorRole"]=="Renamed"
+    assert result["Recommended"]["RoleBefore"]=="Renamed"
+    assert result["Recommended"]["RoleAfter"]=="Renamed"
+
+
+def test_changed_identity_with_unique_semantics_refreshes_advisor_label(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    original={**simple_role(("HP","MAtk","MDef")),"id":"old_id"}
+    replacement={**original,"id":"new_id","name":"Replacement Label"}
+    cache=IncrementalCache(None)
+    cache.store_advisor(bro,[original],{"AnchorRole":original["name"]})
+    warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
+
+    assert warm.get_advisor(bro,[replacement])["AnchorRole"]=="Replacement Label"
+    assert warm.stats.advisor_reused==1
+
+
+def test_malformed_advisor_metadata_is_not_counted_or_carried_forward(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    role={**simple_role(("HP","MAtk","MDef")),"id":"test_build"}
+    cache=IncrementalCache(None)
+    cache.store_advisor(bro,[role],{"AnchorRole":role["name"]})
+    manifest=cache.manifest_payload(generated_at="x",source_save="x")
+    entry=next(iter(manifest["brothers"].values()))
+    entry["advisor"]["role_labels"]="corrupt"
+    warm=IncrementalCache(manifest)
+
+    assert warm.get_advisor(bro,[role]) is None
+    assert warm.stats.advisor_reused==0
+    assert "advisor" not in next(iter(warm._current.values()), {})
+
+
+def test_ambiguous_semantic_association_recomputes_advisor(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    original={**simple_role(("HP","MAtk","MDef")),"id":"old_one"}
+    duplicate={**original,"id":"old_two","name":"Duplicate"}
+    cache=IncrementalCache(None)
+    cache.store_advisor(bro,[original,duplicate],{"AnchorRole":original["name"]})
+    warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
+    alternatives=[
+        {**original,"id":"new_one","name":"One"},
+        {**original,"id":"new_two","name":"Two"},
+    ]
+
+    assert warm.get_advisor(bro,alternatives) is None
+    assert warm.stats.advisor_reused==0
+    assert warm.miss_reasons["advisor_role_association_ambiguous"]==1
+
+
+def test_same_identity_semantic_change_invalidates_only_affected_role(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    affected={**simple_role(("HP",)),"id":"affected","name":"Affected"}
+    unrelated={**simple_role(("MAtk",)),"id":"unrelated","name":"Unrelated"}
+    cache=IncrementalCache(None)
+    cache.store_role_row(bro,affected,{"Role":"Affected"})
+    cache.store_role_row(bro,unrelated,{"Role":"Unrelated"})
+    warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
+    changed={**affected,"stats":{
+        key:dict(value) for key,value in affected["stats"].items()
+    }}
+    changed["stats"]["HP"]["weight"]+=1
+
+    assert warm.get_role_row(bro,changed) is None
+    assert warm.get_role_row(bro,unrelated)["Role"]=="Unrelated"
+
+
+def test_idless_legacy_rename_does_not_guess_cache_association(
+    bro_factory,simple_role
+):
+    bro=bro_factory()
+    original=simple_role(("HP",))
+    cache=IncrementalCache(None)
+    cache.store_role_row(bro,original,{"Role":original["name"]})
+    warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
+
+    assert warm.get_role_row(bro,{**original,"name":"Renamed"}) is None
 
 
 def manifest_with_downstream(bro, roles, class_cfg):
@@ -20,6 +146,11 @@ def manifest_with_downstream(bro, roles, class_cfg):
                 "advisor":{
                     "input_hash":advisor_fingerprint(bro,roles),
                     "engine_version":ADVISOR_ENGINE_VERSION,
+                    "role_labels":[{
+                        "identity":role.get("id"),
+                        "signature":role_fingerprint(role),
+                        "name":role["name"],
+                    } for role in roles],
                     "result":{"Recommended":{"Stats":["HP","MAtk","MDef"]}},
                 },
                 "summary":{

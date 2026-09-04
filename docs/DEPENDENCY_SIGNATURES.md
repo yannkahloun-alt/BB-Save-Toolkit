@@ -35,9 +35,11 @@ change invalidates strategic classification while preserving role projections.
 5. Test direct invalidation, transitive consumers, and unaffected artifacts.
 6. Verify incremental output against an independent full recomputation.
 
-The existing manifest fingerprints retain their serialized payloads through
-compatibility builders in this module. The current Advisor remains intrinsically
-BestRole-anchored until #108; #108 should move it to the declared intent-aware
-signature and supply explicit `None` assignment/build evidence when unassigned.
+The manifest fingerprint payloads use compatibility builders in this module.
+Issue #122 deliberately bumped affected engines when semantic validity stopped
+including build identity/display labels, so older manifests cannot be mistaken
+for the new contract. The current Advisor remains intrinsically BestRole-anchored
+until #108; #108 should move it to the declared intent-aware signature and
+supply explicit `None` assignment/build evidence when unassigned.
 Summary/classification and Advisor artifacts are independently cached and
 validated even though presentation composes `LevelUpAdvice` into each summary.

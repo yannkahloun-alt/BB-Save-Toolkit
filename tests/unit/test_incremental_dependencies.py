@@ -4,10 +4,7 @@ from bbtool.incremental.dependencies import (
     ArtifactKind, InputKind, MissingDependencyEvidence, artifact_is_valid,
     artifact_signature, changed_inputs, recomputation_closure,
 )
-from bbtool.incremental.fingerprint import (
-    ADVISOR_ENGINE_VERSION, advisor_fingerprint, brother_projection_state,
-    role_fingerprint, stable_hash,
-)
+from bbtool.incremental.fingerprint import advisor_fingerprint
 
 
 def _advisor_inputs(*, assignment="reach", definition="definition-a", revision=1):
@@ -29,17 +26,13 @@ def test_unassigned_advisor_has_explicit_deterministic_intent_evidence():
     )
 
 
-def test_current_advisor_bridge_preserves_existing_fingerprint_payload(
+def test_current_advisor_fingerprint_excludes_identity_and_display(
     bro_factory, simple_role
 ):
     bro = bro_factory()
-    roles = [simple_role(("HP", "MAtk", "MDef"))]
-    expected = stable_hash({
-        "brother_state": brother_projection_state(bro),
-        "roles": {role["name"]: role_fingerprint(role) for role in roles},
-        "engine_version": ADVISOR_ENGINE_VERSION,
-    })
-    assert advisor_fingerprint(bro, roles) == expected
+    role = {**simple_role(("HP", "MAtk", "MDef")), "id": "test_build"}
+    renamed = {**role, "id": "replacement_id", "name": "Renamed"}
+    assert advisor_fingerprint(bro, [role]) == advisor_fingerprint(bro, [renamed])
 
 
 def test_signatures_are_deterministic_and_ignore_undeclared_inputs():
