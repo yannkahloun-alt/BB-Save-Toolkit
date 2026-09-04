@@ -54,9 +54,10 @@ def brother_summary_fingerprint(bro, roles, classification_cfg) -> str:
 ADVISOR_ENGINE_VERSION = ENGINE_VERSIONS[ArtifactKind.LEVEL_ADVISOR]
 
 
-def advisor_fingerprint(bro, roles) -> str:
+def advisor_fingerprint(bro, roles, assigned_build=None) -> str:
     return stable_hash(current_advisor_payload(
         brother_projection_state(bro),
         role_signature_list(roles),
+        assigned_build,
         ADVISOR_ENGINE_VERSION,
     ))

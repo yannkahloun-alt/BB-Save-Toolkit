@@ -32,7 +32,7 @@ def test_run_metadata_records_reproducible_environment_and_hashes(tmp_path):
     assert metadata["schemas"]["incremental_cache"] == "bb-incremental-v2"
     assert metadata["engines"] == {
         "role_projection": 7,
-        "advisor": 5,
+        "advisor": 6,
         "summary": 7,
         "validation_oracle": 2,
     }
@@ -89,5 +89,5 @@ def test_run_header_and_resource_summary_are_compact(tmp_path, capsys):
     assert "toolkit v3.88.2" in output
     assert "single-process" in output
     assert "SHA-256" in output
-    assert "engines role_projection=7 · advisor=5 · summary=7" in output
+    assert "engines role_projection=7 · advisor=6 · summary=7" in output
     assert "Peak Python memory:" in output

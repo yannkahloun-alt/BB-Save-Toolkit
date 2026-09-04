@@ -10,7 +10,7 @@
     },
     "classification": {
       "path": "reference-classification.json",
-      "sha256": "803c95597b43e642a7afa9f277e3803eeb750da96fb4641112a4f8f7e9b53866"
+      "sha256": "6f3bd0c25526bc345f507d27637ff09ab14d0314e697c7d323c2633b45e83a8b"
     },
     "classification_config": {
       "path": "reference-classification-config.json",
@@ -18,7 +18,7 @@
     },
     "presentation": {
       "path": "reference-target-presentation.json",
-      "sha256": "daa370ab20a1cbbbaf9eba44324b94cb618011e92a3e90a8b819f0d231cbc469"
+      "sha256": "738afccbc641c20047ecd1f1e1144705392cc76efa3911363c034c859290aee7"
     },
     "recruits": {
       "path": "reference-recruits.json",

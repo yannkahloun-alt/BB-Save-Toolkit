@@ -16,6 +16,25 @@ from ..projection import (
 )
 from ..projection.runtime import PROFILE
 
+
+def _advisor_assignment(bro, brother_identities, assigned_builds):
+    if not assigned_builds or not brother_identities:
+        return None
+    identity = brother_identities.get(str(bro.BrotherID))
+    value = getattr(identity, "value", identity)
+    payload = assigned_builds.get(value) if isinstance(value, str) else None
+    if not isinstance(payload, dict):
+        return None
+    resolved = payload.get("assignment", payload)
+    if not isinstance(resolved, dict):
+        return None
+    return {
+        key: resolved.get(key) for key in (
+            "status", "build_identity", "assigned_definition_hash",
+            "current_definition_hash",
+        )
+    }
+
 @dataclass
 class AnalysisResult:
     fits: list[dict]
@@ -77,13 +96,22 @@ def analyze_brothers(
             rows.append(row)
         PROFILE['base_matrix_s']+=time.perf_counter()-t
         fits.extend(rows); best=_best(rows)
+        advisor_assignment = _advisor_assignment(
+            bro, brother_identities, assigned_builds
+        )
         cached_summary = incremental_cache.get_summary(bro, roles, class_cfg) if incremental_cache is not None else None
-        advice = incremental_cache.get_advisor(bro, roles) if incremental_cache is not None else None
+        advice = incremental_cache.get_advisor(
+            bro, roles, advisor_assignment
+        ) if incremental_cache is not None else None
         if advice is None:
-            t=time.perf_counter(); advice=advise_levelup(bro,roles,rows); PROFILE['advisor_s']+=time.perf_counter()-t
+            t=time.perf_counter(); advice=advise_levelup(
+                bro, roles, rows, advisor_assignment
+            ); PROFILE['advisor_s']+=time.perf_counter()-t
             if incremental_cache is not None:
                 incremental_cache.mark_advisor_computed()
-                incremental_cache.store_advisor(bro, roles, advice)
+                incremental_cache.store_advisor(
+                    bro, roles, advice, advisor_assignment
+                )
 
         if cached_summary is not None:
             summary = dict(cached_summary)

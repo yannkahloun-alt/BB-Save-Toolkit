@@ -35,6 +35,27 @@ def test_current_advisor_fingerprint_excludes_identity_and_display(
     assert advisor_fingerprint(bro, [role]) == advisor_fingerprint(bro, [renamed])
 
 
+def test_advisor_fingerprint_changes_with_effective_assignment_identity_and_definition(
+    bro_factory, simple_role,
+):
+    bro = bro_factory()
+    role = {**simple_role(("HP", "MAtk", "MDef")), "id": "test_build"}
+    first = {
+        "status": "current", "build_identity": "test_build",
+        "assigned_definition_hash": "sha256:first",
+        "current_definition_hash": "sha256:first",
+    }
+    assert advisor_fingerprint(bro, [role], first) != advisor_fingerprint(
+        bro, [role], {**first, "build_identity": "other_build"}
+    )
+    assert advisor_fingerprint(bro, [role], first) != advisor_fingerprint(
+        bro, [role], {
+            **first, "assigned_definition_hash": "sha256:second",
+            "current_definition_hash": "sha256:second",
+        }
+    )
+
+
 def test_signatures_are_deterministic_and_ignore_undeclared_inputs():
     first = _advisor_inputs(revision=1)
     reordered = dict(reversed(list(_advisor_inputs(revision=99).items())))

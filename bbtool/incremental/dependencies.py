@@ -114,7 +114,7 @@ ARTIFACT_DEPENDENCIES: Mapping[ArtifactKind, ArtifactDependency] = {
 ENGINE_VERSIONS: Mapping[ArtifactKind, int] = {
     ArtifactKind.ROLE_PROJECTION: 7,
     ArtifactKind.STRATEGIC_CLASSIFICATION: 7,
-    ArtifactKind.LEVEL_ADVISOR: 5,
+    ArtifactKind.LEVEL_ADVISOR: 6,
     ArtifactKind.VALIDATION_ORACLE: 2,
     ArtifactKind.COMPANY_INTRINSIC_COVERAGE: 1,
     ArtifactKind.COMPANY_INTENDED_COVERAGE: 1,
@@ -223,15 +223,13 @@ def strategic_classification_payload(
 
 
 def current_advisor_payload(
-    brother_state: Any, build_signatures: Any, engine_version: int
+    brother_state: Any, build_signatures: Any, assigned_build: Any,
+    engine_version: int,
 ) -> dict[str, Any]:
-    """Current pre-#108 intrinsic Advisor payload.
-
-    #108 will migrate this bridge to the declared intent-aware signature using
-    explicit ``None`` evidence when no valid assignment exists.
-    """
+    """Normalized intent-aware Advisor evidence for the manifest bridge."""
     return {
         "brother_state": brother_state,
         "roles": build_signatures,
+        "assigned_build": assigned_build,
         "engine_version": engine_version,
     }

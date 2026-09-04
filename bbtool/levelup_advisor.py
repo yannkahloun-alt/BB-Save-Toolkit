@@ -4,6 +4,7 @@ from __future__ import annotations
 import itertools
 from dataclasses import replace
 
+from .build_identity import build_definition_hash, build_identity
 from .models import STATS
 from .projection import gain_range, development_rounds_to_11
 from .projection.trajectory import project_fit_trajectory, compare_fit_trajectories
@@ -88,7 +89,22 @@ def _skipped_important_notes(
     return notes
 
 
-def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
+def _valid_assigned_role(roles: list[dict], assigned_build: dict | None):
+    resolved = (assigned_build or {}).get("assignment", assigned_build or {})
+    identity = resolved.get("build_identity")
+    role = next((item for item in roles if build_identity(item) == identity), None)
+    if (
+        resolved.get("status") != "current" or role is None
+        or resolved.get("assigned_definition_hash") != build_definition_hash(role)
+        or resolved.get("current_definition_hash") != build_definition_hash(role)
+    ):
+        return None, resolved
+    return role, resolved
+
+
+def advise_levelup(
+    bro, roles: list[dict], baseline_rows: list[dict], assigned_build: dict | None = None,
+):
     """Recommend the current 3-pick line by expected final level-11 Fit.
 
     Current picks are restricted to positively weighted Fit stats for the
@@ -103,7 +119,11 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
 
     baseline_best = sorted(baseline_rows, key=role_sort_key, reverse=True)[0]
     role_by_name = {r["name"]: r for r in roles}
-    anchor_role = role_by_name[baseline_best["Role"]]
+    best_fit_role = role_by_name[baseline_best["Role"]]
+    assigned_role, assignment = _valid_assigned_role(roles, assigned_build)
+    anchor_role = assigned_role or best_fit_role
+    row_by_name = {row["Role"]: row for row in baseline_rows}
+    anchor_before = row_by_name[anchor_role["name"]]
     ranked = []
     role_stats = anchor_role.get("stats", {})
     eligible_stats = tuple(
@@ -185,6 +205,26 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
         ranked[1] if len(ranked) > 1 else None,
     )
 
+    def consequence(sim, role, before):
+        trajectory = project_fit_trajectory(
+            sim, role, rounds=development_rounds_to_11(sim),
+        )
+        return {
+            "BuildIdentity": build_identity(role),
+            "Role": role["name"],
+            "FitBeforePct": before["ProjectedFitPct"],
+            "FitAfterPct": trajectory["expected_pct"],
+            "FitDeltaPct": round(
+                trajectory["expected_pct"] - before["ProjectedFitPct"], 1
+            ),
+            "FitMinAfterPct": trajectory["full_min_pct"],
+            "FitMaxAfterPct": trajectory["full_max_pct"],
+            "FitLikelyMinAfterPct": trajectory["likely_min_pct"],
+            "FitLikelyMaxAfterPct": trajectory["likely_max_pct"],
+            "FitFeasibilityBeforePct": before.get("FitFeasibilityPct", 0.0),
+            "FitFeasibilityAfterPct": trajectory["feasibility_pct"],
+        }
+
     def build_candidate(entry):
         if entry is None:
             return None
@@ -193,22 +233,30 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
             stat: round(_roll_quality(bro, stat, changes[stat]), 3)
             for stat in combo
         }
+        consequences = {
+            "BestFit": consequence(sim, best_fit_role, baseline_best),
+            "AssignedBuild": (
+                consequence(sim, assigned_role, row_by_name[assigned_role["name"]])
+                if assigned_role is not None else None
+            ),
+        }
         return {
             "_SimBro": sim,
             "Stats": list(combo),
             "Rolls": changes,
             "RollQuality": qualities,
-            "RoleBefore": baseline_best["Role"],
-            "RoleAfter": baseline_best["Role"],
-            "AnchorFitBeforePct": baseline_best["ProjectedFitPct"],
+            "RoleBefore": anchor_role["name"],
+            "RoleAfter": anchor_role["name"],
+            "AnchorFitBeforePct": anchor_before["ProjectedFitPct"],
             "AnchorFitAfterPct": trajectory["expected_pct"],
             "FitMinAfterPct": trajectory["full_min_pct"],
             "FitMaxAfterPct": trajectory["full_max_pct"],
             "FitLikelyMinAfterPct": trajectory["likely_min_pct"],
             "FitLikelyMaxAfterPct": trajectory["likely_max_pct"],
-            "FitFeasibilityBeforePct": baseline_best.get("FitFeasibilityPct", 0.0),
+            "FitFeasibilityBeforePct": anchor_before.get("FitFeasibilityPct", 0.0),
             "FitFeasibilityAfterPct": trajectory["feasibility_pct"],
-            "FitDeltaPct": round(trajectory["expected_pct"] - baseline_best["ProjectedFitPct"], 1),
+            "FitDeltaPct": round(trajectory["expected_pct"] - anchor_before["ProjectedFitPct"], 1),
+            "Consequences": consequences,
         }
 
     best = build_candidate(primary_entry)
@@ -282,7 +330,28 @@ def advise_levelup(bro, roles: list[dict], baseline_rows: list[dict]):
     )
 
     return {
-        "AnchorRole": baseline_best["Role"],
+        "AnchorRole": anchor_role["name"],
+        "Anchor": {
+            "Source": "AssignedBuild" if assigned_role is not None else "BestFitFallback",
+            "BuildIdentity": build_identity(anchor_role),
+            "Role": anchor_role["name"],
+            "AssignmentStatus": assignment.get("status", "unassigned"),
+        },
+        "AssignedBuild": {
+            "Status": assignment.get("status", "unassigned"),
+            "BuildIdentity": assignment.get("build_identity"),
+            "AssignedDefinitionHash": assignment.get("assigned_definition_hash"),
+            "CurrentDefinitionHash": assignment.get("current_definition_hash"),
+            "ValidAdvisorAnchor": assigned_role is not None,
+        },
+        "BestFit": {
+            "BuildIdentity": build_identity(best_fit_role),
+            "Role": best_fit_role["name"],
+            "ProjectedFitPct": baseline_best["ProjectedFitPct"],
+        },
+        "Primary": best,
+        "RunnerUp": alternative,
+        "ConditionalBranch": None,
         "Recommended": best,
         "Alternative": alternative,
         "PickReasons": reasons,

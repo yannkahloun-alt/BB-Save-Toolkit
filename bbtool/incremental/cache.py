@@ -176,7 +176,7 @@ class IncrementalCache:
     def mark_computed(self):
         self.stats.role_computed += 1
 
-    def get_advisor(self, bro, roles):
+    def get_advisor(self, bro, roles, assigned_build=None):
         entry = self._entry_for_bro(bro)
         if entry is None:
             return None
@@ -187,7 +187,7 @@ class IncrementalCache:
         if prior.get("engine_version") != ADVISOR_ENGINE_VERSION:
             self.miss_reasons["advisor_engine_changed"] += 1
             return None
-        if prior.get("input_hash") != advisor_fingerprint(bro, roles):
+        if prior.get("input_hash") != advisor_fingerprint(bro, roles, assigned_build):
             self.miss_reasons["advisor_inputs_changed"] += 1
             return None
         result = prior.get("result")
@@ -233,7 +233,7 @@ class IncrementalCache:
             if isinstance(value, dict):
                 return {
                     key: rename.get(item, item)
-                    if key in {"AnchorRole", "RoleBefore", "RoleAfter"}
+                    if key in {"AnchorRole", "Role", "RoleBefore", "RoleAfter"}
                     else refresh(item)
                     for key, item in value.items()
                 }
@@ -246,10 +246,10 @@ class IncrementalCache:
         self._current_entry(bro)["advisor"] = dict(prior)
         return refreshed
 
-    def store_advisor(self, bro, roles, result):
+    def store_advisor(self, bro, roles, result, assigned_build=None):
         entry = self._current_entry(bro)
         entry["advisor"] = {
-            "input_hash": advisor_fingerprint(bro, roles),
+            "input_hash": advisor_fingerprint(bro, roles, assigned_build),
             "engine_version": ADVISOR_ENGINE_VERSION,
             "role_labels": [{
                 "identity": build_identity(role),

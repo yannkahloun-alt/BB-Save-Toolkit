@@ -108,6 +108,12 @@ Evaluates legal current 3-stat choices using the same trajectory/Fit model. Know
 The current candidate pool contains only anchor-role stats with `fit: true` and
 `weight > 0`. Roles with fewer than three eligible stats expose the remaining
 slots as Fit-neutral free picks.
+The anchor is a valid current AssignedBuild when one exists, otherwise the
+intrinsic Best Fit is an explicitly labelled fallback. Best Fit remains
+independent and is reported separately. Primary and Runner-up each carry
+backend-computed consequences for both AssignedBuild and Best Fit when those
+roles differ; ConditionalBranch is a distinct optional field rather than a
+display interpretation of Runner-up gamble diagnostics.
 
 ### `bbtool/recruitment_prior.py`
 
