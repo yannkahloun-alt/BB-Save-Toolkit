@@ -63,6 +63,9 @@ normal certificate verification. A valid complete local cache remains the
 preferred fallback: it is validated before any download and is used without a
 network refresh, while a missing or invalid required cache still fails cleanly
 if the bounded download attempts cannot rebuild it.
+Every external input is requested by a version-controlled full commit SHA; the
+source inventory, provenance contract, and intentional upgrade procedure are in
+[`REFERENCE_SOURCES.md`](REFERENCE_SOURCES.md). There is no branch-head fallback.
 
 ### `bbtool/projection/`
 

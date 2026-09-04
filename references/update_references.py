@@ -13,15 +13,6 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-BBEDIT_DICTIONARY_URL = (
-    "https://raw.githubusercontent.com/scarglamour/bb-edit/"
-    "refs/heads/master/src/renderer/js/dictionary.json"
-)
-BB_SCRIPTS_ZIP_URL = (
-    "https://codeload.github.com/ninkjin/"
-    "Battle-Brothers-Scripts/zip/refs/heads/main"
-)
-
 REFERENCE_STATUS_SCHEMA = "bbtool.reference_status.v1"
 DOWNLOAD_MAX_ATTEMPTS = 3
 DOWNLOAD_RETRY_BACKOFF_SECONDS = 0.25
@@ -34,6 +25,42 @@ REFERENCE_CACHE_SCHEMAS = {
     "permanent_injuries": "bbtool.permanent_injury_effects.v1",
     "perk_audit": "bbtool.perk_audit.v1",
 }
+
+# External source upgrades are intentional repository changes. Keep every normal
+# reference-generation input here, addressed by a full immutable commit SHA.
+BBEDIT_DICTIONARY_REVISION = "bdab5a8216090506a33e8263b8fb112ebf12b361"
+BB_SCRIPTS_REVISION = "162f498ac7c49b4c317bbf54718a595ecef6a65a"
+REFERENCE_SOURCES = {
+    "bbedit_dictionary": {
+        "upstream_source": "https://github.com/scarglamour/bb-edit",
+        "immutable_revision": BBEDIT_DICTIONARY_REVISION,
+        "requested_url": (
+            "https://raw.githubusercontent.com/scarglamour/bb-edit/"
+            f"{BBEDIT_DICTIONARY_REVISION}/"
+            "src/renderer/js/dictionary.json"
+        ),
+        "generated_references": ("dictionary",),
+    },
+    "vanilla_scripts": {
+        "upstream_source": "https://github.com/ninkjin/Battle-Brothers-Scripts",
+        "immutable_revision": BB_SCRIPTS_REVISION,
+        "requested_url": (
+            "https://codeload.github.com/ninkjin/Battle-Brothers-Scripts/zip/"
+            f"{BB_SCRIPTS_REVISION}"
+        ),
+        "generated_references": (
+            "dictionary",
+            "backgrounds",
+            "perks",
+            "traits",
+            "permanent_injuries",
+            "perk_audit",
+        ),
+    },
+}
+
+BBEDIT_DICTIONARY_URL = REFERENCE_SOURCES["bbedit_dictionary"]["requested_url"]
+BB_SCRIPTS_ZIP_URL = REFERENCE_SOURCES["vanilla_scripts"]["requested_url"]
 
 HERE = Path(__file__).resolve().parent
 DICTIONARY_OUT = HERE / "dictionary.json"
@@ -292,6 +319,37 @@ def _download_with_provenance(
         "sha256": hashlib.sha256(payload).hexdigest(),
         "seconds": time.perf_counter() - started,
     }
+
+
+def _configured_source_provenance(source_name: str) -> dict:
+    source = REFERENCE_SOURCES[source_name]
+    generated_references = source["generated_references"]
+    return {
+        "source_name": source_name,
+        "upstream_source": source["upstream_source"],
+        "immutable_revision": source["immutable_revision"],
+        "requested_url": source["requested_url"],
+        "generated_reference_schemas": {
+            name: REFERENCE_CACHE_SCHEMAS[name] for name in generated_references
+        },
+    }
+
+
+def _download_reference_source(source_name: str, timeout: int) -> tuple[bytes, dict]:
+    configured = _configured_source_provenance(source_name)
+    try:
+        payload, download = _download_with_provenance(
+            configured["requested_url"],
+            timeout,
+            selected_revision=configured["immutable_revision"],
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to download external reference source {source_name!r} "
+            f"at immutable revision {configured['immutable_revision']} "
+            f"from {configured['requested_url']}."
+        ) from exc
+    return payload, {**download, **configured}
 
 
 def download_reference_dictionary(
@@ -1454,24 +1512,24 @@ def ensure_references(verbose: bool = True) -> dict:
     scripts_archive = None
 
     if not dictionary_ok:
+        bbedit_bytes, bbedit_source = _download_reference_source(
+            "bbedit_dictionary", 20
+        )
         try:
-            bbedit_bytes, bbedit_source = _download_with_provenance(
-                BBEDIT_DICTIONARY_URL, 20, selected_revision="master"
-            )
             bbedit_dictionary = _normalize_dictionary(
                 json.loads(bbedit_bytes.decode("utf-8"))
             )
         except Exception as exc:
-            raise RuntimeError("Failed to download BB-Edit dictionary.") from exc
+            raise RuntimeError(
+                "Downloaded BB-Edit dictionary from immutable revision "
+                f"{bbedit_source['immutable_revision']} is invalid."
+            ) from exc
         download_sources["bbedit_dictionary"] = bbedit_source
         bbedit_seconds = bbedit_source["seconds"]
 
-        try:
-            scripts_archive, scripts_source = _download_with_provenance(
-                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
-            )
-        except Exception as exc:
-            raise RuntimeError("Failed to download vanilla scripts.") from exc
+        scripts_archive, scripts_source = _download_reference_source(
+            "vanilla_scripts", 45
+        )
         download_sources["vanilla_scripts"] = scripts_source
         scripts_download_stats = _archive_stats(scripts_archive)
         scripts_download_stats.update(scripts_source)
@@ -1488,8 +1546,8 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not backgrounds_ok:
         if scripts_archive is None:
-            scripts_archive, scripts_source = _download_with_provenance(
-                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            scripts_archive, scripts_source = _download_reference_source(
+                "vanilla_scripts", 45
             )
             download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
@@ -1505,8 +1563,8 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not perks_ok:
         if scripts_archive is None:
-            scripts_archive, scripts_source = _download_with_provenance(
-                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            scripts_archive, scripts_source = _download_reference_source(
+                "vanilla_scripts", 45
             )
             download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
@@ -1522,8 +1580,8 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not traits_ok:
         if scripts_archive is None:
-            scripts_archive, scripts_source = _download_with_provenance(
-                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            scripts_archive, scripts_source = _download_reference_source(
+                "vanilla_scripts", 45
             )
             download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
@@ -1539,8 +1597,8 @@ def ensure_references(verbose: bool = True) -> dict:
 
     if not permanent_injuries_ok:
         if scripts_archive is None:
-            scripts_archive, scripts_source = _download_with_provenance(
-                BB_SCRIPTS_ZIP_URL, 45, selected_revision="main"
+            scripts_archive, scripts_source = _download_reference_source(
+                "vanilla_scripts", 45
             )
             download_sources["vanilla_scripts"] = scripts_source
             scripts_download_stats = _archive_stats(scripts_archive)
@@ -1601,6 +1659,10 @@ def ensure_references(verbose: bool = True) -> dict:
         "schema": REFERENCE_STATUS_SCHEMA,
         "reference_schemas": dict(REFERENCE_CACHE_SCHEMAS),
         "cache_directory": str(HERE.resolve()),
+        "configured_sources": {
+            name: _configured_source_provenance(name)
+            for name in REFERENCE_SOURCES
+        },
         "download_sources": download_sources,
         "fallback_used": False,
         "final_cache": final_cache,

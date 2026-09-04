@@ -1,8 +1,64 @@
 import hashlib
+import re
 import ssl
 import urllib.error
 
 import references.update_references as refs
+
+
+def test_external_reference_sources_are_explicit_immutable_commits():
+    assert set(refs.REFERENCE_SOURCES) == {
+        "bbedit_dictionary",
+        "vanilla_scripts",
+    }
+    for source in refs.REFERENCE_SOURCES.values():
+        revision = source["immutable_revision"]
+        assert re.fullmatch(r"[0-9a-f]{40}", revision)
+        assert revision in source["requested_url"]
+        assert "refs/heads/" not in source["requested_url"]
+        assert source["upstream_source"].startswith("https://github.com/")
+        assert source["generated_references"]
+
+
+def test_same_configured_revision_always_requests_same_upstream_object(monkeypatch):
+    requested = []
+    monkeypatch.setattr(
+        refs,
+        "_download_bytes",
+        lambda url, timeout: requested.append((url, timeout)) or b"same bytes",
+    )
+
+    first_bytes, first = refs._download_reference_source("vanilla_scripts", 45)
+    second_bytes, second = refs._download_reference_source("vanilla_scripts", 45)
+
+    assert first_bytes == second_bytes
+    assert requested[0][0] == requested[1][0]
+    assert first["immutable_revision"] == second["immutable_revision"]
+    assert first["requested_url"] == second["requested_url"]
+    assert first["sha256"] == second["sha256"]
+
+
+def test_missing_pinned_revision_names_exact_source_without_fallback(monkeypatch):
+    requested = []
+
+    def missing(url, timeout):
+        requested.append(url)
+        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(refs, "_download_bytes", missing)
+
+    try:
+        refs._download_reference_source("bbedit_dictionary", 20)
+    except RuntimeError as exc:
+        source = refs.REFERENCE_SOURCES["bbedit_dictionary"]
+        message = str(exc)
+        assert "bbedit_dictionary" in message
+        assert source["immutable_revision"] in message
+        assert source["requested_url"] in message
+    else:
+        raise AssertionError("expected missing immutable revision to fail")
+
+    assert requested == [refs.BBEDIT_DICTIONARY_URL]
 
 
 def test_download_retries_transient_tls_failure_and_reports_recovery(
@@ -111,6 +167,25 @@ def test_download_provenance_records_revision_size_and_checksum(monkeypatch):
     assert provenance["sha256"] == hashlib.sha256(payload).hexdigest()
 
 
+def test_source_download_provenance_is_complete(monkeypatch):
+    payload = b"deterministic source"
+    monkeypatch.setattr(refs, "_download_bytes", lambda url, timeout: payload)
+
+    _, provenance = refs._download_reference_source("bbedit_dictionary", 20)
+
+    configured = refs.REFERENCE_SOURCES["bbedit_dictionary"]
+    assert provenance["source_name"] == "bbedit_dictionary"
+    assert provenance["upstream_source"] == configured["upstream_source"]
+    assert provenance["immutable_revision"] == configured["immutable_revision"]
+    assert provenance["requested_url"] == configured["requested_url"]
+    assert provenance["selected_revision"] == configured["immutable_revision"]
+    assert provenance["url"] == configured["requested_url"]
+    assert provenance["sha256"] == hashlib.sha256(payload).hexdigest()
+    assert provenance["generated_reference_schemas"] == {
+        "dictionary": refs.REFERENCE_CACHE_SCHEMAS["dictionary"]
+    }
+
+
 def test_cached_reference_status_reports_schemas_paths_and_final_state(
     monkeypatch, tmp_path
 ):
@@ -147,6 +222,10 @@ def test_cached_reference_status_reports_schemas_paths_and_final_state(
     assert status["schema"] == "bbtool.reference_status.v1"
     assert status["reference_schemas"] == refs.REFERENCE_CACHE_SCHEMAS
     assert status["cache_directory"] == str(refs.HERE.resolve())
+    assert status["configured_sources"] == {
+        name: refs._configured_source_provenance(name)
+        for name in refs.REFERENCE_SOURCES
+    }
     assert status["download_sources"] == {}
     assert status["fallback_used"] is False
     assert set(status["final_cache"]) == {
