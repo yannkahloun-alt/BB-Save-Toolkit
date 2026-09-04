@@ -61,10 +61,31 @@ class ShellApplication:
             "id": 7,
             "status": "running",
             "progress": [
-                {"stage": "roster", "status": "completed", "elapsed_seconds": 0.1, "details": {}}
+                {
+                    "stage": "references",
+                    "status": "completed",
+                    "elapsed_seconds": 0.05,
+                    "details": {
+                        "reference_status": {
+                            "cache_directory": "C:/private/reference-cache",
+                            "final_cache": [
+                                {"path": "C:/private/reference-cache/backgrounds.json"}
+                            ],
+                        }
+                    },
+                },
+                {
+                    "stage": "roster",
+                    "status": "completed",
+                    "elapsed_seconds": 0.1,
+                    "details": {"count": 12},
+                },
             ],
-            "error": None,
+            "error": {"internal": "must not leak"},
             "published": False,
+            "source_fingerprint": "sha256:" + "3" * 64,
+            "configuration_fingerprints": {"archetypes": "private-ish"},
+            "artifact_signatures": {"advisor": "private-ish"},
         }
 
 
@@ -113,6 +134,8 @@ def test_shell_navigation_freshness_health_progress_and_accessibility_are_struct
     assert "current: 'Current'" in js
     assert "stale: 'Stale'" in js
     assert "analyzing: 'Analyzing'" in js
+    assert "completed_count" in js
+    assert "latest_stage" in js
     assert "position: sticky" in css
     assert "position: fixed" not in css
     assert "overflow-x: clip" in css
@@ -122,7 +145,7 @@ def test_shell_navigation_freshness_health_progress_and_accessibility_are_struct
     assert ":focus-visible" in css
 
 
-def test_shell_endpoint_composes_bounded_health_freshness_and_progress():
+def test_shell_endpoint_composes_least_privilege_health_freshness_and_progress():
     api = LocalApplicationApi(ShellApplication(), origin=ORIGIN, token="capability")
 
     response = api.handle("GET", "/api/v1/shell", {"Host": HOST})
@@ -130,10 +153,21 @@ def test_shell_endpoint_composes_bounded_health_freshness_and_progress():
 
     assert response.status == 200
     assert set(data) == {"followed_save", "result", "analysis_health", "active_job"}
-    assert data["followed_save"]["name"] == "quicksave.sav"
+    assert data["followed_save"] == {
+        "name": "quicksave.sav",
+        "available": True,
+        "freshness": {
+            "status": "analyzing",
+            "reason": "selected_save_content_changed",
+        },
+    }
+    assert "selected_path" not in data["followed_save"]
+    assert "desired_source_fingerprint" not in data["followed_save"]["freshness"]
     assert set(data["result"]) == {"available", "freshness"}
-    assert data["result"]["freshness"]["status"] == "stale"
-    assert data["result"]["freshness"]["reason"] == "selected_save_content_changed"
+    assert data["result"]["freshness"] == {
+        "status": "stale",
+        "reason": "selected_save_content_changed",
+    }
     assert data["analysis_health"]["schema"] == "bbtool.analysis_health.v1"
     assert data["analysis_health"]["status"] == "degraded"
     assert data["analysis_health"]["counts"]["result_affecting_warnings"] == 1
@@ -141,9 +175,24 @@ def test_shell_endpoint_composes_bounded_health_freshness_and_progress():
         {"code": "recoverable_parsing_failures", "count": 1}
     ]
     assert "recoverable_parsing_failure_sample" not in data["analysis_health"]
-    assert data["active_job"]["id"] == 7
-    assert data["active_job"]["status"] == "running"
-    assert data["active_job"]["progress"][0]["stage"] == "roster"
+    assert data["active_job"] == {
+        "id": 7,
+        "status": "running",
+        "progress": {
+            "completed_count": 2,
+            "latest_stage": "roster",
+            "latest_status": "completed",
+        },
+    }
+    serialized = json.dumps(data)
+    for private_value in (
+        "C:/private/quicksave.sav",
+        "C:/private/reference-cache",
+        "backgrounds.json",
+        "must not leak",
+        "private-ish",
+    ):
+        assert private_value not in serialized
 
 
 def test_unknown_static_path_does_not_become_filesystem_access():
