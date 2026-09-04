@@ -1,0 +1,2346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BB Save Toolkit — Company + Brother Target UI Prototype v16</title>
+<style>
+:root{--bg:#0b1016;--panel:#131a23;--panel2:#18212c;--panel3:#202b39;--line:#2b3747;--soft:#202a37;--text:#e8eef5;--muted:#99a8ba;--faint:#6e7d90;--accent:#d1aa5e;--accent2:#efd08f;--good:#70b68e;--warn:#d7aa5f;--danger:#c87373;--blue:#7ba8d8;--radius:12px;
+  --shell-h:96px;
+  --bro-dock-h:58px;--shadow:0 20px 50px rgba(0,0,0,.28)}
+*{box-sizing:border-box}
+html{max-width:100%;overflow-x:visible}body{max-width:100%;overflow-x:clip}
+.card,.bro-grid,.bro-hero,.stack{min-width:0}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 18% 0%,rgba(89,102,128,.12),transparent 34rem),var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{color:inherit}h1,h2,h3,p{margin-top:0}h1{font-size:30px;margin-bottom:6px}h2{font-size:20px;margin-bottom:5px}h3{font-size:14px;margin-bottom:7px}.subtle{color:var(--muted)}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:11px;color:var(--accent2);font-weight:850}
+.shell{position:sticky;top:0;z-index:50;background:rgba(11,16,22,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.shell-inner{max-width:1500px;margin:auto;padding:12px 22px 0}.runbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:18px;padding-bottom:11px}.brand{text-transform:uppercase;letter-spacing:.16em;color:var(--accent2);font-size:11px;font-weight:850}.run-title{display:flex;gap:10px;align-items:baseline;margin-top:4px;min-width:0}.run-title strong{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.run-title span{font-size:12px;color:var(--muted)}.health{display:flex;gap:9px;align-items:center;border:1px solid #654f32;background:#211a11;border-radius:10px;padding:8px 11px;cursor:pointer;color:#f0d49b}.health-dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px rgba(215,170,95,.14)}.topnav{display:flex;gap:4px;min-height:42px}.nav-btn{border:0;background:transparent;color:var(--muted);font-weight:800;padding:11px 16px 12px;border-bottom:2px solid transparent;cursor:pointer}.nav-btn.active{color:var(--text);border-bottom-color:var(--accent)}.count{display:inline-block;margin-left:5px;background:var(--accent);color:#15110a;border-radius:99px;padding:0 6px;font-size:11px}
+.page{max-width:1500px;margin:auto;padding:24px 22px 56px}.workspace{display:none}.workspace.active{display:block}.workspace-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:8px 11px;font-weight:750;cursor:pointer}.btn:hover{border-color:#4b5a70}.btn.active{border-color:#77613c;background:#2a2317;color:#f0d59a}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.kpi{background:var(--panel);border:1px solid var(--soft);border-radius:var(--radius);padding:14px 15px}.kpi .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.kpi .value{font-size:23px;font-weight:850;margin-top:4px}.kpi .note{font-size:12px;color:var(--faint)}
+.card{background:var(--panel);border:1px solid var(--soft);border-radius:var(--radius);box-shadow:0 1px 0 rgba(255,255,255,.01)}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 15px;border-bottom:1px solid var(--soft)}.card-body{padding:14px 15px}.company-layout{display:grid;grid-template-columns:minmax(560px,1.45fr) minmax(360px,.8fr);gap:16px}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.search{min-width:190px;border:1px solid var(--line);background:#0f151d;color:var(--text);border-radius:8px;padding:8px 10px}.segment{display:flex;padding:3px;border:1px solid var(--line);background:#0e141b;border-radius:9px}.segment button{border:0;background:transparent;color:var(--muted);padding:6px 9px;border-radius:6px;cursor:pointer;font-weight:750;font-size:12px}.segment button.active{background:var(--panel3);color:var(--text)}
+.roster{display:flex;flex-direction:column}.bro-row{display:grid;grid-template-columns:minmax(170px,1.1fr) minmax(120px,.8fr) minmax(120px,.8fr) 70px 78px;gap:10px;align-items:center;padding:11px 15px;border-top:1px solid var(--soft);cursor:pointer}.bro-row:first-child{border-top:0}.bro-row:hover{background:#151e28}.bro-main{min-width:0}.name-line{display:flex;align-items:center;gap:7px;min-width:0}.bro-name{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bro-meta{font-size:12px;color:var(--muted);margin-top:2px}.role-label{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em}.role-value{font-weight:780;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mismatch{color:#f0ce8d}.score{font-weight:850;font-variant-numeric:tabular-nums}.prob{color:var(--muted);font-variant-numeric:tabular-nums}.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);margin-right:4px}.tag{display:inline-flex;align-items:center;border:1px solid var(--line);background:#222d3b;border-radius:999px;padding:3px 7px;font-size:11px;color:#cbd7e3}.tag.gold{border-color:#5d4b30;background:#211a12;color:#e8cb91}.tag.warn{border-color:#67483a;background:#291c17;color:#e1ab8f}.tag.blue{border-color:#36516d;background:#162333;color:#aacbed}
+.coverage-list{display:flex;flex-direction:column;gap:12px}.coverage-item{display:grid;grid-template-columns:minmax(120px,1fr) 82px 82px;gap:9px;align-items:center}.coverage-name{font-weight:850}.coverage-metric{font-size:12px;color:var(--muted)}.coverage-metric b{font-size:14px;color:var(--text)}.bar{height:7px;background:#0d131a;border-radius:99px;overflow:hidden;margin-top:4px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#8e7346,#d1aa5e)}.insight{border:1px solid var(--line);background:#111820;border-radius:10px;padding:11px 12px;margin-top:10px}.insight strong{display:block;margin-bottom:3px}.insight p{margin:0;color:var(--muted);font-size:12px}
+.matrix-wrap{overflow:auto;max-height:570px}.table{width:100%;border-collapse:separate;border-spacing:0;min-width:820px}.table th,.table td{padding:9px 10px;border-bottom:1px solid var(--soft);border-right:1px solid var(--soft);text-align:center;font-size:12px}.table th{position:sticky;top:0;background:#19222d;color:#c9d4e0;z-index:2}.table th:first-child,.table td:first-child{position:sticky;left:0;text-align:left;background:#151d26;z-index:1}.table th:first-child{background:#1a232e;z-index:3}.cell-fit{font-weight:850}.cell-p{display:block;color:var(--faint);font-size:10px}
+.brother-shell{display:none}.brother-shell.active{display:block}.brother-dock{position:sticky;top:var(--shell-h);z-index:35;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -22px 18px;padding:10px 22px}.brother-dock-inner{max-width:1456px;margin:auto;display:flex;gap:10px;align-items:center}.bro-select{min-width:220px;max-width:330px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;padding:8px 10px}.anchor-nav{display:flex;gap:4px;overflow:auto}.anchor-nav a{text-decoration:none;color:var(--muted);font-size:12px;font-weight:750;padding:8px 9px;border-radius:7px;white-space:nowrap}.anchor-nav a:hover{background:var(--panel2);color:var(--text)}
+.bro-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(440px,.85fr);gap:16px;margin-bottom:16px}.identity-card{padding:18px}.hero-name{font-size:30px;font-weight:880;margin:4px 0 3px}.hero-meta{color:var(--muted)}.hero-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.intent-card{padding:16px}.intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.intent-box{border:1px solid var(--line);background:#101720;border-radius:10px;padding:12px}.intent-box .title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.intent-box .big{font-size:18px;font-weight:850;margin-top:3px}.intent-box .small{color:var(--faint);font-size:12px;margin-top:3px}.note{border-left:3px solid var(--accent);background:#17140f;padding:10px 12px;border-radius:6px;color:#d9c59e;font-size:12px}.bro-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:16px;align-items:start}.stack{display:flex;flex-direction:column;gap:16px}.section-card{scroll-margin-top:165px}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stat{border:1px solid var(--line);background:#101720;border-radius:9px;padding:9px 10px}.stat .sname{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.stat .svalue{font-size:19px;font-weight:850;margin-top:2px}.stars{color:var(--accent);font-size:11px;letter-spacing:1px}.list-chips{display:flex;gap:7px;flex-wrap:wrap}.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gear-slot{border:1px solid var(--line);background:#101720;border-radius:9px;padding:10px}.gear-slot .slot{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em}.gear-slot .item{font-weight:850;margin-top:3px}.gear-slot .detail{font-size:12px;color:var(--muted);margin-top:2px}.fatigue-line{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.fatigue-box{text-align:center;border:1px solid var(--line);border-radius:8px;padding:8px}.fatigue-box span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}.fatigue-box b{font-size:17px}.mechanic{display:grid;grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:10px;padding:9px 0;border-top:1px solid var(--soft)}.mechanic:first-child{border-top:0;padding-top:0}.mechanic .mname{font-weight:850}.mechanic .mstate{font-weight:780}.mechanic .mbasis{font-size:12px;color:var(--muted);margin-top:2px}
+.role-cards{display:flex;flex-direction:column;gap:8px}.role-card{border:1px solid var(--line);background:#101720;border-radius:10px;overflow:hidden}.role-summary{display:grid;grid-template-columns:minmax(130px,1fr) 76px 90px 28px;gap:10px;align-items:center;padding:11px 12px;cursor:pointer}.role-summary:hover{background:#151e29}.role-name{font-weight:850}.role-detail{display:none;border-top:1px solid var(--soft);padding:12px}.role-card.open .role-detail{display:block}.chev{transition:.15s transform}.role-card.open .chev{transform:rotate(90deg)}.explain-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.explain-cell{border:1px solid var(--line);border-radius:8px;padding:8px;background:#0e151d}.explain-cell span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase}.explain-cell b{font-size:15px}.timeline{display:flex;flex-direction:column;gap:8px}.step{border-left:2px solid #3e4b5d;padding:2px 0 2px 12px}.step b{display:block}.step span{font-size:12px;color:var(--muted)}
+.placeholder{min-height:360px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:var(--radius);color:var(--muted);background:rgba(19,26,35,.55);text-align:center;padding:28px}.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(3,5,8,.72);align-items:flex-start;justify-content:center;padding:100px 20px 20px}.modal.open{display:flex}.modal-card{width:min(620px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+@media(max-width:1100px){.summary-grid{grid-template-columns:repeat(2,1fr)}.company-layout,.bro-hero,.bro-grid{grid-template-columns:1fr}.bro-row{grid-template-columns:minmax(170px,1fr) minmax(120px,.8fr) minmax(120px,.8fr) 72px}.prob-col{display:none}}
+@media(max-width:760px){.shell-inner,.page{padding-left:14px;padding-right:14px}.runbar{grid-template-columns:1fr}.health{justify-self:start}.workspace-head{flex-direction:column}.toolbar{justify-content:flex-start}.summary-grid{grid-template-columns:1fr 1fr}.bro-row{grid-template-columns:minmax(0,1fr) 80px}.assigned-col,.best-col,.prob-col{display:none}.brother-dock{top:var(--shell-h);margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}.brother-dock-inner{align-items:flex-start;flex-wrap:wrap}.anchor-nav{width:100%}.intent-grid,.gear-grid,.fatigue-line{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,1fr)}.explain-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* v4 stabilization overrides */
+:root{--shell-h:0px;--bro-dock-h:0px}
+.section-card{scroll-margin-top:calc(var(--shell-h) + var(--bro-dock-h) + 14px)}
+.mobile-anchor-nav{display:none}
+.pending-action{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 0 16px;
+  padding:11px 13px;
+  border:1px solid #664c2d;
+  background:#1d1710;
+  border-radius:10px
+}
+.pending-action span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.planning-list{display:flex;flex-direction:column}
+.planning-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--soft)}
+.planning-row:first-child{border-top:0;padding-top:0}
+.planning-row strong{display:block}
+.planning-row span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.link-insight{display:block;width:100%;text-align:left;color:inherit;cursor:pointer}
+.link-insight:hover{border-color:#4b5a70}
+.role-summary{grid-template-columns:minmax(130px,1fr) 70px 78px 88px 24px}
+.fit-col{min-width:0}
+
+@media(max-width:1100px){
+  .bro-grid{grid-template-columns:1fr}
+  .bro-grid>aside.stack{margin-top:0}
+  .pending-action{display:flex}
+}
+
+@media(max-width:760px){
+  .shell-inner{padding:6px 14px 0}
+  .runbar{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding-bottom:5px}
+  .brand{display:none}
+  .run-title{margin-top:0}
+  .run-title strong{font-size:15px}
+  .run-title span{display:none}
+  .health{padding:6px 8px;gap:6px}
+  .health span:last-child{font-size:0}
+  .health span:last-child strong{font-size:11px}
+  .topnav{min-height:36px;overflow-x:auto}
+  .nav-btn{padding:8px 10px 9px;white-space:nowrap}
+  .page{padding:16px 14px 44px}
+  .workspace-head{gap:10px;margin-bottom:12px}
+  .workspace-head h1{font-size:25px}
+  .workspace-head p{margin-bottom:0}
+  .toolbar{width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .toolbar .btn{white-space:nowrap}
+  .roster-head{align-items:flex-start;flex-direction:column}
+  .filters,.search{width:100%;min-width:0}
+
+  .bro-row{
+    grid-template-columns:minmax(0,1fr) minmax(82px,.55fr);
+    grid-template-areas:
+      "main fit"
+      "assigned best";
+    gap:8px 12px;
+    padding:12px 13px
+  }
+  .bro-main{grid-area:main}
+  .assigned-col{grid-area:assigned;display:block!important}
+  .best-col{grid-area:best;display:block!important}
+  .fit-col{grid-area:fit;display:block!important}
+  .prob-col{display:none!important}
+  .role-value{white-space:normal;line-height:1.25}
+  .bro-row .role-label{font-size:9px}
+
+  .brother-dock{
+    top:var(--shell-h);
+    margin:0 -14px 10px;
+    padding:6px 14px;
+    background:rgba(11,16,22,.99)
+  }
+  .brother-dock-inner{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    gap:7px;
+    align-items:center
+  }
+  .brother-dock .anchor-nav{display:none}
+  .bro-select{min-width:0;max-width:none;width:100%;padding:7px 8px}
+  .brother-dock .btn{padding:7px 9px}
+  .mobile-anchor-nav{
+    display:flex;
+    overflow-x:auto;
+    gap:4px;
+    margin:0 0 10px;
+    padding:0 1px 3px
+  }
+  .mobile-anchor-nav a{
+    flex:0 0 auto;
+    text-decoration:none;
+    color:var(--muted);
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:8px;
+    padding:6px 8px;
+    font-size:11px;
+    font-weight:750
+  }
+  .bro-hero{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+  .identity-card,.intent-card{padding:13px}
+  .hero-name{font-size:25px}
+  .hero-tags{margin-top:8px}
+  .intent-grid{grid-template-columns:1fr 1fr}
+  .intent-box{padding:10px}
+  .intent-box .big{font-size:16px}
+  .intent-card .note{padding:8px 9px;margin-top:8px!important}
+  .pending-action{display:flex;margin-bottom:10px;padding:9px 10px}
+  .pending-action .btn{white-space:nowrap}
+
+  .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gear-grid{grid-template-columns:1fr}
+  .fatigue-line{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .role-summary{
+    grid-template-columns:minmax(0,1fr) 48px 58px 70px 18px;
+    gap:5px;
+    padding:10px 9px
+  }
+  .role-summary .subtle{font-size:10px}
+  .role-summary .prob{font-size:11px}
+  .role-summary .score{font-size:13px}
+  .explain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .planning-row{align-items:flex-start}
+}
+
+
+
+.levelup-page-head{margin-bottom:12px}
+.levelup-layout{
+  display:grid;
+  grid-template-columns:250px minmax(0,1fr);
+  gap:14px;
+  align-items:start
+}
+.level-queue{
+  position:sticky;
+  top:calc(var(--shell-h) + 12px);
+  overflow:hidden
+}
+.level-queue-item{
+  width:100%;
+  border:0;
+  border-top:1px solid var(--line-soft);
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  padding:12px 13px;
+  cursor:pointer
+}
+.level-queue-item:first-child{border-top:0}
+.level-queue-item:hover{background:#151d27}
+.level-queue-item.active{
+  background:#1a222d;
+  box-shadow:inset 3px 0 0 var(--accent)
+}
+.level-queue-item .qtop{
+  display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.level-queue-item .qname{font-weight:850}
+.level-queue-item .qmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.level-queue-item .qbuild{
+  margin-top:7px;font-size:11px;color:var(--muted)
+}
+.level-queue-item .qbuild b{color:var(--text)}
+.level-main{min-width:0}
+.level-decision-card{overflow:hidden}
+.level-identity{padding:15px 16px 12px}
+.level-name-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px
+}
+.level-name-row .hero-name{font-size:27px;margin-top:2px}
+.level-context-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px
+}
+.decision-role{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:8px;
+  padding:8px 10px
+}
+.decision-role.intent{border-left:3px solid var(--accent)}
+.decision-role.analysis{border-left:3px solid var(--blue)}
+.decision-role span{
+  display:block;font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em
+}
+.decision-role b{display:block;margin-top:2px;font-size:14px}
+.level-divider{height:1px;background:var(--line-soft)}
+.level-section-title{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:13px 16px 10px
+}
+.level-section-title h2{margin-bottom:2px}
+.level-section-title p{margin:0}
+.pick-counter{
+  border:1px solid var(--line);background:#101720;border-radius:8px;
+  padding:6px 9px;color:var(--muted);font-size:11px;white-space:nowrap
+}
+.pick-counter strong{color:var(--text);font-size:15px}
+.roll-grid.dense{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  padding:0 16px 15px
+}
+.roll{
+  position:relative;
+  min-width:0;
+  border:1px solid var(--line);
+  background:#0f151d;
+  border-radius:9px;
+  padding:9px 10px
+}
+.roll.primary-selected{
+  border-color:#80683d;
+  background:#1d190f
+}
+.roll.runner-only{
+  border-color:#37546f;
+  background:#111e2b
+}
+.roll .rhead{
+  display:flex;align-items:center;justify-content:space-between;gap:6px
+}
+.roll .rstat{
+  font-size:11px;color:var(--muted);font-weight:800;
+  text-transform:uppercase;letter-spacing:.06em
+}
+.roll .rstars{font-size:10px;color:var(--accent);white-space:nowrap}
+.roll .rmain{
+  display:flex;align-items:baseline;gap:7px;margin-top:3px
+}
+.roll .rcurrent{font-size:13px;color:var(--muted)}
+.roll .rvalue{font-size:23px;font-weight:900}
+.roll .rband{font-size:11px;color:var(--faint);margin-top:1px}
+.roll .roll-mark{
+  position:absolute;right:7px;bottom:7px;
+  font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.04em
+}
+.roll.primary-selected .roll-mark{color:#efcf8e}
+.roll.runner-only .roll-mark{color:#a8caec}
+.decision-compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:14px 16px 10px
+}
+.decision-path{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:10px;
+  padding:12px
+}
+.primary-path{border-color:#5e4e31;background:#17140f}
+.runner-path{border-color:#30465d;background:#101923}
+.path-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px
+}
+.path-head h2{font-size:17px;margin:2px 0 0}
+.path-picks{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.path-pick{
+  border:1px solid var(--line);background:#17202b;
+  border-radius:6px;padding:5px 7px;font-size:12px;font-weight:850
+}
+.primary-path .path-pick{border-color:#5e5035;background:#241e14}
+.runner-path .path-pick{border-color:#36516e;background:#142131}
+.path-impact{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(112px,1fr));
+  gap:6px;
+  margin-top:10px
+}
+.path-impact .impact-cell{
+  border-top:1px solid var(--line-soft);padding-top:7px;min-width:0
+}
+.path-impact span{
+  display:block;color:var(--muted);font-size:9px;
+  text-transform:uppercase;letter-spacing:.05em
+}
+.path-impact b{
+  display:block;
+  font-size:13px;
+  line-height:1.18;
+  white-space:normal;
+  overflow-wrap:anywhere
+}
+
+.path-impact .impact-cell.best-fit-gain{
+  border-top-color:#36516e;
+  background:#111b27;
+  border-radius:6px;
+  padding:7px 7px 5px
+}
+.path-impact .impact-cell.best-fit-gain span{color:#9ec1e5}
+.level-primary-preview{
+  display:none;
+  margin:0 12px 8px;
+  border:1px solid #5e5035;
+  background:#1c1810;
+  border-radius:8px;
+  padding:7px 9px;
+  font-size:11px
+}
+.level-primary-preview span{
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:9px;
+  font-weight:800
+}
+.level-primary-preview strong{
+  display:block;
+  color:var(--text);
+  font-size:13px;
+  margin-top:1px
+}
+.conditional-gamble{
+  min-width:0;
+  flex:1
+}
+.conditional-gamble.empty{display:none}
+.gamble-card{
+  border:1px solid #554635;
+  background:#17140f;
+  border-radius:8px;
+  padding:9px 10px
+}
+.gamble-card .gamble-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:9px
+}
+.gamble-card strong{display:block;font-size:13px}
+.gamble-card p{margin:4px 0 0;color:var(--muted);font-size:11px}
+.gamble-picks{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.gamble-odds{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+  margin-top:8px
+}
+.gamble-odds div{
+  border-top:1px solid var(--line-soft);
+  padding-top:5px
+}
+.gamble-odds span{
+  display:block;color:var(--muted);font-size:9px;
+  text-transform:uppercase;letter-spacing:.04em
+}
+.gamble-odds b{font-size:12px}
+.explain-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
+.explain-metric{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  padding:6px 0;
+  border-top:1px solid var(--line-soft);
+  font-size:11px
+}
+.explain-metric:first-child{border-top:0}
+.explain-metric span{color:var(--muted)}
+.explain-metric b{text-align:right}
+
+.path-reasons{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+.path-reason{
+  display:grid;grid-template-columns:47px minmax(0,1fr);gap:6px;
+  font-size:11px
+}
+.path-reason b{color:var(--text)}
+.path-reason span{color:var(--muted)}
+.path-summary{
+  margin-top:9px;color:var(--muted);font-size:11px;
+  padding-top:8px;border-top:1px solid var(--line-soft)
+}
+.tradeoff-strip{
+  margin:0 16px 10px;
+  display:grid;grid-template-columns:auto 1fr;
+  gap:9px;align-items:start;
+  border:1px solid var(--line);
+  background:#0f151d;border-radius:8px;padding:8px 10px;
+  font-size:11px;color:var(--muted)
+}
+.tradeoff-strip strong{color:var(--accent-2);white-space:nowrap}
+.gamble-row{
+  margin:0 16px 15px;
+  border-top:1px solid var(--line-soft);
+  padding-top:11px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px
+}
+.gamble-row strong{display:block;font-size:13px;margin-top:2px}
+.gamble-row span{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.level-explain{display:none;border-top:1px solid var(--line-soft);padding:13px 16px 16px}
+.level-explain.open{display:block}
+.explain-columns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.explain-block{
+  border:1px solid var(--line);background:#0f151d;border-radius:9px;padding:10px
+}
+.explain-block h3{margin-bottom:7px}
+.explain-line{
+  padding:5px 0;border-top:1px solid var(--line-soft);font-size:11px;color:var(--muted)
+}
+.explain-line:first-child{border-top:0}
+.explain-line b{color:var(--text)}
+.level-mobile-select{display:none}
+@media(max-width:1050px){
+  .levelup-layout{display:block}
+  .level-queue{display:none}
+  .level-mobile-select{
+    display:block;
+    position:sticky;
+    top:var(--shell-h);
+    z-index:30;
+    background:var(--bg);
+    padding:6px 0 8px;
+    margin-bottom:6px
+  }
+  .level-mobile-select select{
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    border-radius:8px;
+    padding:8px 10px
+  }
+}
+@media(max-width:820px){
+  .decision-compare{grid-template-columns:1fr}
+  .roll-grid.dense{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .path-impact{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .levelup-page-head{margin-bottom:6px}
+  .levelup-page-head h1{font-size:24px;margin-bottom:0}
+  .levelup-page-head p{display:none}
+  .level-name-row{align-items:center}
+  .level-identity{padding:10px 12px 8px}
+  .level-name-row .hero-name{font-size:22px}
+  .level-context-grid{margin-top:7px;gap:6px}
+  .decision-role{padding:6px 8px}
+  .decision-role b{font-size:13px}
+  .level-section-title{padding:9px 12px 6px}
+  .level-section-title p{display:none}
+  .level-primary-preview{display:block}
+  .roll-grid.dense{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:0 12px 11px;
+    gap:5px
+  }
+  .roll{padding:7px 8px}
+  .roll .rvalue{font-size:20px}
+  .decision-compare{padding:10px 12px 8px}
+  .gamble-row{
+    margin-left:12px;margin-right:12px;
+    align-items:flex-start;flex-direction:column
+  }
+  .tradeoff-strip{
+    margin-left:12px;margin-right:12px;
+    grid-template-columns:1fr
+  }
+  .path-impact{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .explain-columns{grid-template-columns:1fr}
+  .gamble-odds{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+
+/* Recruitment v10 */
+
+.recruit-layout{
+  display:grid;
+  grid-template-columns:360px minmax(0,1fr);
+  gap:14px;
+  align-items:start
+}
+.recruit-browser{
+  position:sticky;
+  top:calc(var(--shell-h) + 10px);
+  max-height:calc(100vh - var(--shell-h) - 20px);
+  overflow:auto
+}
+.recruit-browser .card-head{
+  position:sticky;
+  top:0;
+  z-index:4;
+  background:var(--panel);
+  padding:10px 11px 8px;
+  align-items:stretch;
+  flex-direction:column;
+  gap:7px
+}
+.recruit-browser-title-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px
+}
+.recruit-current-settlement{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  column-gap:7px;
+  row-gap:1px;
+  align-items:baseline;
+  padding:5px 8px;
+  border:1px solid #3b4858;
+  border-radius:6px;
+  background:#18212c
+}
+.recruit-current-settlement span{
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--faint)
+}
+.recruit-current-settlement b{
+  min-width:0;
+  font-size:11px;
+  color:var(--accent-2);
+  letter-spacing:.065em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.recruit-current-settlement small{
+  grid-column:1 / -1;
+  font-size:9px;
+  color:var(--muted);
+  line-height:1.15
+}
+.settlement-block{display:block}
+.settlement-head{
+  position:relative;
+  margin-top:12px;
+  margin-bottom:3px;
+  padding:8px 10px 7px;
+  border-top:2px solid #394657;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:flex-start;
+  background:#18212c;
+  border-bottom:1px solid #394657
+}
+.settlement-block:first-child .settlement-head{margin-top:0;border-top:0}
+.settlement-head h3{
+  margin:0;
+  font-size:15px;
+  line-height:1.15;
+  color:var(--accent-2);
+  text-transform:uppercase;
+  letter-spacing:.075em;
+}
+.settlement-meta{
+  font-size:10px;
+  color:#b1bfce;
+  margin-top:3px;
+  font-weight:700;
+}
+.settlement-state{
+  font-size:9px;
+  line-height:1.25;
+  color:var(--faint);
+  text-align:right;
+  max-width:145px;
+}
+.recruit-row{
+  width:calc(100% - 14px);
+  margin:5px 7px 0;
+  border:1px solid #283444;
+  border-radius:7px;
+  background:#111821;
+  color:inherit;
+  padding:8px 9px;
+  cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.01);
+}
+.recruit-row:hover{
+  background:#17202b;
+  border-color:#3b4a5d;
+}
+.recruit-row.active{
+  background:#1b2531;
+  border-color:#7a6847;
+  box-shadow:inset 3px 0 0 var(--accent),0 0 0 1px rgba(208,168,92,.08);
+}
+.recruit-row .r-name-line{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px
+}
+.recruit-row .r-name{font-weight:900;font-size:13px;line-height:1.15}
+.recruit-row .r-cost{font-weight:850;color:var(--accent-2);white-space:nowrap;font-size:12px}
+.recruit-row .r-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.r-scan-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:5px;
+  margin-top:5px
+}
+.r-scan{
+  min-width:0;
+  border:1px solid var(--line-soft);
+  background:#101720;
+  border-radius:5px;
+  padding:4px 5px
+}
+.r-scan span{
+  display:block;
+  font-size:8px;
+  color:var(--faint);
+  text-transform:uppercase;
+  letter-spacing:.04em
+}
+.r-scan b{
+  display:block;
+  font-size:10px;
+  margin-top:1px;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.15;
+  min-height:23px
+}
+.r-bottom{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  margin-top:5px
+}
+.r-known{
+  min-width:0;
+  color:var(--muted);
+  font-size:9px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.r-short{
+  flex:none;
+  border:1px solid var(--line);
+  background:#17202b;
+  color:var(--text);
+  border-radius:999px;
+  padding:2px 6px;
+  font-size:9px;
+  cursor:pointer
+}
+.r-short.active{
+  border-color:#5e5035;
+  background:#241e14;
+  color:#efcf8e
+}
+.recruit-main{min-width:0}
+.recruit-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  padding:14px 16px 12px
+}
+.recruit-title{font-size:27px;font-weight:900;margin:2px 0}
+.recruit-sub{color:var(--muted)}
+.recruit-money{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  min-width:220px
+}
+.money-box{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:8px;
+  padding:8px 10px;
+  text-align:right
+}
+.money-box span{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em
+}
+.money-box b{font-size:16px}
+.recruit-facts{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.recruit-scanline{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  padding:10px 16px;
+  border-top:1px solid var(--line-soft);
+  border-bottom:1px solid var(--line-soft);
+  background:#111820
+}
+.scanbox{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:7px;
+  padding:7px 8px
+}
+.scanbox span{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.05em
+}
+.scanbox b{display:block;font-size:13px;margin-top:2px}
+.scanbox .scan-sub{
+  display:block;
+  color:var(--faint);
+  font-size:9px;
+  margin-top:2px
+}
+.recruit-decision-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);
+  gap:12px;
+  padding:13px 16px
+}
+.potential-list{display:flex;flex-direction:column;gap:7px}
+.potential-row{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:8px;
+  padding:9px 10px
+}
+.potential-top{
+  display:grid;
+  grid-template-columns:minmax(125px,1fr) minmax(100px,.72fr) minmax(88px,.62fr);
+  gap:8px;
+  align-items:center
+}
+.potential-name{font-weight:850}
+.potential-label{
+  font-size:8px;
+  color:var(--faint);
+  text-transform:uppercase;
+  letter-spacing:.04em
+}
+.potential-value{font-weight:850;font-size:13px}
+.prior-only{
+  display:inline-block;
+  border:1px solid #4b5664;
+  background:#161d26;
+  color:#bdc8d5;
+  border-radius:999px;
+  padding:2px 6px;
+  font-size:9px;
+  margin-top:3px
+}
+.potential-note{font-size:10px;color:var(--muted);margin-top:5px}
+.model-basis{
+  color:#a9caeb;
+  font-size:9px;
+  margin-top:3px
+}
+.need-stack{display:flex;flex-direction:column;gap:7px}
+.need-card{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:8px;
+  padding:9px 10px
+}
+.need-card.relevant{border-left:3px solid var(--accent)}
+.need-card.secondary{
+  opacity:.72;
+  background:#0e141b
+}
+.need-card .need-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px
+}
+.need-card strong{font-size:12px}
+.need-card p{margin:4px 0 0;color:var(--muted);font-size:10px}
+.other-gaps{
+  margin-top:8px;
+  border-top:1px solid var(--line-soft);
+  padding-top:8px;
+  color:var(--muted);
+  font-size:10px
+}
+.recruit-evidence{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:0 16px 14px
+}
+.evidence-card{
+  border:1px solid var(--line);
+  background:#0f151d;
+  border-radius:9px;
+  padding:10px
+}
+.evidence-card h3{margin-bottom:7px}
+.evidence-line{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 0;
+  border-top:1px solid var(--line-soft);
+  font-size:10px
+}
+.evidence-line:first-child{border-top:0}
+.evidence-line span{color:var(--muted)}
+.evidence-line b{text-align:right}
+.shortlist-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  border-top:1px solid var(--line-soft);
+  background:#111820
+}
+.shortlist-picks{display:flex;gap:6px;flex-wrap:wrap}
+.shortlisted-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--line);
+  background:#17202b;
+  border-radius:999px;
+  padding:4px 7px;
+  font-size:10px
+}
+.shortlist-compare{
+  display:none;
+  padding:12px 16px 16px;
+  border-top:1px solid var(--line-soft)
+}
+.shortlist-compare.open{display:block}
+.shortlist-note{
+  display:none;
+  margin-bottom:8px;
+  color:var(--muted);
+  font-size:10px
+}
+.compare-recruits{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px
+}
+.compare-recruit{
+  border:1px solid var(--line);
+  background:#101720;
+  border-radius:9px;
+  padding:9px
+}
+.compare-recruit h3{margin-bottom:3px;font-size:13px}
+.compare-dim{
+  display:grid;
+  grid-template-columns:86px minmax(0,1fr);
+  gap:7px;
+  padding:5px 0;
+  border-top:1px solid var(--line-soft);
+  font-size:10px
+}
+.compare-dim:first-of-type{border-top:0}
+.compare-dim span{color:var(--muted)}
+.compare-dim b{font-weight:800}
+.recruit-detail-toggle{width:100%;margin-top:9px}
+.recruit-explain{display:none;margin-top:9px}
+.recruit-explain.open{display:block}
+.recruit-mobile-select{display:none}
+
+@media(max-width:1180px){
+  .recruit-layout{grid-template-columns:310px minmax(0,1fr)}
+  .recruit-row{padding:7px 8px;margin-left:6px;margin-right:6px;width:calc(100% - 12px)}
+  .settlement-head{padding-left:8px;padding-right:8px}
+  .settlement-head h3{font-size:14px}
+  .settlement-state{display:none}
+  .r-scan-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .r-scan b{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15;min-height:23px}
+  .recruit-decision-grid{grid-template-columns:minmax(0,1fr) minmax(250px,.8fr)}
+  .potential-top{grid-template-columns:minmax(110px,1fr) minmax(92px,.72fr) minmax(80px,.62fr)}
+  .compare-recruits{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:760px){
+  .recruit-layout{display:block}
+  .recruit-browser{display:none}
+  .recruit-mobile-select{
+    display:block;
+    position:sticky;
+    top:var(--shell-h);
+    z-index:30;
+    background:var(--bg);
+    padding:6px 0 8px;
+    margin-bottom:6px
+  }
+  .recruit-mobile-select select{
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    border-radius:8px;
+    padding:8px 10px
+  }
+  .recruit-hero{
+    grid-template-columns:1fr;
+    padding:10px 12px
+  }
+  .recruit-title{font-size:23px}
+  .recruit-money{min-width:0}
+  .recruit-scanline{
+    grid-template-columns:1fr;
+    gap:5px;
+    padding:8px 12px
+  }
+  .recruit-decision-grid{
+    grid-template-columns:1fr;
+    padding:10px 12px
+  }
+  .recruit-evidence{
+    grid-template-columns:1fr;
+    padding:0 12px 12px
+  }
+  .potential-top{
+    grid-template-columns:minmax(0,1fr) 100px;
+  }
+  .potential-top .candidate-estimate{
+    grid-column:2;
+  }
+  .potential-top .background-prior{
+    grid-column:2;
+  }
+  .compare-recruits{grid-template-columns:1fr}
+  .shortlist-bar{
+    align-items:flex-start;
+    flex-direction:column
+  }
+}
+
+</style>
+</head>
+<body>
+<header class="shell">
+  <div class="shell-inner">
+    <div class="runbar">
+      <div>
+        <div class="brand">BB Save Toolkit · Target UI Prototype v16</div>
+        <div class="run-title"><strong>Northern Company — Day 74</strong><span>quicksave.sav · conceptual data</span></div>
+      </div>
+      <button class="health" id="healthBtn"><span class="health-dot"></span><span><strong>Analysis degraded</strong> · 2 items</span></button>
+    </div>
+    <nav class="topnav">
+      <button class="nav-btn active" data-workspace="company">Company</button>
+      <button class="nav-btn" data-workspace="levelup">Level Up <span class="count">2</span></button>
+      <button class="nav-btn" data-workspace="recruitment">Recruitment</button>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+<section class="workspace active" id="workspace-company">
+  <div id="companyOverview">
+    <div class="workspace-head">
+      <div><div class="eyebrow">Company</div><h1>Your roster, as a system</h1><p class="subtle">Scan brothers quickly, then switch to coverage when the question becomes “what is the company missing?”</p></div>
+      <div class="toolbar"><button class="btn active" data-company-view="roster">Roster</button><button class="btn" data-company-view="planning">Coverage & Planning</button><button class="btn" data-company-view="matrix">Fit Matrix</button></div>
+    </div>
+
+      <div id="view-roster" class="company-view">
+        <section class="card">
+          <div class="card-head roster-head">
+            <div>
+              <h2>Roster</h2>
+              <div class="subtle">Scan who is here, what you intend to build, and what fits best.</div>
+            </div>
+            <div class="filters">
+              <input id="broSearch" class="search" placeholder="Search brother…">
+            </div>
+          </div>
+          <div class="roster" id="rosterRows"></div>
+        </section>
+      </div>
+
+      <div id="view-planning" class="company-view" style="display:none">
+        <div class="company-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2>Coverage & planning</h2>
+                <div class="subtle">Composition questions only: assigned depth, intrinsic alternatives, replacement risk.</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="planning-list">
+                <div class="planning-row">
+                  <div><strong>BF Tank</strong><span>2 assigned · 4 viable</span></div>
+                  <div class="tag">Healthy depth</div>
+                </div>
+                <div class="planning-row">
+                  <div><strong>Nimble Tank</strong><span>1 assigned · 3 viable</span></div>
+                  <div class="tag">Flexible</div>
+                </div>
+                <div class="planning-row">
+                  <div><strong>Reach DPS</strong><span>3 assigned · 5 viable</span></div>
+                  <div class="tag">Redundant</div>
+                </div>
+                <div class="planning-row">
+                  <div><strong>Archer / XBow</strong><span>1 assigned · 2 viable</span></div>
+                  <div class="tag">Thin depth</div>
+                </div>
+                <div class="planning-row">
+                  <div><strong>Banner</strong><span>1 assigned · 1 viable</span></div>
+                  <div class="tag warn">Replacement risk</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="card">
+            <div class="card-head"><div><h2>Roster decisions</h2><div class="subtle">Interpretations that belong to company composition.</div></div></div>
+            <div class="card-body">
+              <button class="insight link-insight" data-open-brother="2">
+                <strong>Banner depth · Meinolf</strong>
+                <p>Only credible current Banner path. Recruitment value is high because replacement depth is zero.</p>
+              </button>
+              <button class="insight link-insight" data-open-brother="0">
+                <strong>Flexibility · Mattis</strong>
+                <p>Assigned BF Tank while Reach DPS is the current Best Fit. Useful flexibility, not an error.</p>
+              </button>
+              <button class="insight link-insight" data-open-brother="1">
+                <strong>Flexibility · Wolfram</strong>
+                <p>Strong Reach DPS with viable alternatives. Useful if roster composition changes.</p>
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div id="view-matrix" class="company-view" style="display:none">
+      <section class="card"><div class="card-head"><div><h2>Brother × Archetype comparison</h2><div class="subtle">Kept as a powerful comparison capability — no longer asked to be the whole roster-management experience.</div></div></div><div class="matrix-wrap"><table class="table"><thead><tr><th>Brother</th><th>BF Tank</th><th>Nimble Tank</th><th>Reach DPS</th><th>Archer</th><th>Thrower</th><th>Banner</th></tr></thead><tbody id="matrixBody"></tbody></table></div></section>
+    </div>
+  </div>
+
+  <div id="brotherWorkspace" class="brother-shell">
+    <div class="brother-dock"><div class="brother-dock-inner"><button class="btn" id="backCompany">← Company</button><select class="bro-select" id="broSelect"></select><nav class="anchor-nav"><a href="#bro-current">Current state</a><a href="#bro-gear">Gear & mechanics</a><a href="#bro-potential">Potential</a><a href="#bro-development">Development</a></nav></div></div>
+    <nav class="mobile-anchor-nav"><a href="#bro-current">Current</a><a href="#bro-development">Development</a><a href="#bro-gear">Gear</a><a href="#bro-potential">Potential</a></nav>
+
+    <div class="bro-hero">
+      <section class="card identity-card"><div class="eyebrow">Brother</div><div class="hero-name" id="heroName"></div><div class="hero-meta" id="heroMeta"></div><div class="hero-tags" id="heroTags"></div></section>
+      <section class="card intent-card"><div class="eyebrow">Intent vs analysis</div><div class="intent-grid"><div class="intent-box"><div class="title">Assigned build</div><div class="big" id="assignedBuild"></div><div class="small">Explicit player intent</div></div><div class="intent-box"><div class="title">Best Fit</div><div class="big" id="bestRole"></div><div class="small" id="bestFit"></div></div></div><div class="note" id="intentNote" style="margin-top:10px"></div></section>
+    </div>
+    <div class="pending-action" id="pendingAction">
+      <div><strong id="pendingActionTitle">Level up pending</strong><span id="pendingActionText">An immediate decision is available.</span></div>
+      <button class="btn" id="pendingActionBtn">Open Level Up →</button>
+    </div>
+
+    <div class="bro-grid">
+      <div class="stack">
+        <section class="card section-card" id="bro-current"><div class="card-head"><div><h2>Current state</h2><div class="subtle">Facts about the Brother now — independent of archetype.</div></div></div><div class="card-body"><div class="stat-grid" id="statGrid"></div><h3 style="margin-top:14px">Perks</h3><div class="list-chips" id="perkChips"></div></div></section>
+        <section class="card section-card" id="bro-gear"><div class="card-head"><div><h2>Gear & mechanics</h2><div class="subtle">Current equipment and the mechanical effects it produces now.</div></div></div><div class="card-body"><div class="gear-grid" id="gearGrid"></div><div class="fatigue-line"><div class="fatigue-box"><span>Raw FAT</span><b id="rawFat"></b></div><div class="fatigue-box"><span>Gear</span><b id="gearFat"></b></div><div class="fatigue-box"><span>Usable</span><b id="usableFat"></b></div></div><h3 style="margin-top:15px">Mechanical facts</h3><div id="mechanics"></div></div></section>
+        <section class="card section-card" id="bro-potential"><div class="card-head"><div><h2>Intrinsic potential</h2><div class="subtle">Intrinsic build fit and projected development.</div></div></div><div class="card-body"><div class="role-cards" id="roleCards"></div></div></section>
+      </div>
+      <aside class="stack">
+        <section class="card section-card" id="bro-development"><div class="card-head"><div><h2>Development</h2><div class="subtle">Current progress toward intended path.</div></div></div><div class="card-body"><div class="timeline"><div class="step"><b id="devAssigned"></b><span>Player intent is the anchor for intent-aware development.</span></div><div class="step"><b id="devLevel"></b><span>Immediate decision available in Level Up when points are pending.</span></div><div class="step"><b>Build progression remains separate from intrinsic Fit</b><span>Perks and gear describe the pursued/current build, not natural potential.</span></div></div><button class="btn" id="goLevelup" style="width:100%;margin-top:14px">Open Level Up decision →</button></div></section>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<section class="workspace" id="workspace-levelup">
+  <div class="workspace-head levelup-page-head">
+    <div>
+      <div class="eyebrow">Level Up</div>
+      <h1>Pending decisions</h1>
+      <p class="subtle">Pick three stats. The advisor keeps player intent, intrinsic fit and the immediate recommendation distinct.</p>
+    </div>
+  </div>
+
+  <div class="level-mobile-select">
+    <select id="levelMobileSelect"></select>
+  </div>
+
+  <div class="levelup-layout">
+    <aside class="card level-queue">
+      <div class="card-head">
+        <div>
+          <h2>Pending</h2>
+          <div class="subtle">2 Brothers</div>
+        </div>
+      </div>
+      <div id="levelQueue"></div>
+    </aside>
+
+    <div class="level-main">
+      <section class="card level-decision-card">
+        <div class="level-identity">
+          <div>
+            <div class="eyebrow">Current decision</div>
+            <div class="level-name-row">
+              <div>
+                <div class="hero-name" id="levelBroName">Mattis</div>
+                <div class="hero-meta" id="levelBroMeta">Level 7 · Militia</div>
+              </div>
+              <button class="btn" id="levelViewBrother">View Brother →</button>
+            </div>
+          </div>
+          <div class="level-context-grid">
+            <div class="decision-role intent">
+              <span>Assigned Build</span>
+              <b id="levelAssigned">BF Tank</b>
+            </div>
+            <div class="decision-role analysis">
+              <span>Best Fit</span>
+              <b id="levelBest">Reach DPS · 91</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="level-divider"></div>
+
+        <div class="level-section-title">
+          <div>
+            <h2>Rolls this level</h2>
+            <p class="subtle">All eight offered rolls are visible. Recommended picks are marked directly on the roll.</p>
+          </div>
+          <div class="pick-counter"><strong>3</strong> picks</div>
+        </div>
+        <div class="level-primary-preview" id="levelPrimaryPreview"></div>
+
+        <div class="roll-grid dense" id="levelRolls"></div>
+
+        <div class="level-divider"></div>
+
+        <div class="decision-compare">
+          <article class="decision-path primary-path">
+            <div class="path-head">
+              <div>
+                <div class="eyebrow">Primary</div>
+                <h2 id="primaryTitle">MDEF + FAT + HP</h2>
+              </div>
+              <span class="tag gold" id="primaryAnchor">BF Tank</span>
+            </div>
+            <div class="path-picks" id="primaryPicks"></div>
+            <div class="path-impact" id="primaryImpact"></div>
+            <div class="path-reasons" id="primaryReasons"></div>
+          </article>
+
+          <article class="decision-path runner-path">
+            <div class="path-head">
+              <div>
+                <div class="eyebrow">Runner-up</div>
+                <h2 id="runnerTitle">MDEF + MATK + HP</h2>
+              </div>
+              <span class="tag blue">Alternative</span>
+            </div>
+            <div class="path-picks" id="runnerPicks"></div>
+            <div class="path-impact" id="runnerImpact"></div>
+            <div class="path-summary" id="runnerSummary"></div>
+          </article>
+        </div>
+
+        <div class="tradeoff-strip" id="tradeoffStrip"></div>
+
+        <div class="gamble-row">
+          <div class="conditional-gamble" id="conditionalGamble"></div>
+          <button class="btn" id="levelExplainToggle">Detailed reasoning ↓</button>
+        </div>
+
+        <div class="level-explain" id="levelExplain">
+          <div class="explain-columns">
+            <div class="explain-block">
+              <h3>Projection impact</h3>
+              <div id="explainProjection"></div>
+            </div>
+            <div class="explain-block">
+              <h3>Marginal pick value</h3>
+              <div id="explainMarginals"></div>
+            </div>
+            <div class="explain-block">
+              <h3>Skipped attractive rolls</h3>
+              <div id="explainSkipped"></div>
+            </div>
+            <div class="explain-block">
+              <h3>Advisor basis</h3>
+              <div id="explainBasis"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+
+<section class="workspace" id="workspace-recruitment">
+  <div class="workspace-head">
+    <div>
+      <div class="eyebrow">Recruitment</div>
+      <h1>Available recruits</h1>
+      <p class="subtle">Compare candidates in settlement context. Potential, relevant roster need and cost stay separate.</p>
+    </div>
+  </div>
+
+  <div class="recruit-mobile-select">
+    <select id="recruitMobileSelect"></select>
+  </div>
+
+  <div class="recruit-layout">
+    <aside class="card recruit-browser">
+      <div class="card-head recruit-browser-head">
+        <div class="recruit-browser-title-row">
+          <div>
+            <h2>Settlements & candidates</h2>
+            <div class="subtle">7 recruits · 3 locations</div>
+          </div>
+        </div>
+        <div class="recruit-current-settlement" aria-live="polite">
+          <span>Current settlement</span>
+          <b id="recruitCurrentSettlementName">BIRKHAVEN</b>
+          <small id="recruitCurrentSettlementState">2 previously seen · 1 new</small>
+        </div>
+      </div>
+      <div id="recruitBrowser"></div>
+    </aside>
+
+    <div class="recruit-main stack">
+      <section class="card">
+        <div class="recruit-hero">
+          <div>
+            <div class="eyebrow" id="recruitSettlement"></div>
+            <div class="recruit-title" id="recruitName"></div>
+            <div class="recruit-sub" id="recruitMeta"></div>
+            <div class="recruit-facts" id="recruitFacts"></div>
+          </div>
+          <div class="recruit-money">
+            <div class="money-box"><span>Hire</span><b id="recruitCost"></b></div>
+            <div class="money-box"><span>Daily</span><b id="recruitWage"></b></div>
+          </div>
+        </div>
+
+        <div class="recruit-scanline">
+          <div class="scanbox">
+            <span>Top potential</span>
+            <b id="recruitTopScan"></b>
+            <small class="scan-sub" id="recruitTopBasis"></small>
+          </div>
+          <div class="scanbox">
+            <span>Relevant roster need</span>
+            <b id="recruitNeedScan"></b>
+            <small class="scan-sub">Only roles this candidate can plausibly serve</small>
+          </div>
+          <div class="scanbox">
+            <span>Known evidence</span>
+            <b id="recruitEvidenceScan"></b>
+            <small class="scan-sub" id="recruitTryoutScan"></small>
+          </div>
+        </div>
+
+        <div class="recruit-decision-grid">
+          <div>
+            <div class="level-section-title" style="padding:0 0 8px">
+              <div>
+                <h2>Potential</h2>
+                <p class="subtle">Known-evidence estimate when justified; otherwise background prior only.</p>
+              </div>
+              <span class="tag">Target-model mock</span>
+            </div>
+            <div class="potential-list" id="recruitPotential"></div>
+          </div>
+
+          <div>
+            <div class="level-section-title" style="padding:0 0 8px">
+              <div>
+                <h2>Roster need</h2>
+                <p class="subtle">Relevant need first. Other company gaps stay secondary.</p>
+              </div>
+            </div>
+            <div class="need-stack" id="recruitNeeds"></div>
+            <div class="other-gaps" id="recruitOtherGaps"></div>
+          </div>
+        </div>
+
+        <div class="recruit-evidence">
+          <div class="evidence-card">
+            <h3>Known evidence</h3>
+            <div id="recruitEvidence"></div>
+          </div>
+          <div class="evidence-card">
+            <h3>Observation</h3>
+            <div id="recruitObservation"></div>
+          </div>
+        </div>
+
+        <div class="shortlist-bar">
+          <div>
+            <div class="eyebrow">Shortlist</div>
+            <div class="shortlist-picks" id="shortlistPicks"></div>
+          </div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn" id="toggleShortlistCandidate">Add to shortlist</button>
+            <button class="btn" id="toggleRecruitCompare">Compare shortlist ↓</button>
+          </div>
+        </div>
+
+        <div class="shortlist-compare" id="shortlistCompare">
+          <div class="level-section-title" style="padding:0 0 8px">
+            <div>
+              <h2>Shortlist comparison</h2>
+              <p class="subtle">No automatic winner. Potential, relevant need and economics remain separate.</p>
+            </div>
+          </div>
+          <div class="shortlist-note" id="shortlistNote">Comparison is optimized for 2–3 candidates; larger shortlists remain supported.</div>
+          <div class="compare-recruits" id="compareRecruits"></div>
+        </div>
+
+        <div class="card-body" style="padding-top:0">
+          <button class="btn recruit-detail-toggle" id="recruitExplainToggle">How is this potential estimated? ↓</button>
+          <div class="recruit-explain" id="recruitExplain">
+            <div class="explain-columns">
+              <div class="explain-block">
+                <h3>Candidate model</h3>
+                <div id="recruitModelExplain"></div>
+              </div>
+              <div class="explain-block">
+                <h3>What is still unknown</h3>
+                <div id="recruitUnknownExplain"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="healthModal"><div class="modal-card"><div class="card-head"><div><h2>Analysis health</h2><div class="subtle">Global run confidence — not an archetype score.</div></div><button class="btn" id="closeHealth">Close</button></div><div class="card-body"><div class="insight"><strong>1 unresolved item reference</strong><p>A display/mechanics input is incomplete for one item. Affected data should degrade explicitly rather than silently guess.</p></div><div class="insight"><strong>1 recoverable recruit parsing issue</strong><p>The report remains usable, but affected recruit data should not look indistinguishable from fully healthy data.</p></div><div class="insight"><strong>Projection validation · PASS</strong><p>Shown separately by design. PASS does not mean that every source/reference input is healthy.</p></div></div></div></div>
+
+<script>
+const brothers=[
+{name:"Mattis",level:7,background:"Militia",assigned:"BF Tank",best:"Reach DPS",fit:91,p100:78,category:"Core",levelup:true,stats:{HP:[82,1],FAT:[102,2],RES:[48,0],INI:[91,0],MATK:[79,2],RATK:[41,0],MDEF:[25,3],RDEF:[7,0]},perks:["Colossus","Gifted","Shield Expert","Underdog","Battle Forged"],gear:{Head:["Closed Mail Coif","140 armor · −8 FAT"],Body:["Reinforced Mail Hauberk","240 armor · −20 FAT"],"Main Hand":["Winged Mace","1H mace · −3 FAT"],"Off Hand":["Heater Shield","+20 MDef"]},fat:[102,31,71],mechanics:[["Shield Expert","Active","Shield equipped"],["Battle Forged","Current reduction 24%","Derived from current armor state"],["Brawny","Not owned","No current effect"],["Duelist","Inactive","Off-hand occupied"]],roles:[["Reach DPS",91,78,"84–96","Best Fit"],["BF Tank",86,67,"78–91","Assigned"],["Nimble Tank",82,51,"73–88","Viable alternative"],["Thrower",58,8,"48–67","Low viability"]]},
+{name:"Wolfram",level:11,background:"Raider",assigned:"Reach DPS",best:"Reach DPS",fit:88,p100:69,category:"Core",levelup:false,stats:{HP:[92,0],FAT:[96,0],RES:[51,0],INI:[88,0],MATK:[91,2],RATK:[48,0],MDEF:[31,2],RDEF:[9,0]},perks:["Colossus","Dodge","Relentless","Underdog","Berserk","Killing Frenzy","Reach Advantage"],gear:{Head:["Sallet Helmet","120 armor · −6 FAT"],Body:["Leather Lamellar Armor","110 armor · −9 FAT"],"Main Hand":["Bardiche","2H polearm · −12 FAT"],"Off Hand":["Empty","—"]},fat:[96,27,69],mechanics:[["Reach Advantage","Active","Compatible 2H melee weapon"],["Dodge","Current contribution +9/+9","Based on current Initiative semantics"],["Polearm Mastery","Applied","Current weapon class covered"],["Nimble","Current reduction 57%","Current head + body fatigue"]],roles:[["Reach DPS",88,69,"81–94","Best Fit · Assigned"],["Nimble Tank",76,29,"68–84","Viable alternative"],["BF Tank",71,18,"63–79","Possible, weaker"],["Archer",44,1,"35–53","Not credible"]]},
+{name:"Meinolf",level:6,background:"Monk",assigned:"Banner",best:"Banner",fit:84,p100:56,category:"Develop",levelup:true,stats:{HP:[70,0],FAT:[103,1],RES:[78,3],INI:[93,0],MATK:[67,1],RATK:[41,0],MDEF:[17,1],RDEF:[8,0]},perks:["Colossus","Fortified Mind","Rally the Troops"],gear:{Head:["Padded Kettle Hat","80 armor · −4 FAT"],Body:["Padded Leather","90 armor · −6 FAT"],"Main Hand":["Banner","2H banner · −10 FAT"],"Off Hand":["Empty","—"]},fat:[103,20,83],mechanics:[["Fortified Mind","Active","Resolve multiplier applied"],["Banner","Equipped","Current intended weapon state"],["Rally the Troops","Available","Perk owned"],["Nimble / BF","Not owned","No current effect"]],roles:[["Banner",84,56,"77–90","Best Fit · Assigned"],["Nimble Tank",61,10,"52–69","Weak alternative"],["Reach DPS",52,4,"44–61","Low viability"],["Archer",39,0,"31–48","Not credible"]]},
+{name:"Lars",level:8,background:"Hunter",assigned:"Archer",best:"Archer",fit:90,p100:74,category:"Core",levelup:false,stats:{HP:[72,0],FAT:[99,1],RES:[45,0],INI:[102,1],MATK:[55,0],RATK:[86,3],MDEF:[12,0],RDEF:[21,2]},perks:["Colossus","Pathfinder","Bow Mastery","Bullseye","Berserk"],gear:{Head:["Leather Headband","40 armor · −1 FAT"],Body:["Leather Tunic","65 armor · −4 FAT"],"Main Hand":["War Bow","2H ranged · −6 FAT"],"Off Hand":["Ammo","Arrows"]},fat:[99,11,88],mechanics:[["Bow Mastery","Applied","Current weapon class covered"],["Bullseye","Active","No gear incompatibility"],["Nimble","Not owned","No current effect"],["Duelist","Not owned","No current effect"]],roles:[["Archer",90,74,"84–96","Best Fit · Assigned"],["Crossbow",89,70,"82–95","Near-equivalent Fit"],["Thrower",79,41,"71–86","Viable alternative"],["Reach DPS",47,2,"39–56","Not credible"]]},
+{name:"Gernot",level:9,background:"Farmhand",assigned:"Nimble Tank",best:"Nimble Tank",fit:82,p100:47,category:"Develop",levelup:false,stats:{HP:[96,2],FAT:[118,2],RES:[49,0],INI:[84,0],MATK:[70,1],RATK:[37,0],MDEF:[30,3],RDEF:[8,0]},perks:["Colossus","Shield Expert","Dodge","Nimble","Underdog"],gear:{Head:["Nasal Helmet","105 armor · −5 FAT"],Body:["Leather Scale Armor","110 armor · −9 FAT"],"Main Hand":["Arming Sword","1H sword · −4 FAT"],"Off Hand":["Kite Shield","+25 MDef · −3 FAT"]},fat:[118,21,97],mechanics:[["Shield Expert","Active","Shield equipped"],["Nimble","Current reduction 60%","Current armor fatigue"],["Dodge","Current contribution +8/+8","Based on current Initiative semantics"],["Sword Mastery","Not owned","No current effect"]],roles:[["Nimble Tank",82,47,"74–88","Best Fit · Assigned"],["BF Tank",75,26,"68–82","Alternative"],["Reach DPS",64,12,"56–72","Weak alternative"],["Banner",46,1,"38–55","Not credible"]]},
+{name:"Hagen",level:5,background:"Brawler",assigned:"Reach DPS",best:"Reach DPS",fit:79,p100:39,category:"Develop",levelup:false,stats:{HP:[84,1],FAT:[107,1],RES:[46,0],INI:[95,1],MATK:[73,2],RATK:[42,0],MDEF:[18,1],RDEF:[7,0]},perks:["Colossus","Gifted","Dodge"],gear:{Head:["Nasal Helmet","105 armor · −5 FAT"],Body:["Mail Shirt","130 armor · −12 FAT"],"Main Hand":["Longaxe","2H axe · −10 FAT"],"Off Hand":["Empty","—"]},fat:[107,27,80],mechanics:[["Dodge","Current contribution +9/+9","Based on current Initiative semantics"],["Reach Advantage","Not owned","No current effect"],["Axe Mastery","Not owned","No current effect"],["Nimble","Not owned","No current effect"]],roles:[["Reach DPS",79,39,"72–86","Best Fit · Assigned"],["Nimble Tank",68,17,"60–76","Alternative"],["BF Tank",63,10,"55–71","Weak alternative"],["Thrower",50,3,"42–59","Low viability"]]}
+];
+
+
+const levelUpDecisions = [
+  {
+    brotherIndex:0,
+    name:"Mattis",
+    level:7,
+    background:"Militia",
+    assigned:"BF Tank",
+    best:"Reach DPS",
+    bestFit:91,
+    rolls:[
+      {stat:"HP", current:82, roll:4, stars:1, band:"Strong", primary:true, runner:true},
+      {stat:"FAT", current:102, roll:4, stars:2, band:"Excellent", primary:true, runner:false},
+      {stat:"RES", current:48, roll:3, stars:0, band:"Good", primary:false, runner:false},
+      {stat:"INI", current:91, roll:5, stars:0, band:"Excellent", primary:false, runner:false},
+      {stat:"MATK", current:79, roll:4, stars:2, band:"Excellent", primary:false, runner:true},
+      {stat:"RATK", current:41, roll:2, stars:0, band:"Average", primary:false, runner:false},
+      {stat:"MDEF", current:25, roll:3, stars:3, band:"Excellent", primary:true, runner:true},
+      {stat:"RDEF", current:7, roll:3, stars:0, band:"Good", primary:false, runner:false}
+    ],
+    primary:{
+      picks:["MDEF +3","FAT +4","HP +4"],
+      impacts:[
+        {label:"Assigned Fit · BF Tank", before:"86", after:"90"},
+        {label:"Best Fit · Reach DPS", before:"91", after:"92", bestFit:true},
+        {label:"Assigned P100", before:"67%", after:"76%"},
+        {label:"Burden", before:"Moderate", after:"Lower"}
+      ],
+      reasons:[
+        ["MDEF","Core tank stat and an excellent 3-roll."],
+        ["FAT","Excellent 4-roll; increases heavy-armor operating room."],
+        ["HP","Strong survivability roll and better tank value than the tempting MAtk."]
+      ]
+    },
+    runner:{
+      title:"MDEF + MATK + HP",
+      picks:["MDEF +3","MATK +4","HP +4"],
+      impacts:[
+        {label:"Assigned Fit · BF Tank", before:"86", after:"88"},
+        {label:"Best Fit · Reach DPS", before:"91", after:"95", bestFit:true},
+        {label:"Assigned P100", before:"67%", after:"70%"},
+        {label:"Burden", before:"Moderate", after:"Moderate"}
+      ],
+      summary:"You give up the strongest FAT roll for +4 MAtk: worse BF Tank development, but a materially stronger Reach DPS trajectory."
+    },
+    tradeoff:{
+      label:"What changes?",
+      text:"Primary takes FAT +4. Runner-up takes MAtk +4. MDEF and HP are common to both; BF Tank improves more on Primary, Reach DPS improves more on Runner-up."
+    },
+    gamble:{
+      show:true,
+      title:"Aggressive hedge · MDEF + FAT + MATK",
+      picks:["MDEF +3","FAT +4","MATK +4"],
+      trigger:"Only if you are willing to skip HP +4 now and rely on future HP rolls to recover survivability.",
+      chance:"12%",
+      tie:"3%",
+      primaryWins:"85%",
+      note:"This is a distinct conditional line: keep both excellent FAT and MAtk rolls, but accept immediate HP risk."
+    },
+    explain:{
+      projection:[
+        ["Assigned BF Tank","Primary 90 Fit vs Runner-up 88"],
+        ["Best Fit Reach DPS","Primary 92 Fit vs Runner-up 95"],
+        ["Assigned P100","Primary +9 pp vs Runner-up +3 pp"],
+        ["Likely BF Tank range","Primary shifts roughly 82–94 → 85–96"]
+      ],
+      marginals:[
+        ["MDEF +3","+2.1 assigned-Fit points"],
+        ["FAT +4","+1.4 assigned-Fit points"],
+        ["HP +4","+0.6 assigned-Fit points"],
+        ["MAtk +4","+3.0 Best-Fit points; lower assigned value"]
+      ],
+      skipped:[
+        ["INI +5","Excellent raw roll, but low marginal value for this assigned heavy-armor path."],
+        ["RES +3","Useful, but below HP/FAT/MDEF for this decision."],
+        ["MAtk +4","Not ignored: it defines Runner-up and the Best-Fit upside."]
+      ],
+      basis:[
+        ["Combination search","All legal 3-pick combinations for the eight visible rolls are compared."],
+        ["Future projection","Remaining levels follow the standard projected trajectory after applying this level's actual rolls."],
+        ["Intent handling","Assigned Build anchors advice; Best Fit remains independently measured and visible."],
+        ["Mock status","Values are representative UX mock data, not a claim about a real save."]
+      ]
+    }
+  },
+  {
+    brotherIndex:2,
+    name:"Meinolf",
+    level:6,
+    background:"Monk",
+    assigned:"Banner",
+    best:"Banner",
+    bestFit:84,
+    rolls:[
+      {stat:"HP", current:70, roll:3, stars:0, band:"Good", primary:true, runner:false},
+      {stat:"FAT", current:103, roll:4, stars:1, band:"Excellent", primary:true, runner:true},
+      {stat:"RES", current:78, roll:4, stars:3, band:"Excellent", primary:true, runner:true},
+      {stat:"INI", current:93, roll:4, stars:0, band:"Good", primary:false, runner:false},
+      {stat:"MATK", current:67, roll:3, stars:1, band:"Good", primary:false, runner:true},
+      {stat:"RATK", current:41, roll:2, stars:0, band:"Average", primary:false, runner:false},
+      {stat:"MDEF", current:17, roll:2, stars:1, band:"Average", primary:false, runner:false},
+      {stat:"RDEF", current:8, roll:3, stars:0, band:"Good", primary:false, runner:false}
+    ],
+    primary:{
+      picks:["RES +4","FAT +4","HP +3"],
+      impacts:[
+        {label:"Assigned Fit · Banner", before:"84", after:"90"},
+        {label:"Best Fit · Banner", before:"84", after:"90", bestFit:true},
+        {label:"P100", before:"56%", after:"69%"},
+        {label:"Burden", before:"Moderate", after:"Low"}
+      ],
+      reasons:[
+        ["RES","Excellent core Banner roll."],
+        ["FAT","Excellent roll for repeated Rally / banner duty."],
+        ["HP","Best remaining survival value."]
+      ]
+    },
+    runner:{
+      title:"RES + FAT + MATK",
+      picks:["RES +4","FAT +4","MATK +3"],
+      impacts:[
+        {label:"Assigned Fit · Banner", before:"84", after:"89"},
+        {label:"Best Fit · Banner", before:"84", after:"89", bestFit:true},
+        {label:"P100", before:"56%", after:"66%"},
+        {label:"Burden", before:"Moderate", after:"Low"}
+      ],
+      summary:"Sacrifice HP for a solid MAtk roll if you deliberately want more melee contribution from the Banner."
+    },
+    tradeoff:{
+      label:"What changes?",
+      text:"Primary keeps HP +3. Runner-up swaps HP for MAtk +3. RES and FAT are locked in either way."
+    },
+    gamble:null,
+    explain:{
+      projection:[
+        ["Banner Fit","Primary 90 vs Runner-up 89"],
+        ["P100","Primary +13 pp vs Runner-up +10 pp"],
+        ["Likely Banner range","Primary shifts roughly 78–91 → 83–95"],
+        ["Burden","Both paths reduce the remaining development burden"]
+      ],
+      marginals:[
+        ["RES +4","+3.2 Fit points; core Banner stat"],
+        ["FAT +4","+1.8 Fit points; strong operational value"],
+        ["HP +3","+0.9 Fit points and survivability"],
+        ["MAtk +3","+0.5 Fit points; secondary role value"]
+      ],
+      skipped:[
+        ["MAtk +3","Credible enough for Runner-up, but lower role value than HP."],
+        ["INI +4","Good roll, low Banner weight."],
+        ["MDEF +2","Defensive value exists, but the roll is only average."]
+      ],
+      basis:[
+        ["Combination search","All legal 3-pick combinations for the visible rolls are compared."],
+        ["Future projection","Remaining levels follow the standard trajectory after this level's rolls."],
+        ["Intent handling","Assigned Build and Best Fit agree here, simplifying the recommendation."],
+        ["Mock status","Values are representative UX mock data, not a claim about a real save."]
+      ]
+    }
+  }
+];
+
+let activeLevelDecision=0;
+
+function renderLevelQueue(){
+  const host=document.getElementById("levelQueue");
+  const mobile=document.getElementById("levelMobileSelect");
+  if(!host || !mobile) return;
+  host.innerHTML="";
+  mobile.innerHTML="";
+  levelUpDecisions.forEach((d,i)=>{
+    const btn=document.createElement("button");
+    btn.className="level-queue-item"+(i===activeLevelDecision?" active":"");
+    btn.innerHTML=`
+      <div class="qtop">
+        <div class="qname">${d.name}</div>
+        <span class="tag warn">L${d.level}</span>
+      </div>
+      <div class="qmeta">${d.background}</div>
+      <div class="qbuild">Assigned <b>${d.assigned}</b><br>Best Fit <b>${d.best}</b></div>`;
+    btn.addEventListener("click",()=>{activeLevelDecision=i;renderLevelUp();});
+    host.appendChild(btn);
+
+    const opt=document.createElement("option");
+    opt.value=String(i);
+    opt.textContent=`${d.name} · ${d.assigned}`;
+    opt.selected=i===activeLevelDecision;
+    mobile.appendChild(opt);
+  });
+}
+
+function impactHtml(items){
+  return items.map(x=>`
+    <div class="impact-cell${x.bestFit?" best-fit-gain":""}">
+      <span>${x.label}</span>
+      <b>${x.before} → ${x.after}</b>
+    </div>`).join("");
+}
+
+function explainMetricsHtml(items){
+  return items.map(x=>`
+    <div class="explain-metric">
+      <span>${x[0]}</span>
+      <b>${x[1]}</b>
+    </div>`).join("");
+}
+
+function renderLevelUp(){
+  const d=levelUpDecisions[activeLevelDecision];
+  if(!d) return;
+  renderLevelQueue();
+
+  document.getElementById("levelBroName").textContent=d.name;
+  document.getElementById("levelBroMeta").textContent=`Level ${d.level} · ${d.background}`;
+  document.getElementById("levelAssigned").textContent=d.assigned;
+  document.getElementById("levelBest").textContent=`${d.best} · ${d.bestFit}`;
+  document.getElementById("primaryTitle").textContent=d.primary.picks.map(x=>x.split(" ")[0]).join(" + ");
+  document.getElementById("primaryAnchor").textContent=d.assigned;
+  document.getElementById("levelPrimaryPreview").innerHTML=`<span>Primary recommendation</span><strong>${d.primary.picks.join(" · ")}</strong>`;
+
+  const rolls=document.getElementById("levelRolls");
+  rolls.innerHTML=d.rolls.map(r=>{
+    const cls=r.primary?" primary-selected":(!r.primary&&r.runner?" runner-only":"");
+    const mark=r.primary?"Primary":(!r.primary&&r.runner?"Runner-up":"");
+    return `
+      <div class="roll${cls}">
+        <div class="rhead">
+          <span class="rstat">${r.stat}</span>
+          <span class="rstars">${"★".repeat(r.stars)}${"☆".repeat(Math.max(0,3-r.stars))}</span>
+        </div>
+        <div class="rmain">
+          <span class="rcurrent">${r.current}</span>
+          <span class="rvalue">+${r.roll}</span>
+        </div>
+        <div class="rband">${r.band} roll</div>
+        ${mark?`<span class="roll-mark">${mark}</span>`:""}
+      </div>`;
+  }).join("");
+
+  document.getElementById("primaryPicks").innerHTML=d.primary.picks.map(x=>`<span class="path-pick">${x}</span>`).join("");
+  document.getElementById("primaryImpact").innerHTML=impactHtml(d.primary.impacts);
+  document.getElementById("primaryReasons").innerHTML=d.primary.reasons.map(x=>`
+    <div class="path-reason"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+
+  document.getElementById("runnerTitle").textContent=d.runner.title;
+  document.getElementById("runnerPicks").innerHTML=d.runner.picks.map(x=>`<span class="path-pick">${x}</span>`).join("");
+  document.getElementById("runnerImpact").innerHTML=impactHtml(d.runner.impacts);
+  document.getElementById("runnerSummary").textContent=d.runner.summary;
+
+  document.getElementById("tradeoffStrip").innerHTML=`<strong>${d.tradeoff.label}</strong><span>${d.tradeoff.text}</span>`;
+
+  const gamble=document.getElementById("conditionalGamble");
+  if(d.gamble && d.gamble.show){
+    gamble.className="conditional-gamble";
+    gamble.innerHTML=`
+      <div class="gamble-card">
+        <div class="gamble-top">
+          <div><div class="eyebrow">Conditional gamble</div><strong>${d.gamble.title}</strong></div>
+          <span class="tag">Scenario</span>
+        </div>
+        <div class="gamble-picks">${d.gamble.picks.map(x=>`<span class="path-pick">${x}</span>`).join("")}</div>
+        <p><b>Trigger:</b> ${d.gamble.trigger}</p>
+        <p>${d.gamble.note}</p>
+        <div class="gamble-odds">
+          <div><span>Beats Primary</span><b>${d.gamble.chance}</b></div>
+          <div><span>Tie</span><b>${d.gamble.tie}</b></div>
+          <div><span>Primary wins</span><b>${d.gamble.primaryWins}</b></div>
+        </div>
+      </div>`;
+  }else{
+    gamble.className="conditional-gamble empty";
+    gamble.innerHTML="";
+  }
+
+  document.getElementById("explainProjection").innerHTML=explainMetricsHtml(d.explain.projection);
+  document.getElementById("explainMarginals").innerHTML=explainMetricsHtml(d.explain.marginals);
+  document.getElementById("explainSkipped").innerHTML=d.explain.skipped.map(x=>`<div class="explain-line"><b>${x[0]}</b> — ${x[1]}</div>`).join("");
+  document.getElementById("explainBasis").innerHTML=d.explain.basis.map(x=>`<div class="explain-line"><b>${x[0]}</b> — ${x[1]}</div>`).join("");
+
+  document.getElementById("levelExplain").classList.remove("open");
+  document.getElementById("levelExplainToggle").textContent="Detailed reasoning ↓";
+}
+
+const matrixRoles=["BF Tank","Nimble Tank","Reach DPS","Archer","Thrower","Banner"];
+
+const uiState = {
+  companyView: "roster",
+  companyScrollY: 0,
+  activeBrotherIndex: 0,
+  activeBrotherSection: "bro-current"
+};
+
+function scrollInstant(y){
+  const old = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, y);
+  requestAnimationFrame(()=>{ document.documentElement.style.scrollBehavior = old; });
+}
+
+function updateStickyMetrics(){
+  const shell = document.querySelector(".shell");
+  const dock = document.querySelector(".brother-dock");
+  const shellH = shell ? Math.ceil(shell.getBoundingClientRect().height) : 0;
+  const dockH = dock && dock.offsetParent !== null ? Math.ceil(dock.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty("--shell-h", shellH + "px");
+  document.documentElement.style.setProperty("--bro-dock-h", dockH + "px");
+}
+
+if ("ResizeObserver" in window){
+  const stickyObserver = new ResizeObserver(updateStickyMetrics);
+  stickyObserver.observe(document.querySelector(".shell"));
+  stickyObserver.observe(document.querySelector(".brother-dock"));
+}
+window.addEventListener("resize", updateStickyMetrics);
+
+function switchWorkspace(name){
+  document.querySelectorAll(".workspace").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.workspace===name));
+  document.getElementById("workspace-"+name).classList.add("active");
+  requestAnimationFrame(updateStickyMetrics);
+  if(name==="recruitment") requestAnimationFrame(()=>requestAnimationFrame(syncRecruitCurrentSettlement));
+  scrollInstant(0);
+}
+
+document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>switchWorkspace(b.dataset.workspace)));
+
+function renderRoster(filter=""){
+  const host=document.getElementById("rosterRows");
+  host.innerHTML="";
+  brothers
+    .map((b,index)=>({b,index}))
+    .filter(({b})=>b.name.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(({b,index})=>{
+      const row=document.createElement("div");
+      row.className="bro-row";
+      const mismatch=b.assigned!==b.best;
+      row.innerHTML=`
+        <div class="bro-main">
+          <div class="name-line"><span class="bro-name">${b.name}</span>${b.levelup?'<span class="tag warn">Level up</span>':''}</div>
+          <div class="bro-meta">Lvl ${b.level} · ${b.background} · <span class="status-dot"></span>${b.category}</div>
+        </div>
+        <div class="assigned-col"><div class="role-label">Assigned</div><div class="role-value ${mismatch?'mismatch':''}">${b.assigned}</div></div>
+        <div class="best-col"><div class="role-label">Best fit</div><div class="role-value">${b.best}</div></div>
+        <div class="fit-col"><div class="role-label">Fit</div><div class="score">${b.fit}</div></div>
+        <div class="prob-col"><div class="role-label">P100</div><div class="prob">${b.p100}%</div></div>`;
+      row.addEventListener("click",()=>openBrother(index));
+      host.appendChild(row);
+    });
+}
+
+function renderMatrix(){
+  const body=document.getElementById("matrixBody");
+  body.innerHTML="";
+  brothers.forEach((b,bi)=>{
+    const tr=document.createElement("tr");
+    let cells=`<td><strong>${b.name}</strong><div class="subtle">Lvl ${b.level} · ${b.background}</div></td>`;
+    matrixRoles.forEach((role,ri)=>{
+      const found=b.roles.find(r=>r[0]===role);
+      const v=found?found[1]:Math.max(28,b.fit-18-ri*5-bi*2);
+      const p=found?`P100 ${found[2]}%`:"context only";
+      cells+=`<td><span class="cell-fit">${v}</span><span class="cell-p">${p}</span></td>`;
+    });
+    tr.innerHTML=cells;
+    tr.children[0].style.cursor="pointer";
+    tr.children[0].addEventListener("click",()=>openBrother(bi));
+    body.appendChild(tr);
+  });
+}
+
+function setCompanyView(view){
+  uiState.companyView=view;
+  document.querySelectorAll("[data-company-view]").forEach(b=>b.classList.toggle("active",b.dataset.companyView===view));
+  document.querySelectorAll(".company-view").forEach(x=>x.style.display="none");
+  document.getElementById("view-"+view).style.display="block";
+}
+
+document.querySelectorAll("[data-company-view]").forEach(b=>b.addEventListener("click",()=>setCompanyView(b.dataset.companyView)));
+
+function populateSelect(){
+  document.getElementById("broSelect").innerHTML=brothers.map((b,i)=>`<option value="${i}">${b.name} · L${b.level} · ${b.assigned}</option>`).join("");
+}
+
+function currentBrotherSection(){
+  const ids=["bro-current","bro-development","bro-gear","bro-potential"];
+  const shellH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--shell-h"))||0;
+  const dockH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bro-dock-h"))||0;
+  const usableTop=shellH+dockH+12;
+  const usableBottom=window.innerHeight;
+  let best=uiState.activeBrotherSection || ids[0];
+  let bestScore=-1;
+
+  for(const id of ids){
+    const el=document.getElementById(id);
+    if(!el) continue;
+    const rect=el.getBoundingClientRect();
+    const visible=Math.max(0, Math.min(rect.bottom,usableBottom)-Math.max(rect.top,usableTop));
+    const tieBias=id===uiState.activeBrotherSection?0.5:0;
+    const score=visible+tieBias;
+    if(score>bestScore){
+      bestScore=score;
+      best=id;
+    }
+  }
+
+  // If no section is currently visible, retain the explicit/local context.
+  uiState.activeBrotherSection=best;
+  return best;
+}
+
+function scrollToBrotherSection(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  uiState.activeBrotherSection=id;
+  const shellH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--shell-h"))||0;
+  const dockH=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bro-dock-h"))||0;
+  const y=window.scrollY+el.getBoundingClientRect().top-shellH-dockH-12;
+  scrollInstant(Math.max(0,y));
+}
+
+function renderBrother(i){
+  const b=brothers[i];
+  uiState.activeBrotherIndex=i;
+  document.getElementById("broSelect").value=String(i);
+  document.getElementById("heroName").textContent=b.name;
+  document.getElementById("heroMeta").textContent=`Level ${b.level} · ${b.background}`;
+  document.getElementById("heroTags").innerHTML=
+    `<span class="tag gold">${b.category}</span>${b.levelup?'<span class="tag warn">Level up pending</span>':''}`;
+
+  document.getElementById("assignedBuild").textContent=b.assigned;
+  document.getElementById("bestRole").textContent=b.best;
+  const nearTie=b.roles.slice(1).find(r=>Math.abs(b.fit-r[1])<=2);
+  document.getElementById("bestFit").textContent=
+    `Fit ${b.fit} · P100 ${b.p100}%${nearTie?` · near-equivalent ${nearTie[0]} ${nearTie[1]}`:""}`;
+  document.getElementById("intentNote").textContent=b.assigned===b.best
+    ?"Assigned Build currently aligns with Best Fit. They remain separate concepts."
+    :"Assigned Build differs from Best Fit. This is context, not automatically a warning or recommendation.";
+
+  document.getElementById("pendingAction").style.display=b.levelup?"flex":"none";
+  document.getElementById("pendingActionTitle").textContent=`${b.name} has a level-up pending`;
+  document.getElementById("pendingActionText").textContent=`Continue ${b.assigned} with the Level Advisor.`;
+
+  document.getElementById("statGrid").innerHTML=Object.entries(b.stats).map(([k,v])=>
+    `<div class="stat"><div class="sname">${k}</div><div class="svalue">${v[0]}</div><div class="stars">${"★".repeat(v[1])}${"☆".repeat(Math.max(0,3-v[1]))}</div></div>`
+  ).join("");
+
+  document.getElementById("perkChips").innerHTML=b.perks.map(p=>`<span class="tag">${p}</span>`).join("");
+
+  document.getElementById("gearGrid").innerHTML=Object.entries(b.gear).map(([slot,v])=>
+    `<div class="gear-slot"><div class="slot">${slot}</div><div class="item">${v[0]}</div><div class="detail">${v[1]}</div></div>`
+  ).join("");
+  document.getElementById("rawFat").textContent=b.fat[0];
+  document.getElementById("gearFat").textContent="−"+b.fat[1];
+  document.getElementById("usableFat").textContent=b.fat[2];
+
+  document.getElementById("mechanics").innerHTML=b.mechanics.map(m=>
+    `<div class="mechanic"><div class="mname">${m[0]}</div><div><div class="mstate">${m[1]}</div><div class="mbasis">${m[2]}</div></div></div>`
+  ).join("");
+
+  const roles=document.getElementById("roleCards");
+  roles.innerHTML="";
+  b.roles.forEach(r=>{
+    const card=document.createElement("div");
+    card.className="role-card";
+    card.innerHTML=`
+      <div class="role-summary" role="button" tabindex="0">
+        <div><div class="role-name">${r[0]}</div><div class="subtle">${r[4]}</div></div>
+        <div><div class="role-label">Fit</div><div class="score">${r[1]}</div></div>
+        <div><div class="role-label">P100</div><div class="prob">${r[2]}%</div></div>
+        <div><div class="role-label">Likely</div><div class="prob">${r[3]}</div></div>
+        <div class="chev">›</div>
+      </div>
+      <div class="role-detail">
+        <div class="subtle">Detailed projection reasoning.</div>
+        <div class="explain-grid">
+          <div class="explain-cell"><span>MAtk expected</span><b>${Math.max(68,b.stats.MATK[0]+8)}</b></div>
+          <div class="explain-cell"><span>MDef expected</span><b>${Math.max(18,b.stats.MDEF[0]+7)}</b></div>
+          <div class="explain-cell"><span>Weight focus</span><b>${r[0].includes("Tank")?"MDef":"MAtk"}</b></div>
+          <div class="explain-cell"><span>Full detail</span><b>Open</b></div>
+        </div>
+        <div class="note" style="margin-top:10px">Detailed view would expose baseline, target, expected values, full ranges and Fit weights.</div>
+      </div>`;
+    const toggle=()=>{
+      card.classList.toggle("open");
+      card.querySelector(".role-summary").setAttribute("aria-expanded",String(card.classList.contains("open")));
+    };
+    const summary=card.querySelector(".role-summary");
+    summary.setAttribute("aria-expanded","false");
+    summary.addEventListener("click",toggle);
+    summary.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}});
+    roles.appendChild(card);
+  });
+
+  document.getElementById("devAssigned").textContent=`Assigned path · ${b.assigned}`;
+  document.getElementById("devLevel").textContent=`Level ${b.level}${b.levelup?" · 1 point pending":" · no pending level-up"}`;
+}
+
+function openBrother(i,{preserveSection=false}={}){
+  const companyVisible=document.getElementById("companyOverview").style.display!=="none";
+  if(companyVisible) uiState.companyScrollY=window.scrollY;
+  const section=preserveSection?currentBrotherSection():null;
+  if(!preserveSection) uiState.activeBrotherSection="bro-current";
+
+  document.getElementById("companyOverview").style.display="none";
+  document.getElementById("brotherWorkspace").classList.add("active");
+  renderBrother(i);
+  requestAnimationFrame(()=>{
+    updateStickyMetrics();
+    if(section) scrollToBrotherSection(section);
+    else scrollInstant(0);
+  });
+}
+
+document.getElementById("backCompany").addEventListener("click",()=>{
+  document.getElementById("brotherWorkspace").classList.remove("active");
+  document.getElementById("companyOverview").style.display="block";
+  setCompanyView(uiState.companyView);
+  requestAnimationFrame(()=>{
+    updateStickyMetrics();
+    scrollInstant(uiState.companyScrollY);
+  });
+});
+
+document.getElementById("broSelect").addEventListener("change",e=>{
+  const section=currentBrotherSection();
+  uiState.activeBrotherSection=section;
+  renderBrother(Number(e.target.value));
+  requestAnimationFrame(()=>{
+    updateStickyMetrics();
+    scrollToBrotherSection(section);
+  });
+});
+
+document.getElementById("broSearch").addEventListener("input",e=>renderRoster(e.target.value));
+
+document.querySelectorAll(".anchor-nav a,.mobile-anchor-nav a").forEach(a=>a.addEventListener("click",e=>{
+  e.preventDefault();
+  const section=a.getAttribute("href").slice(1);
+  uiState.activeBrotherSection=section;
+  scrollToBrotherSection(section);
+}));
+
+document.querySelectorAll("[data-open-brother]").forEach(btn=>btn.addEventListener("click",()=>openBrother(Number(btn.dataset.openBrother))));
+
+document.getElementById("healthBtn").addEventListener("click",()=>document.getElementById("healthModal").classList.add("open"));
+document.getElementById("closeHealth").addEventListener("click",()=>document.getElementById("healthModal").classList.remove("open"));
+document.getElementById("healthModal").addEventListener("click",e=>{if(e.target.id==="healthModal")document.getElementById("healthModal").classList.remove("open")});
+
+
+
+const recruitmentData = [
+  {
+    settlement:"Birkhaven",
+    historySummary:"2 previously seen · 1 new",
+    candidates:[
+      {
+        name:"Horic the Younger",background:"Farmhand",level:1,cost:430,wage:8,
+        tryout:false,evidenceLabel:"No revealed traits",relevantNeed:{role:"BF Tank",level:"High"},
+        potentials:[
+          {role:"BF Tank",estimate:null,prior:41,basis:null,note:"No candidate-specific evidence yet; only the Farmhand background prior is justified."},
+          {role:"Nimble Tank",estimate:null,prior:52,basis:null,note:"Prior only until stats, stars or revealed traits provide recruit-specific evidence."},
+          {role:"Reach DPS",estimate:null,prior:37,basis:null,note:"Background prior only."}
+        ],
+        relevantNeeds:[
+          {role:"BF Tank",level:"High",text:"Useful company need and a plausible Farmhand trajectory."},
+          {role:"Nimble Tank",level:"Medium",text:"Secondary useful lane if post-hire defensive evidence supports it."}
+        ],
+        otherGaps:["Banner · High — this recruit does not meaningfully address it"],
+        evidence:[["Background","Farmhand"],["Level","1"],["Revealed traits","None"],["Tryout","Not purchased"]],
+        observation:[["Observed","Current analysis"],["History","Previously seen · unchanged"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Background prior only."],["Why no recruit estimate","No revealed trait or other recruit-specific evidence justifies a separate probability."],["Roster need","Displayed independently from potential."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Base stats","Unknown before hire"],["Stars","Unknown"],["Hidden traits","Unknown"],["Exact refresh age","Unknown"]]
+      },
+      {
+        name:"Albrecht the Quiet",background:"Brawler",level:1,cost:510,wage:9,
+        tryout:true,evidenceLabel:"Tough revealed",relevantNeed:{role:"Nimble DPS",level:"Medium"},
+        potentials:[
+          {role:"Nimble DPS",estimate:64,prior:56,basis:"Tough revealed",note:"Known Tough trait provides recruit-specific survivability evidence."},
+          {role:"Reach DPS",estimate:53,prior:49,basis:"Tough revealed",note:"Small uplift from known survivability; offensive ceiling remains uncertain."},
+          {role:"Nimble Tank",estimate:49,prior:45,basis:"Tough revealed",note:"Plausible but not the strongest candidate path."}
+        ],
+        relevantNeeds:[
+          {role:"Nimble DPS",level:"Medium",text:"Useful flexibility, but not a critical company gap."},
+          {role:"Nimble Tank",level:"Medium",text:"Potential secondary lane if post-hire MDef supports it."}
+        ],
+        otherGaps:["Banner · High — Albrecht is not a meaningful Banner solution"],
+        evidence:[["Background","Brawler"],["Level","1"],["Revealed trait","Tough"],["Tryout","Purchased"]],
+        observation:[["Observed","Current analysis"],["History","New since previous analysis"],["Game refresh","Cause unknown"]],
+        model:[["Analytical state","Known-evidence estimate."],["Evidence adjustment","Tough provides a modest survivability uplift over the Brawler prior."],["Roster need","Independent company signal."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Base stats","Unknown"],["Stars","Unknown"],["Other hidden traits","Unknown"],["Future rolls","Unknown"]]
+      },
+      {
+        name:"Guntram",background:"Miller",level:1,cost:290,wage:6,
+        tryout:false,evidenceLabel:"No revealed traits",relevantNeed:{role:"Disposable Shield",level:"Low"},
+        potentials:[
+          {role:"Disposable Shield",estimate:null,prior:54,basis:null,note:"Prior only; no recruit-specific evidence is currently known."},
+          {role:"Nimble Tank",estimate:null,prior:34,basis:null,note:"Prior only."},
+          {role:"Reach DPS",estimate:null,prior:27,basis:null,note:"Prior only."}
+        ],
+        relevantNeeds:[
+          {role:"Disposable Shield",level:"Low",text:"Cheap body role exists, but the roster does not urgently need more."}
+        ],
+        otherGaps:["BF Tank · High — candidate quality/relevance is insufficient","Banner · High — not a relevant trajectory"],
+        evidence:[["Background","Miller"],["Level","1"],["Revealed traits","None"],["Tryout","Not purchased"]],
+        observation:[["Observed","Current analysis"],["History","Previously seen · unchanged"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Background prior only."],["Candidate-specific evidence","None."],["Economics","Cheap hire is factual and separate from potential."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Base stats","Unknown"],["Stars","Unknown"],["Traits","Unknown"],["Long-term value","Highly uncertain"]]
+      }
+    ]
+  },
+  {
+    settlement:"Weissenstadt",
+    historySummary:"2 new this analysis",
+    candidates:[
+      {
+        name:"Konrad",background:"Militia",level:2,cost:760,wage:12,
+        tryout:true,evidenceLabel:"Iron Lungs revealed",relevantNeed:{role:"BF Tank",level:"High"},
+        potentials:[
+          {role:"BF Tank",estimate:66,prior:58,basis:"Iron Lungs revealed",note:"Known fatigue-positive trait supports this fatigue-hungry frontline trajectory."},
+          {role:"Reach DPS",estimate:63,prior:61,basis:"Iron Lungs revealed",note:"Small operational uplift; offensive ceiling still uncertain."},
+          {role:"Nimble Tank",estimate:59,prior:57,basis:"Iron Lungs revealed",note:"Credible alternative."}
+        ],
+        relevantNeeds:[
+          {role:"BF Tank",level:"High",text:"Directly addresses a useful company need."},
+          {role:"Nimble Tank",level:"Medium",text:"Alternative depth if post-hire evidence changes the armor path."}
+        ],
+        otherGaps:["Banner · High — not a relevant Militia trajectory in this candidate view"],
+        evidence:[["Background","Militia"],["Level","2"],["Revealed trait","Iron Lungs"],["Tryout","Purchased"]],
+        observation:[["Observed","Current analysis"],["History","First observed"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Known-evidence estimate."],["Evidence adjustment","Iron Lungs provides a modest role-relevant fatigue uplift."],["Level context","Level 2 slightly reduces remaining development runway."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Base stats","Unknown"],["Stars","Unknown"],["Hidden second trait","Unknown"],["Exact pool generation time","Unknown"]]
+      },
+      {
+        name:"Roderick",background:"Hunter",level:1,cost:1180,wage:17,
+        tryout:false,evidenceLabel:"No revealed traits",relevantNeed:{role:"Archer / XBow",level:"Medium"},
+        potentials:[
+          {role:"Archer",estimate:null,prior:79,basis:null,note:"Strong Hunter background prior; no recruit-specific evidence is currently known."},
+          {role:"Crossbow",estimate:null,prior:77,basis:null,note:"Near-equivalent background prior."},
+          {role:"Thrower",estimate:null,prior:64,basis:null,note:"Viable prior, less compelling than dedicated ranged paths."}
+        ],
+        relevantNeeds:[
+          {role:"Archer / XBow",level:"Medium",text:"Useful ranged depth: 1 assigned and 2 viable."}
+        ],
+        otherGaps:["BF Tank · High — Roderick does not address it"],
+        evidence:[["Background","Hunter"],["Level","1"],["Revealed traits","None"],["Tryout","Not purchased"]],
+        observation:[["Observed","Current analysis"],["History","First observed"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Background prior only."],["Why no recruit estimate","No revealed traits or other candidate-specific evidence."],["Near-tie","Archer and Crossbow remain close at the background-prior level."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Exact RAtk","Unknown"],["RAtk stars","Unknown"],["Traits","Unknown"],["Economic value","Depends on hidden post-hire quality"]]
+      }
+    ]
+  },
+  {
+    settlement:"Dornheim",
+    historySummary:"2 previously seen · unchanged",
+    candidates:[
+      {
+        name:"Ulrich the Pious",background:"Monk",level:1,cost:320,wage:6,
+        tryout:true,evidenceLabel:"Fearless revealed",relevantNeed:{role:"Banner",level:"High"},
+        potentials:[
+          {role:"Banner",estimate:75,prior:65,basis:"Fearless revealed",note:"Known Fearless trait provides strong role-relevant Resolve evidence."},
+          {role:"Nimble Tank",estimate:39,prior:36,basis:"Fearless revealed",note:"Small survivability/Resolve uplift, but not the primary path."},
+          {role:"Reach DPS",estimate:28,prior:28,basis:"Fearless revealed",note:"Trait does not materially improve this trajectory."}
+        ],
+        relevantNeeds:[
+          {role:"Banner",level:"High",text:"Only Meinolf currently covers this trajectory; replacement risk is high."}
+        ],
+        otherGaps:["BF Tank · High — not a candidate-relevant trajectory"],
+        evidence:[["Background","Monk"],["Level","1"],["Revealed trait","Fearless"],["Tryout","Purchased"]],
+        observation:[["Observed","Current analysis"],["History","Previously seen · unchanged"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Known-evidence estimate."],["Evidence adjustment","Fearless provides direct Resolve evidence for Banner."],["Roster need","High Banner need remains separate from the 75% estimate."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Exact Resolve","Unknown"],["Resolve stars","Unknown"],["Second trait","Unknown"],["Exact refresh age","Unknown"]]
+      },
+      {
+        name:"Bertwin",background:"Daytaler",level:1,cost:210,wage:5,
+        tryout:false,evidenceLabel:"No revealed traits",relevantNeed:{role:"Disposable Shield",level:"Low"},
+        potentials:[
+          {role:"Disposable Shield",estimate:null,prior:66,basis:null,note:"Background prior only."},
+          {role:"Nimble Tank",estimate:null,prior:38,basis:null,note:"Background prior only."},
+          {role:"Reach DPS",estimate:null,prior:32,basis:null,note:"Background prior only."}
+        ],
+        relevantNeeds:[
+          {role:"Disposable Shield",level:"Low",text:"Current roster does not urgently need more temporary bodies."}
+        ],
+        otherGaps:["Banner · High — Bertwin does not address it","BF Tank · High — candidate relevance is insufficient"],
+        evidence:[["Background","Daytaler"],["Level","1"],["Revealed traits","None"],["Tryout","Not purchased"]],
+        observation:[["Observed","Current analysis"],["History","Previously seen · unchanged"],["Game refresh","Unknown"]],
+        model:[["Analytical state","Background prior only."],["Candidate-specific evidence","None."],["Economics","Very cheap hire, shown separately."],["Mock status","Percentages are representative target-UI data."]],
+        unknown:[["Base stats","Unknown"],["Stars","Unknown"],["Traits","Unknown"],["Long-term value","Highly uncertain"]]
+      }
+    ]
+  }
+];
+
+const flatRecruits = recruitmentData.flatMap(s => s.candidates.map(c => ({
+  ...c,
+  settlement:s.settlement,
+  settlementHistory:s.historySummary
+})));
+
+let activeRecruitIndex = 0;
+let shortlist = new Set([1,3,5]);
+
+function rankedPotentials(c){
+  const hasKnownEstimate=c.potentials.some(p=>p.estimate!=null);
+  return [...c.potentials].sort((a,b)=>{
+    const av=hasKnownEstimate ? (a.estimate ?? -Infinity) : a.prior;
+    const bv=hasKnownEstimate ? (b.estimate ?? -Infinity) : b.prior;
+    return bv-av;
+  });
+}
+
+function topPotential(c){
+  return rankedPotentials(c)[0];
+}
+
+function topPotentialLabel(c){
+  const p=topPotential(c);
+  return p.estimate==null
+    ? `${p.role} · prior ${p.prior}%`
+    : `${p.role} · est. ${p.estimate}%`;
+}
+
+function evidenceScanLabel(c){
+  return c.tryout ? c.evidenceLabel : "Prior-only evidence";
+}
+
+function syncRecruitCurrentSettlement(){
+  const browser=document.querySelector(".recruit-browser");
+  const browserHead=browser?.querySelector(".card-head");
+  const nameNode=document.getElementById("recruitCurrentSettlementName");
+  const stateNode=document.getElementById("recruitCurrentSettlementState");
+  if(!browser || !browserHead || !nameNode || !stateNode || browser.offsetParent===null) return;
+
+  const viewportTop=browserHead.getBoundingClientRect().bottom;
+  const viewportBottom=browser.getBoundingClientRect().bottom;
+  const visibility=[];
+
+  browser.querySelectorAll(".settlement-block").forEach((block,index)=>{
+    let visible=0;
+    block.querySelectorAll(".recruit-row").forEach(row=>{
+      const r=row.getBoundingClientRect();
+      visible += Math.max(0,Math.min(r.bottom,viewportBottom)-Math.max(r.top,viewportTop));
+    });
+    visibility.push({index,visible});
+  });
+
+  const maxVisible=Math.max(...visibility.map(x=>x.visible));
+  const handoffTolerance=40;
+  const nearLeaders=visibility.filter(x=>x.visible>=maxVisible-handoffTolerance);
+  const bestIndex=nearLeaders[nearLeaders.length-1]?.index ?? 0;
+
+  const settlement=recruitmentData[bestIndex];
+  if(!settlement) return;
+  nameNode.textContent=settlement.settlement.toUpperCase();
+  stateNode.textContent=settlement.historySummary;
+  browser.dataset.currentSettlement=settlement.settlement;
+}
+
+function scheduleRecruitCurrentSettlementSync(){
+  requestAnimationFrame(syncRecruitCurrentSettlement);
+}
+
+function renderRecruitBrowser(){
+  const host=document.getElementById("recruitBrowser");
+  const mobile=document.getElementById("recruitMobileSelect");
+  if(!host || !mobile) return;
+  host.innerHTML="";
+  mobile.innerHTML="";
+  let idx=0;
+
+  recruitmentData.forEach(s=>{
+    const block=document.createElement("div");
+    block.className="settlement-block";
+    block.innerHTML=`
+      <div class="settlement-head">
+        <div>
+          <h3>${s.settlement}</h3>
+          <div class="settlement-meta">${s.candidates.length} recruits</div>
+        </div>
+        <div class="settlement-state">${s.historySummary}</div>
+      </div>`;
+
+    s.candidates.forEach(c=>{
+      const i=idx++;
+      const row=document.createElement("div");
+      row.className="recruit-row"+(i===activeRecruitIndex?" active":"");
+      row.innerHTML=`
+        <div class="r-name-line">
+          <span class="r-name">${c.name}</span>
+          <span class="r-cost">${c.cost}g</span>
+        </div>
+        <div class="r-meta">${c.background} · L${c.level} · ${c.wage}g/day</div>
+        <div class="r-scan-line">
+          <div class="r-scan">
+            <span>Top potential</span>
+            <b>${topPotentialLabel(c)}</b>
+          </div>
+          <div class="r-scan">
+            <span>Relevant need</span>
+            <b>${c.relevantNeed.role} · ${c.relevantNeed.level}</b>
+          </div>
+        </div>
+        <div class="r-bottom">
+          <span class="r-known">${c.evidenceLabel} · ${c.tryout?"tryout":"no tryout"}</span>
+          <button class="r-short ${shortlist.has(i)?"active":""}" data-short="${i}">
+            ${shortlist.has(i)?"Shortlisted":"Shortlist"}
+          </button>
+        </div>`;
+
+      row.addEventListener("click",e=>{
+        if(e.target.closest("[data-short]")) return;
+        activeRecruitIndex=i;
+        renderRecruitment();
+      });
+      row.querySelector("[data-short]").addEventListener("click",e=>{
+        e.stopPropagation();
+        if(shortlist.has(i)) shortlist.delete(i); else shortlist.add(i);
+        renderRecruitment();
+      });
+
+      block.appendChild(row);
+
+      const opt=document.createElement("option");
+      opt.value=String(i);
+      opt.textContent=`${s.settlement} · ${c.name} · ${topPotentialLabel(c)} · Need ${c.relevantNeed.level} · ${c.cost}g`;
+      mobile.appendChild(opt);
+    });
+
+    host.appendChild(block);
+  });
+
+  mobile.value=String(activeRecruitIndex);
+  scheduleRecruitCurrentSettlementSync();
+}
+
+function potentialHtml(c){
+  return rankedPotentials(c).map((p,i)=>{
+    const priorOnly=p.estimate==null;
+    return `
+      <div class="potential-row">
+        <div class="potential-top">
+          <div>
+            <div class="potential-name">${p.role}</div>
+            ${i===0?'<span class="tag gold" style="margin-top:4px">Top path</span>':""}
+          </div>
+          <div class="candidate-estimate">
+            <div class="potential-label">${priorOnly?"Candidate estimate":"Known-evidence estimate"}</div>
+            <div class="potential-value">${priorOnly?"Not available":p.estimate+"%"}</div>
+            ${priorOnly?'<span class="prior-only">Prior only</span>':`<div class="model-basis">Basis: ${p.basis}</div>`}
+          </div>
+          <div class="background-prior">
+            <div class="potential-label">Background prior</div>
+            <div class="potential-value">${p.prior}%</div>
+          </div>
+        </div>
+        <div class="potential-note">${p.note}</div>
+      </div>`;
+  }).join("");
+}
+
+function needHtml(c){
+  return c.relevantNeeds.map(n=>`
+    <div class="need-card relevant">
+      <div class="need-top">
+        <strong>${n.role}</strong>
+        <span class="tag">${n.level}</span>
+      </div>
+      <p>${n.text}</p>
+    </div>`).join("");
+}
+
+function renderShortlist(){
+  const picks=[...shortlist].sort((a,b)=>a-b).map(i=>flatRecruits[i]).filter(Boolean);
+  document.getElementById("shortlistPicks").innerHTML = picks.length
+    ? picks.map(c=>`<span class="shortlisted-chip">${c.name} · ${c.cost}g</span>`).join("")
+    : '<span class="subtle">No candidates shortlisted</span>';
+
+  document.getElementById("shortlistNote").style.display = picks.length>3 ? "block" : "none";
+
+  document.getElementById("compareRecruits").innerHTML = picks.map(c=>`
+    <div class="compare-recruit">
+      <h3>${c.name}</h3>
+      <div class="subtle">${c.background} · ${c.settlement}</div>
+      <div class="compare-dim"><span>Cost</span><b>${c.cost}g · ${c.wage}g/day</b></div>
+      <div class="compare-dim"><span>Top potential</span><b>${topPotentialLabel(c)}</b></div>
+      <div class="compare-dim"><span>Relevant need</span><b>${c.relevantNeed.role} · ${c.relevantNeed.level}</b></div>
+      <div class="compare-dim"><span>Evidence</span><b>${c.evidenceLabel}</b></div>
+      <div class="compare-dim"><span>Tryout</span><b>${c.tryout?"Purchased":"Not purchased"}</b></div>
+    </div>`).join("");
+}
+
+function renderRecruitment(){
+  const c=flatRecruits[activeRecruitIndex];
+  if(!c) return;
+  renderRecruitBrowser();
+
+  document.getElementById("recruitSettlement").textContent=c.settlement;
+  document.getElementById("recruitName").textContent=c.name;
+  document.getElementById("recruitMeta").textContent=`${c.background} · Level ${c.level}`;
+  document.getElementById("recruitCost").textContent=`${c.cost}g`;
+  document.getElementById("recruitWage").textContent=`${c.wage}g`;
+  document.getElementById("recruitFacts").innerHTML=`
+    <span class="tag">${c.evidenceLabel}</span>
+    <span class="tag">${c.tryout?"Tryout purchased":"Tryout not purchased"}</span>`;
+
+  document.getElementById("recruitTopScan").textContent=topPotentialLabel(c);
+  const top=topPotential(c);
+  document.getElementById("recruitTopBasis").textContent=top.estimate==null
+    ? "Background prior only"
+    : `Known-evidence estimate · ${top.basis}`;
+  document.getElementById("recruitNeedScan").textContent=`${c.relevantNeed.role} · ${c.relevantNeed.level}`;
+  document.getElementById("recruitEvidenceScan").textContent=evidenceScanLabel(c);
+  document.getElementById("recruitTryoutScan").textContent=c.tryout?"Tryout purchased":"No tryout evidence";
+
+  document.getElementById("recruitPotential").innerHTML=potentialHtml(c);
+  document.getElementById("recruitNeeds").innerHTML=needHtml(c);
+  document.getElementById("recruitOtherGaps").innerHTML=c.otherGaps.length
+    ? `<strong>Other company gaps not served by this recruit:</strong><br>${c.otherGaps.join("<br>")}`
+    : "";
+
+  document.getElementById("recruitEvidence").innerHTML=c.evidence.map(x=>
+    `<div class="evidence-line"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");
+  document.getElementById("recruitObservation").innerHTML=[
+    ["Settlement observation",c.settlementHistory],
+    ...c.observation
+  ].map(x=>`<div class="evidence-line"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");
+
+  document.getElementById("recruitModelExplain").innerHTML=c.model.map(x=>
+    `<div class="explain-line"><b>${x[0]}</b> — ${x[1]}</div>`).join("");
+  document.getElementById("recruitUnknownExplain").innerHTML=c.unknown.map(x=>
+    `<div class="explain-line"><b>${x[0]}</b> — ${x[1]}</div>`).join("");
+
+  document.getElementById("toggleShortlistCandidate").textContent =
+    shortlist.has(activeRecruitIndex) ? "Remove from shortlist" : "Add to shortlist";
+
+  renderShortlist();
+  scheduleRecruitCurrentSettlementSync();
+}
+
+function openLevelUp(){switchWorkspace("levelup");}
+document.getElementById("goLevelup").addEventListener("click",openLevelUp);
+document.getElementById("pendingActionBtn").addEventListener("click",openLevelUp);
+
+
+document.getElementById("levelMobileSelect")?.addEventListener("change",e=>{
+  activeLevelDecision=Number(e.target.value);
+  renderLevelUp();
+});
+document.getElementById("levelExplainToggle")?.addEventListener("click",()=>{
+  const p=document.getElementById("levelExplain");
+  const open=p.classList.toggle("open");
+  document.getElementById("levelExplainToggle").textContent=open?"Hide detailed reasoning ↑":"Detailed reasoning ↓";
+});
+document.getElementById("levelViewBrother")?.addEventListener("click",()=>{
+  const d=levelUpDecisions[activeLevelDecision];
+  switchWorkspace("company");
+  requestAnimationFrame(()=>openBrother(d.brotherIndex));
+});
+
+window.addEventListener("resize",scheduleRecruitCurrentSettlementSync);
+document.querySelector(".recruit-browser")?.addEventListener("scroll",syncRecruitCurrentSettlement,{passive:true});
+
+document.getElementById("recruitMobileSelect")?.addEventListener("change",e=>{activeRecruitIndex=Number(e.target.value);renderRecruitment();});
+document.getElementById("toggleShortlistCandidate")?.addEventListener("click",()=>{if(shortlist.has(activeRecruitIndex))shortlist.delete(activeRecruitIndex);else shortlist.add(activeRecruitIndex);renderRecruitment();});
+document.getElementById("toggleRecruitCompare")?.addEventListener("click",()=>{const p=document.getElementById("shortlistCompare");const open=p.classList.toggle("open");document.getElementById("toggleRecruitCompare").textContent=open?"Compare shortlist ↑":"Compare shortlist ↓";});
+document.getElementById("recruitExplainToggle")?.addEventListener("click",()=>{const p=document.getElementById("recruitExplain");const open=p.classList.toggle("open");document.getElementById("recruitExplainToggle").textContent=open?"Hide potential model ↑":"How is this potential estimated? ↓";});
+renderRecruitment();
+renderLevelUp();
+renderRoster();
+renderMatrix();
+populateSelect();
+updateStickyMetrics();
+</script>
+</body>
+</html>
