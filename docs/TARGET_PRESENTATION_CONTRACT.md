@@ -26,11 +26,21 @@ The completed intrinsic slice of #128 is exposed under
 ## Coherence and validity
 
 The presentation artifact binds the exact SHA-256 of every legacy component
-file. Its `coherence_signature` hashes source-content provenance, effective
-configuration fingerprints and those component hashes. The validator also
+file and a canonical hash of every presentation section. Its
+`coherence_signature` hashes source-content provenance, effective configuration
+fingerprints, component hashes, and presentation-content hashes. The validator also
 checks duplicated semantic relations (health, Mechanics, builds, Brothers and
 recruits), so accidentally combining files from separate runs is rejected even
 if someone refreshes only the outer manifest hashes.
+
+Exact Campaign and Brother identities are validated against their native
+integer ranges and canonical namespace form. Recruitment wrappers and embedded
+#110/#111 payloads are validated through every versioned field, including
+state/result coherence, build and background joins, engine versions, evidence,
+and distribution invariants. Intrinsic Company coverage is recomputed from the
+bound roster, archetypes, Fit rows, classification configuration, and exact
+Brother identities; the published rows and artifact signatures must match that
+authoritative result exactly.
 
 Artifact currency is separate from publication coherence. Role projection,
 strategic classification and Level Advisor carry their own input signatures

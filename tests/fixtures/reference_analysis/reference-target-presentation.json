@@ -126,7 +126,7 @@
   "company": {
     "intrinsic_coverage": [
       {
-        "ArtifactSignature": "sha256:9fca23555e91167e1e72c980cded550f1e078fb1fe20409e5c11a4c7990dcfb0",
+        "ArtifactSignature": "sha256:1f0c05e1ed1c38ddf027972e4c27ffccac68a7e9b70a832729fcf2ae897b61b2",
         "BuildDefinitionHash": "sha256:e81d2071f11daffc5d38221646f61183e98836757ca909916324935aee7491a6",
         "BuildIdentity": "archer",
         "GoodCount": 0,
@@ -137,7 +137,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:f78c87eadc14385e3935742c70b63f19db7481f127b81997ef40ccad5924c017",
+        "ArtifactSignature": "sha256:b567c164a4388915b3d7b657905f1ec14a03fc4c4bcad9bc46ba2673e10179a6",
         "BuildDefinitionHash": "sha256:651fcc1e533238c5cb1256b077a39c098cf74255387cb1078b081888b04dc612",
         "BuildIdentity": "banner",
         "GoodCount": 0,
@@ -148,7 +148,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:89aab2b1e04d57121c1cf7ad284f75cf99842b70562dc6d3af4e86fd4f0aa5fa",
+        "ArtifactSignature": "sha256:badb7e0db4eee3f94b0185c87f9b9a5d12a1ef5080db3ce725d6cdb65ae1d6a7",
         "BuildDefinitionHash": "sha256:5d69d37fb97e30f5628273189551654f3d054b888cd6669fa0894cc10fef1f71",
         "BuildIdentity": "battle_forged_frontline_dps",
         "GoodCount": 3,
@@ -158,19 +158,19 @@
         "ViableBrothers": [
           {
             "BrotherID": "human:101",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1001",
             "FitLabel": "PREMIUM",
             "FitPct": 100.0
           },
           {
             "BrotherID": "human:202",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1002",
             "FitLabel": "GOOD",
             "FitPct": 88.8
           },
           {
             "BrotherID": "human:505",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1004",
             "FitLabel": "GOOD",
             "FitPct": 82.9
           }
@@ -178,7 +178,7 @@
         "ViableCount": 3
       },
       {
-        "ArtifactSignature": "sha256:696e2f97d00401f4785dddac17136b299857799ccc76c882ba7db2c937e59b95",
+        "ArtifactSignature": "sha256:f1746385c5ab2824084d00a9d0931e3aa0591653a7a74fe5726d1fb54faa8b69",
         "BuildDefinitionHash": "sha256:c7ee5fada75c7716e8c292a2f81e5cedd1a08b4b383b175db5570388de8c324c",
         "BuildIdentity": "battle_forged_tank",
         "GoodCount": 0,
@@ -189,7 +189,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:a2d7d2555941cd6dcf193fe84d6e2375a46ec072b49fab14fca03681201d9334",
+        "ArtifactSignature": "sha256:7df50113e5bfa7f55b53df9bfdfebabcf02872acac44f3860690854ca35e5d32",
         "BuildDefinitionHash": "sha256:7bac03f53686e7a0cef0df8cdd68c6a7aed75341b407b252edb43ce68246b27b",
         "BuildIdentity": "crossbow",
         "GoodCount": 0,
@@ -200,7 +200,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:a227303f54bfd8ea953f1db3d1dba4d4f66a2b70ba6f0cad7204c906cef123ca",
+        "ArtifactSignature": "sha256:912b85d638fd03adca5e9e84bd3b74b3ca5c666d3a1c861c39c439bdf52652d6",
         "BuildDefinitionHash": "sha256:44cfad228a9098b97464755def31f2b5364be16a3e49c0a0020b8501b07511d4",
         "BuildIdentity": "fat_neutral",
         "GoodCount": 1,
@@ -210,7 +210,7 @@
         "ViableBrothers": [
           {
             "BrotherID": "human:101",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1001",
             "FitLabel": "PREMIUM",
             "FitPct": 100.0
           }
@@ -218,7 +218,7 @@
         "ViableCount": 1
       },
       {
-        "ArtifactSignature": "sha256:87607cd1bba4e2b2923b4d86f0d90d93da3c09cd7c731aadf67b6eec04cc9102",
+        "ArtifactSignature": "sha256:24ce75b38a0fa6790a3c57ebc8b6db2ee38e6b0c9891f1807531370eb362c37b",
         "BuildDefinitionHash": "sha256:b0f18e22307a1a67c5e4851c698e666cba9a60441da67f7fa2e0ebed02f88664",
         "BuildIdentity": "nimble_frontline_dps",
         "GoodCount": 3,
@@ -228,19 +228,19 @@
         "ViableBrothers": [
           {
             "BrotherID": "human:101",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1001",
             "FitLabel": "PREMIUM",
             "FitPct": 100.0
           },
           {
             "BrotherID": "human:505",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1004",
             "FitLabel": "GOOD",
             "FitPct": 90.1
           },
           {
             "BrotherID": "human:202",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1002",
             "FitLabel": "GOOD",
             "FitPct": 88.4
           }
@@ -248,7 +248,7 @@
         "ViableCount": 3
       },
       {
-        "ArtifactSignature": "sha256:f594c65d6a057fc7978cc85e1ba66d9b4f65f3dceb952298b06a2f333929bc2a",
+        "ArtifactSignature": "sha256:53b14c86bea36181b908c2959774d52c2451ec0e24babe4898581dd5eb6f16fa",
         "BuildDefinitionHash": "sha256:588ee764c0064530ab7454cb512a57f74468957e85995ff8ac19b998d5b0d80a",
         "BuildIdentity": "nimble_tank",
         "GoodCount": 0,
@@ -259,7 +259,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:aeab4ff68e43d0846a358e2657611b4509ba4006935a4b2014c0ad8e5356945e",
+        "ArtifactSignature": "sha256:2b6ec250043f1bf153c1f4ea858e171c6f3fd2ad3fe1916f43d0973c225be56d",
         "BuildDefinitionHash": "sha256:f62a2c76ce3f4641d5603f28599a5d1df059bbe007a0068fb488778fb34f89b7",
         "BuildIdentity": "reach_dps",
         "GoodCount": 1,
@@ -269,19 +269,19 @@
         "ViableBrothers": [
           {
             "BrotherID": "human:101",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1001",
             "FitLabel": "PREMIUM",
             "FitPct": 100.0
           },
           {
             "BrotherID": "human:505",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1004",
             "FitLabel": "VIABLE",
             "FitPct": 76.3
           },
           {
             "BrotherID": "human:202",
-            "BrotherIdentity": null,
+            "BrotherIdentity": "campaign:4242/entity:1002",
             "FitLabel": "VIABLE",
             "FitPct": 71.3
           }
@@ -289,7 +289,7 @@
         "ViableCount": 3
       },
       {
-        "ArtifactSignature": "sha256:c78668932783003176c01baa82ab3f8c7c70c7d07f5229fd14828ec5bb049943",
+        "ArtifactSignature": "sha256:f19c593ee6a9374be312e5e41a35a4861c24d8174a6a81c616f7bf17dc20578e",
         "BuildDefinitionHash": "sha256:fb399193db6d9aadda6421412201a415329fdf7d87f541e3e9bcd93a1bc8252b",
         "BuildIdentity": "thrower",
         "GoodCount": 0,
@@ -300,7 +300,7 @@
         "ViableCount": 0
       },
       {
-        "ArtifactSignature": "sha256:1db007fdda4b4ba9fd8505a485a000f5372890bfaaf0c720e80c39d7582dad11",
+        "ArtifactSignature": "sha256:04fefdea590d583194f46b7a0afa108af0845177be7b9a2165ba15dbfb397e16",
         "BuildDefinitionHash": "sha256:b02eefaee6e2e030578e3dcd5ff194d9291eee61a625408c02497a522c6a4586",
         "BuildIdentity": "thrower_hybrid",
         "GoodCount": 0,
@@ -319,7 +319,7 @@
     "relevant_roster_need": 112
   },
   "publication": {
-    "coherence_signature": "sha256:877bfae807c21324e1cb3bad856d8e763ab94453c30c0ca4f705591d2e567d95",
+    "coherence_signature": "sha256:267b9960f2b3565030c4127f7ccef4e85d1da017d0beff7cb2ee9e938892f9fc",
     "provenance": {
       "artifact_hashes": {
         "analysis_health": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2",
@@ -333,6 +333,16 @@
       "configuration_fingerprints": {
         "archetypes": "sha256:654d6966c0efc4c4aec54f9c644be50bb735f9c0ed21dc05f205b2205f043c95",
         "classification": "sha256:e5efbf29051cca044a0680c1b5ebfaf0ede966a2845e67797d6e8faf046ad7cc"
+      },
+      "content_hashes": {
+        "brothers": "sha256:26ef804e1fb305ec18d3d36e36f2b2c269a869fd6901bc12c5bc5eb0c08005a7",
+        "builds": "sha256:8f58b344d76bea55514920ae54bd7d8affa8ea6b5eb2b5b188dd4f517cc5c150",
+        "campaign_identity": "sha256:305085d74134d5fbfae8c4f41a9c9c90eb8c601298f4c3c97d0432f403a12588",
+        "company": "sha256:caaf1bc8fb2a72af78bf0a46d67c84e23367126e31c24c0d5ca1c0771a6ccbcc",
+        "pending": "sha256:fb8fae9680dbd70bed1fa5a82893fe91a9724a10dd3bf99a109deab3fa914636",
+        "recruitment": "sha256:af98a408ce2861e320cb8abe79423fb1833010981c361996b54bf3595c1341b2",
+        "run_health": "sha256:78a9bd8413f61db8fabe47ad6bfa4e771f9500371e63c131bf97f64bbb81bf4e",
+        "validity": "sha256:4c36a6d42738d1a6c7db2363c655e9b85d9dbcb6bc8eaa1a85bb699a0204d134"
       },
       "source_fingerprint": "sha256:7bbe2a746fc358d0883d720a4a15302443e126c38cba62718e6efe2f2259d591"
     }

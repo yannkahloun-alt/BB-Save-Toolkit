@@ -292,15 +292,6 @@ def load_render_dataset(source: Path) -> RenderDataset:
         raise _fail("classification must contain exactly one row per brother")
     if any(row.get("BestRole") not in role_names for row in summaries):
         raise _fail("classification BestRole values do not match archetypes")
-    if schema == TARGET_DATASET_SCHEMA:
-        try:
-            validate_target_presentation(
-                payloads["presentation"], payloads=payloads,
-                artifact_hashes=artifact_hashes,
-            )
-        except ValueError as exc:
-            raise _fail(str(exc)) from exc
-
     dataset = RenderDataset(
         root=root, manifest_path=manifest_path, manifest=manifest, bros=bros,
         recruits=payloads["recruits"], fits=fits, summaries=summaries,
@@ -321,6 +312,14 @@ def load_render_dataset(source: Path) -> RenderDataset:
             "renderer contract rejected the dataset before output creation: "
             f"{type(exc).__name__}: {exc}"
         ) from exc
+    if schema == TARGET_DATASET_SCHEMA:
+        try:
+            validate_target_presentation(
+                payloads["presentation"], payloads=payloads,
+                artifact_hashes=artifact_hashes, bros=bros,
+            )
+        except ValueError as exc:
+            raise _fail(str(exc)) from exc
     return dataset
 
 

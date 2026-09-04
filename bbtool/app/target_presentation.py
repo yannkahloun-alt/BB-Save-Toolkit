@@ -7,7 +7,8 @@ import re
 from typing import Any
 
 from ..build_identity import build_definition_hash, build_identity
-from ..incremental.dependencies import stable_hash
+from ..company_planning import build_intrinsic_company_coverage
+from ..incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
 from ..models import BrotherIdentity, CampaignIdentity
 from ..perk_gear import perk_gear_facts
 from ..recruitment_prior import (
@@ -27,6 +28,17 @@ SHA256_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
 BROTHER_IDENTITY_PATTERN = re.compile(r"campaign:(\d+)/entity:(\d+)\Z")
 CAMPAIGN_ID_MAX = 2_147_483_647
 ENTITY_TOKEN_MAX = 4_294_967_295
+PRIOR_ASSUMPTIONS = {
+    "starting_stats": "lower integer midpoint of each vanilla level-1 range",
+    "talents": "vanilla three-distinct-stat 60/30/10 star lottery",
+    "traits_and_injuries": "none; recruit-specific evidence is excluded",
+    "projection": "existing blind natural level-11 Fit trajectory",
+}
+PUBLIC_RECRUIT_FIELDS = ["BackgroundSaveHash", "RevealedTraitEvidence"]
+EXCLUDED_RECRUIT_FIELDS = [
+    "level", "settlement", "name", "title", "hire_cost", "daily_wage",
+    "roster_need", "assigned_build", "hidden_stats", "talent_stars", "future_rolls",
+]
 
 
 def build_recruitment_presentation(recruits, roles, reference_path) -> list[dict]:
@@ -94,11 +106,43 @@ def build_target_presentation(
             "build_definition_hash": build_definition_hash(role),
             "display_name": role["name"],
         })
-    bound = {key: artifact_hashes[key] for key in sorted(BOUND_ARTIFACTS)}
+    brothers = [{
+        "brother_id": bro.BrotherID,
+        "brother_identity": _identity_payload(identities.get(bro.BrotherID)),
+        "mechanical_facts": list(
+            getattr(bro, "PerkGearFacts", None) or perk_gear_facts(bro)
+        ),
+    } for bro in bros]
+    validity = {
+        "basis": "result_local_dependency_signature",
+        "artifacts": dict(result_signatures),
+    }
+    company = {"intrinsic_coverage": company_intrinsic_coverage}
+    pending = {
+        "assigned_build": 107,
+        "intent_aware_advisor": 108,
+        "intent_aware_company_planning": 166,
+        "relevant_roster_need": 112,
+    }
+    content = {
+        "campaign_identity": _identity_payload(campaign_identity),
+        "brothers": brothers,
+        "builds": builds,
+        "run_health": analysis_health,
+        "recruitment": recruitment_analysis,
+        "validity": validity,
+        "company": company,
+        "pending": pending,
+    }
     provenance = {
         "source_fingerprint": source_fingerprint,
         "configuration_fingerprints": dict(sorted(configuration_fingerprints.items())),
-        "artifact_hashes": bound,
+        "artifact_hashes": {
+            key: artifact_hashes[key] for key in sorted(BOUND_ARTIFACTS)
+        },
+        "content_hashes": {
+            key: stable_hash(value) for key, value in sorted(content.items())
+        },
     }
     return {
         "schema": SCHEMA,
@@ -106,35 +150,13 @@ def build_target_presentation(
             "coherence_signature": stable_hash(provenance),
             "provenance": provenance,
         },
-        "campaign_identity": _identity_payload(campaign_identity),
-        "brothers": [{
-            "brother_id": bro.BrotherID,
-            "brother_identity": _identity_payload(identities.get(bro.BrotherID)),
-            "mechanical_facts": list(
-                getattr(bro, "PerkGearFacts", None) or perk_gear_facts(bro)
-            ),
-        } for bro in bros],
-        "builds": builds,
-        "run_health": analysis_health,
-        "recruitment": recruitment_analysis,
-        "validity": {
-            "basis": "result_local_dependency_signature",
-            "artifacts": dict(result_signatures),
-        },
-        "company": {
-            "intrinsic_coverage": company_intrinsic_coverage,
-        },
-        "pending": {
-            "assigned_build": 107,
-            "intent_aware_advisor": 108,
-            "intent_aware_company_planning": 166,
-            "relevant_roster_need": 112,
-        },
+        **content,
     }
 
 
 def validate_target_presentation(
     payload: Any, *, payloads: Mapping[str, Any], artifact_hashes: Mapping[str, str],
+    bros,
 ) -> None:
     """Reject malformed or mixed-generation presentation datasets."""
     if not isinstance(payload, dict) or set(payload) != {
@@ -152,6 +174,7 @@ def validate_target_presentation(
     provenance = publication["provenance"]
     if not isinstance(provenance, dict) or set(provenance) != {
         "source_fingerprint", "configuration_fingerprints", "artifact_hashes",
+        "content_hashes",
     }:
         raise ValueError("target presentation provenance fields mismatch")
     if provenance["artifact_hashes"] != {
@@ -160,6 +183,14 @@ def validate_target_presentation(
         raise ValueError("target presentation artifact generation mismatch")
     if publication["coherence_signature"] != stable_hash(provenance):
         raise ValueError("target presentation coherence signature mismatch")
+    expected_content_hashes = {
+        key: stable_hash(payload[key]) for key in (
+            "brothers", "builds", "campaign_identity", "company", "pending",
+            "recruitment", "run_health", "validity",
+        )
+    }
+    if provenance["content_hashes"] != expected_content_hashes:
+        raise ValueError("target presentation content generation mismatch")
     if not isinstance(provenance["source_fingerprint"], str) or not \
             provenance["source_fingerprint"].startswith("sha256:"):
         raise ValueError("target presentation source fingerprint is malformed")
@@ -219,6 +250,9 @@ def validate_target_presentation(
         if {item.get("build_identity") for item in row["analyses"]} != \
                 {item["build_identity"] for item in builds}:
             raise ValueError("target presentation recruitment build joins mismatch")
+        definition_by_build = {
+            item["build_identity"]: item["build_definition_hash"] for item in builds
+        }
         for item in row["analyses"]:
             if not isinstance(item, dict) or set(item) != {
                 "build_identity", "state", "reason", "result",
@@ -226,6 +260,10 @@ def validate_target_presentation(
                 "prior_only", "known_evidence_estimate", "unavailable",
             }:
                 raise ValueError("target presentation recruitment analysis is malformed")
+            _validate_recruitment_analysis(
+                item, background_save_hash=row["background_save_hash"],
+                build_definition_hash_value=definition_by_build[item["build_identity"]],
+            )
     validity = payload["validity"]
     if not isinstance(validity, dict) or set(validity) != {"basis", "artifacts"} \
             or validity["basis"] != "result_local_dependency_signature":
@@ -259,13 +297,15 @@ def validate_target_presentation(
     if not isinstance(company, dict) or set(company) != {"intrinsic_coverage"} \
             or not isinstance(company["intrinsic_coverage"], list):
         raise ValueError("target presentation company fields mismatch")
-    company_builds = {row.get("BuildIdentity") for row in company["intrinsic_coverage"]}
-    if None in company_builds or not company_builds.issubset(build_ids):
-        raise ValueError("target presentation company build joins mismatch")
-    if any(not isinstance(row.get("ArtifactSignature"), str)
-           or not row["ArtifactSignature"].startswith("sha256:")
-           for row in company["intrinsic_coverage"]):
-        raise ValueError("target presentation company validity is malformed")
+    identity_by_brother = {
+        row["brother_id"]: row["brother_identity"]["value"] for row in brothers
+    }
+    expected_company = build_intrinsic_company_coverage(
+        bros, payloads["archetypes"]["roles"], payloads["role_fit"],
+        payloads["classification_config"], identity_by_brother,
+    )
+    if company["intrinsic_coverage"] != expected_company:
+        raise ValueError("target presentation company generation mismatch")
     if payload["pending"] != {
         "assigned_build": 107, "intent_aware_advisor": 108,
         "intent_aware_company_planning": 166, "relevant_roster_need": 112,
@@ -320,3 +360,131 @@ def _validate_signature_evidence(
         keys.append(key)
     if len(keys) != len(set(keys)) or set(keys) != expected:
         raise ValueError("target presentation dependency evidence is incomplete")
+
+
+def _validate_recruitment_analysis(
+    item: dict, *, background_save_hash: Any, build_definition_hash_value: str,
+) -> None:
+    state, reason, result = item["state"], item["reason"], item["result"]
+    if state == "unavailable":
+        if not isinstance(reason, str) or not reason or result is not None:
+            raise ValueError("target presentation unavailable recruitment state is malformed")
+        return
+    if reason is not None or not isinstance(result, dict) or set(result) != {
+        "schema", "model_version", "state", "background_prior",
+        "candidate_estimate", "evidence_basis",
+    } or result["schema"] != "bbtool.recruit_candidate_estimate.v1" \
+            or result["model_version"] != 1 or result["state"] != state:
+        raise ValueError("target presentation recruitment result is malformed")
+    _validate_background_prior(
+        result["background_prior"], background_save_hash=background_save_hash,
+        build_identity_value=item["build_identity"],
+        build_definition_hash_value=build_definition_hash_value,
+    )
+    evidence = result["evidence_basis"]
+    if not isinstance(evidence, dict) or set(evidence) != {
+        "public_fields_considered", "items", "excluded",
+    } or evidence["public_fields_considered"] != PUBLIC_RECRUIT_FIELDS \
+            or evidence["excluded"] != EXCLUDED_RECRUIT_FIELDS \
+            or not isinstance(evidence["items"], list):
+        raise ValueError("target presentation recruitment evidence is malformed")
+    applied = _validate_recruitment_evidence_items(evidence["items"])
+    estimate = result["candidate_estimate"]
+    if state == "prior_only":
+        if estimate is not None:
+            raise ValueError("target presentation prior-only recruitment result is malformed")
+    elif not isinstance(estimate, dict) or set(estimate) != {
+        "distribution", "applied_trait_save_hashes",
+    } or estimate["applied_trait_save_hashes"] != applied or not applied:
+        raise ValueError("target presentation known-evidence result is malformed")
+    else:
+        _validate_fit_distribution(estimate["distribution"])
+
+
+def _validate_background_prior(
+    value: Any, *, background_save_hash: Any, build_identity_value: Any,
+    build_definition_hash_value: str,
+) -> None:
+    if not isinstance(value, dict) or set(value) != {
+        "schema", "model_version", "background", "build", "engine_versions",
+        "assumptions", "distribution",
+    } or value["schema"] != "bbtool.background_archetype_prior.v1" \
+            or value["model_version"] != 1 or value["assumptions"] != PRIOR_ASSUMPTIONS:
+        raise ValueError("target presentation background prior is malformed")
+    background = value["background"]
+    if not isinstance(background, dict) or set(background) != {
+        "save_hash", "background_id", "source_revision",
+    } or background["save_hash"] != str(background_save_hash).upper() \
+            or any(field is not None and not isinstance(field, str)
+                   for field in (background["background_id"], background["source_revision"])):
+        raise ValueError("target presentation background prior identity is malformed")
+    build = value["build"]
+    if build != {
+        "id": build_identity_value, "definition_hash": build_definition_hash_value,
+    } or not isinstance(build_identity_value, str):
+        raise ValueError("target presentation background prior build is malformed")
+    if value["engine_versions"] != {
+        "role_projection": ENGINE_VERSIONS[ArtifactKind.ROLE_PROJECTION],
+        "validation_oracle": ENGINE_VERSIONS[ArtifactKind.VALIDATION_ORACLE],
+    }:
+        raise ValueError("target presentation background prior engines are malformed")
+    _validate_fit_distribution(value["distribution"])
+
+
+def _validate_fit_distribution(value: Any) -> None:
+    if not isinstance(value, dict) or set(value) != {
+        "talent_weight_denominator", "trajectory_sample_denominator",
+        "weight_denominator", "unique_talent_profiles", "fit_histogram_weight",
+        "mean_fit_pct",
+    }:
+        raise ValueError("target presentation recruitment distribution is malformed")
+    integer_fields = (
+        "talent_weight_denominator", "trajectory_sample_denominator",
+        "weight_denominator", "unique_talent_profiles",
+    )
+    if any(isinstance(value[field], bool) or not isinstance(value[field], int)
+           or value[field] <= 0 for field in integer_fields):
+        raise ValueError("target presentation recruitment distribution is malformed")
+    if value["weight_denominator"] != (
+        value["talent_weight_denominator"] * value["trajectory_sample_denominator"]
+    ):
+        raise ValueError("target presentation recruitment distribution is incoherent")
+    histogram = value["fit_histogram_weight"]
+    bins = {f"{lower:02d}-{lower + 9:02d}" for lower in range(0, 90, 10)} | {"90-100"}
+    if not isinstance(histogram, dict) or not histogram or not set(histogram).issubset(bins) \
+            or any(isinstance(weight, bool) or not isinstance(weight, int) or weight <= 0
+                   for weight in histogram.values()) \
+            or sum(histogram.values()) != value["weight_denominator"] \
+            or isinstance(value["mean_fit_pct"], bool) \
+            or not isinstance(value["mean_fit_pct"], (int, float)) \
+            or not 0 <= value["mean_fit_pct"] <= 100:
+        raise ValueError("target presentation recruitment distribution is malformed")
+
+
+def _validate_recruitment_evidence_items(items: list[Any]) -> list[str]:
+    applied = []
+    for evidence in items:
+        if not isinstance(evidence, dict) or set(evidence) != {
+            "kind", "save_hash", "name", "status", "effects",
+        } or evidence["kind"] != "revealed_trait" \
+                or evidence["status"] not in {
+                    "applied_exact_unconditional_fit_effect", "insufficient_for_estimate",
+                } or not isinstance(evidence["effects"], list):
+            raise ValueError("target presentation recruitment evidence item is malformed")
+        save_hash = evidence["save_hash"]
+        if save_hash is not None and (
+            not isinstance(save_hash, str) or re.fullmatch(r"[0-9A-F]{8}", save_hash) is None
+        ):
+            raise ValueError("target presentation recruitment evidence item is malformed")
+        if evidence["name"] is not None and not isinstance(evidence["name"], str):
+            raise ValueError("target presentation recruitment evidence item is malformed")
+        for effect in evidence["effects"]:
+            if not isinstance(effect, dict) or set(effect) != {"stat", "property", "op", "value"}:
+                raise ValueError("target presentation recruitment effect is malformed")
+        if evidence["status"] == "applied_exact_unconditional_fit_effect":
+            if save_hash is None or not evidence["effects"]:
+                raise ValueError("target presentation recruitment evidence item is malformed")
+            applied.append(save_hash)
+        elif evidence["effects"]:
+            raise ValueError("target presentation recruitment evidence item is malformed")
+    return sorted(set(applied))

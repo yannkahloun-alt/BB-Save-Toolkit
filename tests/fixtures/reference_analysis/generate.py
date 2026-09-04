@@ -76,8 +76,15 @@ def _payloads() -> dict[str, object]:
          "Background": "Militia", "Traits": [], "TryoutDone": False,
          "HireCost": 780, "DailyWage": 14},
     ]
+    brother_identities = {
+        bro.BrotherID: BrotherIdentity(
+            4242, index + 1001, confidence="exact"
+        ) for index, bro in enumerate(bros)
+    }
     cache = IncrementalCache(None, enabled=False)
-    result = analyze_brothers(bros, cfg.roles, cfg.classification, cache)
+    result = analyze_brothers(
+        bros, cfg.roles, cfg.classification, cache, brother_identities
+    )
     _decorate_fit_rows(result.fits)
     raw_archetypes = json.loads((ROOT / "config/archetypes.json").read_text(encoding="utf-8"))
     payloads = {
@@ -97,11 +104,7 @@ def _payloads() -> dict[str, object]:
         bros=bros, recruits=recruits, roles=raw_archetypes["roles"],
         analysis_health=payloads["analysis_health"],
         campaign_identity=CampaignIdentity(4242, confidence="exact"),
-        brother_identities={
-            bro.BrotherID: BrotherIdentity(
-                4242, index + 1001, confidence="exact"
-            ) for index, bro in enumerate(bros)
-        },
+        brother_identities=brother_identities,
         source_fingerprint=stable_hash({"fixture": "synthetic-save"}),
         configuration_fingerprints={
             "archetypes": stable_hash(raw_archetypes["roles"]),

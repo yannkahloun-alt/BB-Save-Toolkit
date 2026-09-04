@@ -16,6 +16,7 @@ from bbtool.app.target_presentation import (
     build_recruitment_presentation,
     build_target_presentation,
 )
+from bbtool.company_planning import build_intrinsic_company_coverage
 from bbtool.incremental.dependencies import stable_hash
 from bbtool.html_report import render_report_launcher
 from bbtool.models import BrotherIdentity, CampaignIdentity
@@ -45,6 +46,16 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
     payload_path = source / manifest["files"][label]["path"]
     payload = json.loads(payload_path.read_text(encoding="utf-8"))
     mutate(payload)
+    if manifest.get("schema") == TARGET_DATASET_SCHEMA and label == "presentation":
+        payload["publication"]["provenance"]["content_hashes"] = {
+            key: stable_hash(payload[key]) for key in (
+                "brothers", "builds", "campaign_identity", "company", "pending",
+                "recruitment", "run_health", "validity",
+            )
+        }
+        payload["publication"]["coherence_signature"] = stable_hash(
+            payload["publication"]["provenance"]
+        )
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
     manifest["files"][label]["sha256"] = hashlib.sha256(
         payload_path.read_bytes()
@@ -56,6 +67,12 @@ def _rewrite_payload_and_hash(source: Path, label: str, mutate) -> None:
             manifest["files"][label]["sha256"]
         if label == "analysis_health":
             presentation["run_health"] = payload
+        presentation["publication"]["provenance"]["content_hashes"] = {
+            key: stable_hash(presentation[key]) for key in (
+                "brothers", "builds", "campaign_identity", "company", "pending",
+                "recruitment", "run_health", "validity",
+            )
+        }
         presentation["publication"]["coherence_signature"] = stable_hash(
             presentation["publication"]["provenance"]
         )
@@ -116,7 +133,10 @@ def _upgrade_to_target_v3(source: Path) -> Path:
                 for row in dataset.summaries
             ],
         },
-        company_intrinsic_coverage=[],
+        company_intrinsic_coverage=build_intrinsic_company_coverage(
+            dataset.bros, dataset.roles, dataset.fits, dataset.classification,
+            identities,
+        ),
     )
     path = source / "reference-target-presentation.json"
     path.write_text(json.dumps(presentation), encoding="utf-8")
@@ -265,6 +285,62 @@ def test_target_v3_rejects_malformed_or_mismatched_exact_identity(
     source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
     _rewrite_payload_and_hash(source, "presentation", mutate)
     with pytest.raises(RenderDatasetError, match="identity"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_stale_company_coverage(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["company"]["intrinsic_coverage"][0].update(
+            ViableCount=999
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="company generation mismatch"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_bogus_recruitment_result(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+
+    def replace_result(value):
+        analysis = value["recruitment"][0]["analyses"][0]
+        analysis.update(
+            state="prior_only", reason=None,
+            result={"schema": "bogus", "model_version": 999},
+        )
+
+    _rewrite_payload_and_hash(source, "presentation", replace_result)
+    with pytest.raises(RenderDatasetError, match="recruitment result is malformed"):
+        load_render_dataset(source)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["company"]["intrinsic_coverage"][0].update(
+            ViableCount=999
+        ),
+        lambda value: value["recruitment"][0]["analyses"][0].update(
+            state="prior_only", reason=None,
+            result={"schema": "bogus", "model_version": 999},
+        ),
+    ],
+    ids=("company", "recruitment"),
+)
+def test_target_v3_content_hashes_reject_sidecar_tampering(tmp_path, mutate):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    path = source / manifest["files"]["presentation"]["path"]
+    presentation = json.loads(path.read_text(encoding="utf-8"))
+    mutate(presentation)
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+    manifest["files"]["presentation"]["sha256"] = hashlib.sha256(
+        path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RenderDatasetError, match="content generation mismatch"):
         load_render_dataset(source)
 
 
