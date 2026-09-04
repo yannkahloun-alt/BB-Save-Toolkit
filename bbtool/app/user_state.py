@@ -140,6 +140,27 @@ class LastSuccessState:
     completed_at: str | None = None
 
 
+@dataclass(frozen=True)
+class AssignedBuildRecord:
+    brother_identity: str
+    build_identity: str
+    assigned_definition_hash: str
+
+
+@dataclass(frozen=True)
+class AssignedBuildCampaign:
+    campaign_identity: int
+    assignments: tuple[AssignedBuildRecord, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True)
+class AssignedBuildState:
+    schema: str = "bbtool.assigned-builds.v1"
+    schema_version: int = FEATURE_SCHEMA_VERSION
+    revision: int = 0
+    campaigns: tuple[AssignedBuildCampaign, ...] = field(default_factory=tuple)
+
+
 def _validate_metadata(payload: Mapping) -> RootMetadata:
     where = "metadata"
     _require_exact_keys(
@@ -212,6 +233,87 @@ def _validate_last_success(payload: Mapping) -> LastSuccessState:
     return LastSuccessState(revision=revision, **values)
 
 
+def _validate_assigned_builds(payload: Mapping) -> AssignedBuildState:
+    from ..build_identity import validate_build_identity
+
+    where = "assigned builds"
+    _require_exact_keys(
+        payload, {"schema", "schema_version", "revision", "campaigns"}, where
+    )
+    if payload["schema"] != AssignedBuildState.schema or payload["schema_version"] != 1:
+        raise IncompatibleStateError("unsupported assigned-builds schema")
+    revision = _require_revision(payload["revision"], where)
+    campaigns = payload["campaigns"]
+    if not isinstance(campaigns, list) or len(campaigns) > 1024:
+        raise StateValidationError("assigned builds.campaigns must be an array of at most 1024 items")
+    seen_campaigns: set[int] = set()
+    total_assignments = 0
+    normalized = []
+    for campaign_index, campaign in enumerate(campaigns):
+        path = f"assigned builds.campaigns[{campaign_index}]"
+        if not isinstance(campaign, Mapping):
+            raise StateValidationError(f"{path} must be an object")
+        _require_exact_keys(campaign, {"campaign_identity", "assignments"}, path)
+        identity = campaign["campaign_identity"]
+        if isinstance(identity, bool) or not isinstance(identity, int) or not 0 <= identity <= 2_147_483_647:
+            raise StateValidationError(f"{path}.campaign_identity must be a non-negative signed 32-bit integer")
+        if identity in seen_campaigns:
+            raise StateValidationError(f"{path}.campaign_identity is duplicated")
+        seen_campaigns.add(identity)
+        assignments = campaign["assignments"]
+        if not isinstance(assignments, list) or len(assignments) > 10000:
+            raise StateValidationError(f"{path}.assignments must be an array of at most 10000 items")
+        total_assignments += len(assignments)
+        if total_assignments > 10000:
+            raise StateValidationError("assigned builds must contain at most 10000 assignments")
+        seen_brothers: set[str] = set()
+        records = []
+        prefix = f"campaign:{identity}/entity:"
+        for assignment_index, assignment in enumerate(assignments):
+            item_path = f"{path}.assignments[{assignment_index}]"
+            if not isinstance(assignment, Mapping):
+                raise StateValidationError(f"{item_path} must be an object")
+            _require_exact_keys(
+                assignment,
+                {"brother_identity", "build_identity", "assigned_definition_hash"},
+                item_path,
+            )
+            brother = assignment["brother_identity"]
+            if not isinstance(brother, str) or not brother.startswith(prefix):
+                raise StateValidationError(f"{item_path}.brother_identity is outside its campaign namespace")
+            token = brother[len(prefix):]
+            if (
+                not token.isascii()
+                or not token.isdigit()
+                or not 1 <= int(token) <= 0xFFFFFFFF
+                or token != str(int(token))
+            ):
+                raise StateValidationError(f"{item_path}.brother_identity is malformed")
+            if brother in seen_brothers:
+                raise StateValidationError(f"{item_path}.brother_identity is duplicated")
+            seen_brothers.add(brother)
+            try:
+                build = validate_build_identity(assignment["build_identity"])
+            except ValueError as exc:
+                raise StateValidationError(f"{item_path}.build_identity is invalid: {exc}") from exc
+            definition_hash = assignment["assigned_definition_hash"]
+            if (
+                not isinstance(definition_hash, str)
+                or len(definition_hash) != 71
+                or not definition_hash.startswith("sha256:")
+                or any(character not in "0123456789abcdef" for character in definition_hash[7:])
+            ):
+                raise StateValidationError(f"{item_path}.assigned_definition_hash is invalid")
+            records.append(AssignedBuildRecord(brother, build, definition_hash))
+        normalized.append(AssignedBuildCampaign(
+            identity, tuple(sorted(records, key=lambda item: item.brother_identity))
+        ))
+    return AssignedBuildState(
+        revision=revision,
+        campaigns=tuple(sorted(normalized, key=lambda item: item.campaign_identity)),
+    )
+
+
 def _migrate_preferences_v0(payload: dict) -> dict:
     _require_exact_keys(
         payload,
@@ -248,6 +350,9 @@ FEATURES = {
     ),
     "last_success": _Feature(
         Path("last-success.json"), LastSuccessState, _validate_last_success
+    ),
+    "assigned_builds": _Feature(
+        Path("assigned-builds.json"), AssignedBuildState, _validate_assigned_builds
     ),
 }
 
@@ -553,6 +658,30 @@ class UserStateStore:
             self._touch_metadata()
         return validated
 
+    def assert_revision(self, feature: str, *, expected_revision: int) -> object:
+        """Return current typed state only if its revision matches under lock."""
+        spec = FEATURES[feature]
+        path = self.path_for(feature)
+        with _exclusive_lock(self._lock_path(feature), self._lock_timeout):
+            if not path.exists():
+                if self._revision_highwater(feature) != 0:
+                    raise CorruptStateError(
+                        f"{feature} payload is missing but revision state remains"
+                    )
+                current = spec.default_factory()
+            else:
+                current, changed = self._decode(
+                    feature, path.read_bytes(), migrate=False
+                )
+                if changed:  # pragma: no cover - migrate=False cannot produce this
+                    raise AssertionError("unexpected migration")
+            if current.revision != expected_revision:
+                raise StateConflictError(
+                    f"{feature} revision conflict: expected {expected_revision}, "
+                    f"found {current.revision}"
+                )
+            return current
+
     def _touch_metadata(self) -> None:
         path = self.path_for("metadata")
         with _exclusive_lock(self._lock_path("metadata"), self._lock_timeout):
@@ -857,6 +986,7 @@ class UserStateStore:
 
 __all__ = [
     "APPLICATION_DIRECTORY", "LAYOUT_SCHEMA", "ArchetypeState",
+    "AssignedBuildCampaign", "AssignedBuildRecord", "AssignedBuildState",
     "CorruptStateError", "IncompatibleStateError", "LastSuccessState",
     "MigrationError", "PreferencesState", "RootMetadata", "StateConflictError",
     "StateLockError", "StateValidationError", "UserStateError", "UserStateStore",

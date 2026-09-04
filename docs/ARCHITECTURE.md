@@ -245,8 +245,9 @@ and feature-scoped recovery. See [`USER_STATE.md`](USER_STATE.md).
 
 Persistent AssignedBuild state is campaign-global player intent with the exact
 key/value contract `CampaignIdentity + BrotherIdentity -> BuildIdentity` plus
-the last acknowledged `BuildDefinitionHash`. It is a future bounded user-state
-feature owned by #107, not report, cache, or browser-local state. It may affect
+the last acknowledged `BuildDefinitionHash`. It is a bounded user-state feature
+owned by `bbtool/app/assigned_build.py`, not report, cache, or browser-local
+state. It may affect
 only declared intent-aware consumers and never intrinsic Fit or `BestRole`; see
 [`ASSIGNED_BUILD.md`](ASSIGNED_BUILD.md).
 `bbtool/app/archetype_catalog.py` composes the immutable shipped catalog with

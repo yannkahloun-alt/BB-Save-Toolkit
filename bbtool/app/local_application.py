@@ -13,6 +13,8 @@ import threading
 from typing import Any
 
 from ..incremental.fingerprint import stable_hash
+from ..models import BrotherIdentity, CampaignIdentity
+from .assigned_build import AssignedBuildStore
 from .analysis_coordinator import AnalysisCoordinator, DesiredAnalysis
 from .analysis_service import AnalysisServiceRequest, SaveSource
 from .archetype_catalog import ArchetypeCatalogStore, EffectiveCatalog
@@ -53,6 +55,7 @@ class LocalApplication:
         coordinator: AnalysisCoordinator | None = None,
         read_save: Callable[[Path], bytes] | None = None,
         clock: Callable[[], datetime] | None = None,
+        assigned_build_changed: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.store = store
         self.catalog = catalog
@@ -60,6 +63,8 @@ class LocalApplication:
         self.coordinator = coordinator or AnalysisCoordinator()
         self._read_save = read_save or Path.read_bytes
         self._clock = clock or (lambda: datetime.now(UTC))
+        self.assigned_builds = AssignedBuildStore(store, catalog)
+        self._assigned_build_changed = assigned_build_changed
         self._persisted_generation = 0
         self._publication_warning: dict[str, Any] | None = None
         self._source_timestamps: dict[int, str] = {}
@@ -230,6 +235,93 @@ class LocalApplication:
 
     def effective_archetypes(self) -> dict[str, Any]:
         return self._effective_catalog_payload(self.catalog.load())
+
+    @staticmethod
+    def _assigned_identity(campaign_value: int, native_token: int) -> tuple[CampaignIdentity, BrotherIdentity]:
+        campaign = CampaignIdentity(campaign_value, confidence="exact")
+        brother = BrotherIdentity(campaign_value, native_token, confidence="exact")
+        return campaign, brother
+
+    def assigned_build(self, campaign_value: int, native_token: int) -> dict[str, Any]:
+        campaign, brother = self._assigned_identity(campaign_value, native_token)
+        return self.assigned_builds.read(campaign, brother)
+
+    def mutate_assigned_build(self, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._command_lock:
+            campaign = CampaignIdentity(payload["campaign_identity"], confidence="exact")
+            brother = None
+            if "native_entity_token" in payload:
+                campaign, brother = self._assigned_identity(
+                    payload["campaign_identity"], payload["native_entity_token"]
+                )
+            revision = payload["expected_revision"]
+            if operation in {"assign", "change", "acknowledge"}:
+                publication = self.coordinator.last_success
+                publication_is_current = (
+                    publication is not None
+                    and publication.job_id == self.coordinator.desired_job_id
+                    and self._invalidated_generation != publication.generation
+                )
+                result_identity = publication.result if publication is not None else None
+                current_campaign = (
+                    result_identity.campaign_identity if result_identity is not None else None
+                )
+                known_brothers = (
+                    result_identity.brother_identities.values()
+                    if result_identity is not None else ()
+                )
+                if (
+                    not publication_is_current
+                    or current_campaign is None
+                    or current_campaign.confidence != "exact"
+                    or current_campaign.value != campaign.value
+                    or not any(
+                        known.confidence == "exact" and known.value == brother.value
+                        for known in known_brothers
+                    )
+                ):
+                    raise ApplicationOperationError(
+                        "identity_unavailable",
+                        "assignment requires matching exact identity evidence from the current analysis",
+                    )
+                result = getattr(self.assigned_builds, operation)(
+                    campaign, brother, payload["build_identity"],  # type: ignore[arg-type]
+                    expected_revision=revision,
+                )
+            elif operation == "clear":
+                result = self.assigned_builds.clear(
+                    campaign, brother, expected_revision=revision  # type: ignore[arg-type]
+                )
+            elif operation == "clear_campaign":
+                result = self.assigned_builds.clear_campaign(
+                    campaign, expected_revision=revision
+                )
+            else:
+                raise ApplicationOperationError(
+                    "unknown_operation", "unknown assigned-build operation"
+                )
+            changes = result.get("changes") or (
+                [result["change"]] if result.get("change") is not None else []
+            )
+            refresh_errors = []
+            if self._assigned_build_changed is not None:
+                for change in changes:
+                    try:
+                        self._assigned_build_changed(change)
+                    except Exception as exc:
+                        refresh_errors.append({
+                            "code": "intent_refresh_failed", "message": str(exc)
+                        })
+            result["invalidation"] = {
+                "changes": changes,
+                "affected_artifacts": [
+                    "level_advisor", "company_intended_coverage", "relevant_roster_need"
+                ] if changes else [],
+                "status": "failed" if refresh_errors else "required" if changes else "unchanged",
+            }
+            if refresh_errors:
+                result["invalidation"]["errors"] = refresh_errors
+            return result
 
     def mutate_archetypes(self, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
         with self._command_lock:
