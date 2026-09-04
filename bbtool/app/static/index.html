@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Company · Battle Brothers Save Toolkit</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+
+  <header class="app-shell" data-app-shell>
+    <div class="shell-primary">
+      <div class="brand-block">
+        <span class="eyebrow">Battle Brothers</span>
+        <strong class="brand">Save Toolkit</strong>
+      </div>
+
+      <div class="run-context" aria-label="Analysis status">
+        <div class="context-copy">
+          <span class="context-label">Followed save</span>
+          <strong id="save-label">Loading…</strong>
+        </div>
+        <span id="freshness-status" class="status-pill" data-state="loading" role="status" aria-live="polite">Starting…</span>
+        <button id="health-button" class="health-button" type="button" aria-expanded="false" aria-controls="health-panel">
+          Run Health · —
+        </button>
+      </div>
+    </div>
+
+    <div id="progress-region" class="progress-region" role="status" aria-live="polite" hidden>
+      <div class="progress-copy">
+        <strong id="progress-label">Analysis in progress</strong>
+        <span id="progress-detail"></span>
+      </div>
+      <progress id="analysis-progress" aria-label="Analysis progress"></progress>
+    </div>
+
+    <nav class="primary-nav" aria-label="Primary workspaces">
+      <a href="#company" data-workspace="company">Company</a>
+      <a href="#level-up" data-workspace="level-up">Level Up</a>
+      <a href="#recruitment" data-workspace="recruitment">Recruitment</a>
+    </nav>
+
+    <section id="health-panel" class="health-panel" aria-labelledby="health-heading" hidden>
+      <div>
+        <span class="context-label">Analysis trust</span>
+        <strong id="health-heading">Run Health unavailable</strong>
+      </div>
+      <dl class="health-counts">
+        <div><dt>Result warnings</dt><dd id="health-result-warnings">—</dd></div>
+        <div><dt>Parsing recoveries</dt><dd id="health-parsing">—</dd></div>
+        <div><dt>Unresolved references</dt><dd id="health-references">—</dd></div>
+        <div><dt>Projection validation</dt><dd id="health-validation">—</dd></div>
+      </dl>
+      <p id="health-detail" class="health-detail">No completed analysis is available yet.</p>
+    </section>
+  </header>
+
+  <main id="workspace" class="workspace" tabindex="-1">
+    <section class="workspace-panel" data-workspace-panel="company" aria-labelledby="company-heading">
+      <span class="eyebrow">Operational workspace</span>
+      <h1 id="company-heading">Company</h1>
+      <p>Roster, Planning / Coverage, and Fit Matrix content will render here without changing the shared shell.</p>
+    </section>
+
+    <section class="workspace-panel" data-workspace-panel="level-up" aria-labelledby="level-up-heading" hidden>
+      <span class="eyebrow">Decision workspace</span>
+      <h1 id="level-up-heading">Level Up</h1>
+      <p>Pending Brother decisions will render here while the global run context remains stable.</p>
+    </section>
+
+    <section class="workspace-panel" data-workspace-panel="recruitment" aria-labelledby="recruitment-heading" hidden>
+      <span class="eyebrow">Hiring workspace</span>
+      <h1 id="recruitment-heading">Recruitment</h1>
+      <p>Settlement-first candidate browsing will render here under the same freshness and Run Health context.</p>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
