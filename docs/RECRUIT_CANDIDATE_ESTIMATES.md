@@ -68,9 +68,10 @@ The result exposes deterministic `relevant_need_matches`, an explicit
 `relevant_need` or `no_match`, and separately inspectable `other_company_gaps`.
 Need bases are ordered by the fixed basis precedence and then BuildIdentity.
 Company intent cannot alter candidate evidence, potential, intrinsic Fit, or
-BestRole. Its signature includes both candidate evidence and Company need, so
-Company changes invalidate only this mixed artifact (and its transitive
-dependents). Target presentation integration remains #174.
+BestRole. Its signature includes the viability threshold, candidate evidence,
+and distinct authoritative intrinsic-coverage and intended-coverage artifact
+signatures, so either Company input invalidates only this mixed artifact (and
+its transitive dependents). Target presentation integration remains #174.
 
 ## Known prerequisite limits
 

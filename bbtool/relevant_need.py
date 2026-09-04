@@ -28,6 +28,7 @@ def build_relevant_roster_need(
     recruitment_analysis: Mapping[str, Any] | Iterable[Mapping[str, Any]],
     company_intended_coverage: Iterable[Mapping[str, Any]],
     *, viable_fit: float,
+    company_intrinsic_coverage: Iterable[Mapping[str, Any]],
 ) -> dict[str, Any]:
     """Intersect candidate-plausible roles with authoritative Company needs.
 
@@ -38,6 +39,7 @@ def build_relevant_roster_need(
     analyses = recruitment_analysis.get("analyses", ()) if isinstance(recruitment_analysis, Mapping) else recruitment_analysis
     analyses = list(analyses)
     company_intended_coverage = list(company_intended_coverage)
+    company_intrinsic_coverage = list(company_intrinsic_coverage)
     plausible = tuple(sorted(
         item["build_identity"] for item in analyses
         if isinstance(item, Mapping) and isinstance(item.get("build_identity"), str)
@@ -70,16 +72,21 @@ def build_relevant_roster_need(
         ],
         InputKind.COMPANY_NEED: list(company_intended_coverage),
         InputKind.ENGINE_SEMANTICS: {
-            "relevant_roster_need": ENGINE_VERSIONS.get(ArtifactKind.RELEVANT_ROSTER_NEED, 1),
+            "relevant_roster_need": ENGINE_VERSIONS[ArtifactKind.RELEVANT_ROSTER_NEED],
             "viable_fit": viable_fit,
         },
     }
     candidate_upstream = stable_hash(inputs[InputKind.CANDIDATE_EVIDENCE])
-    company_upstream = stable_hash([
+    intended_upstream = stable_hash([
         {"BuildIdentity": item.get("BuildIdentity"),
          "ArtifactSignature": item.get("ArtifactSignature"),
          "NeedBases": item.get("NeedBases", ())}
         for item in company_intended_coverage
+    ])
+    intrinsic_upstream = stable_hash([
+        {"BuildIdentity": item.get("BuildIdentity"),
+         "ArtifactSignature": item.get("ArtifactSignature")}
+        for item in company_intrinsic_coverage
     ])
     return {
         "schema": "bbtool.relevant_roster_need.v1",
@@ -90,7 +97,7 @@ def build_relevant_roster_need(
         "other_company_gaps": other,
         "artifact_signature": artifact_signature(ArtifactKind.RELEVANT_ROSTER_NEED, inputs, {
             ArtifactKind.RECRUIT_INTRINSIC_POTENTIAL: candidate_upstream,
-            ArtifactKind.COMPANY_INTRINSIC_COVERAGE: company_upstream,
-            ArtifactKind.COMPANY_INTENDED_COVERAGE: company_upstream,
+            ArtifactKind.COMPANY_INTRINSIC_COVERAGE: intrinsic_upstream,
+            ArtifactKind.COMPANY_INTENDED_COVERAGE: intended_upstream,
         }),
     }
