@@ -121,6 +121,13 @@ def load_render_dataset(source: Path) -> RenderDataset:
             raise _fail(f"{label} root must be an array")
     if any(_contains_key(payload, "FutureRolls") for payload in payloads.values()):
         raise _fail("public report inputs must not contain FutureRolls")
+    private_identity_fields = ("NativeEntityToken", "BrotherIdentity")
+    if any(
+        _contains_key(payload, field)
+        for payload in payloads.values()
+        for field in private_identity_fields
+    ):
+        raise _fail("public report inputs must not contain private identity fields")
     if not isinstance(payloads["archetypes"], dict):
         raise _fail("archetypes root must be an object")
     roles = payloads["archetypes"].get("roles")

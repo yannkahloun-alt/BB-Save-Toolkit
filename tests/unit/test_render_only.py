@@ -180,6 +180,18 @@ def test_hidden_future_roll_key_is_rejected_in_every_public_payload(tmp_path):
         load_render_dataset(source)
 
 
+@pytest.mark.parametrize("field", ["NativeEntityToken", "BrotherIdentity"])
+def test_private_brother_identity_fields_are_rejected(tmp_path, field):
+    source = _copy_fixture(tmp_path)
+    _rewrite_payload_and_hash(
+        source,
+        "roster",
+        lambda rows: rows[0].update({field: 123}),
+    )
+    with pytest.raises(RenderDatasetError, match="private identity fields"):
+        load_render_dataset(source)
+
+
 def test_future_rolls_text_in_a_display_value_is_allowed(tmp_path):
     source = _copy_fixture(tmp_path)
     _rewrite_payload_and_hash(

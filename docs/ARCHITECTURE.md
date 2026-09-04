@@ -332,4 +332,6 @@ If artifact compatibility cannot be proven, recompute. Cache contents are derive
 
 ## Open architecture work
 
-The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Its main unresolved architectural blocker is proven stable cross-save brother identity after normal progression.
+The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Exact campaign-local
+brother identity is established; progression-aware artifact dependencies and
+reuse remain the next incremental architecture work.
