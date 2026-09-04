@@ -26,6 +26,22 @@ def class_css(category):
     return CLASS_CSS.get(str(category), "")
 
 
+def best_fit_copy_text(summary: dict) -> str:
+    """Format the authoritative displayed Best Fit as compact copy text."""
+    return f'{summary["BestRole"]} {float(summary["ProjectedFitPct"]):.1f}%'
+
+
+def best_fit_copy_control_html(summary: dict) -> str:
+    """Render a reusable control for copying a summary's existing Best Fit."""
+    value = best_fit_copy_text(summary)
+    return (
+        '<button type="button" class="best-fit-copy" '
+        f'data-copy-text="{esc(value)}" aria-label="Copy {esc(value)}">'
+        'Copy Best Fit'
+        '</button>'
+    )
+
+
 
 def classification_summary_html(summary: dict) -> str:
     """Render one strategic-classification result cell."""
@@ -688,6 +704,7 @@ def levelup_bro_panel(b, summary: dict, *, open_panel: bool = False) -> str:
         '<div class="lu-role-chip">'
         '<small>BEST ROLE</small>'
         f'<strong>{esc(summary["BestRole"])}</strong>'
+        f'{best_fit_copy_control_html(summary)}'
         '</div>'
         '<div class="lu-head-metrics">'
         f'<span><small>Fit</small><b>{summary["ProjectedFitPct"]:.1f}%</b></span>'
@@ -888,6 +905,7 @@ def render_html_report(save_path: Path, bros, fits, summaries, roles, class_cfg,
                 f'<span><small>FIT</small><b>{x["ProjectedFitPct"]:.1f}%</b></span>'
                 f'<span><small>P≥100</small><b>{x["FitFeasibilityPct"]:.1f}%</b></span>'
                 '</div>'
+                f'{best_fit_copy_control_html(x)}'
                 '</div>'
             + '</div>' 
             '</summary>'

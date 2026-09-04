@@ -44,6 +44,8 @@ def test_rendered_html_strategic_and_brother_contracts(tmp_path,cfg,bro_factory)
     assert 'Baseline (minimum useful)' in html and 'Target (desired)' in html and 'Expected (projection)' in html
     assert 'Projected level 11 range' not in html and '>EV<' not in html and 'Weight' in html
     assert 'class-icon' in html
+    copy_value = f'{result.summaries[0]["BestRole"]} {result.summaries[0]["ProjectedFitPct"]:.1f}%'
+    assert f'data-copy-text="{copy_value}"' in html
     class_sets = (set(value.split()) for value in re.findall(r'class="([^"]*)"', html))
     assert any({'role-card', 'retained-role'} <= classes for classes in class_sets)
 
