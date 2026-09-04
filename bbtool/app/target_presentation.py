@@ -9,6 +9,12 @@ from typing import Any
 from ..build_identity import build_definition_hash, build_identity
 from ..company_planning import build_intrinsic_company_coverage
 from ..incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
+from ..incremental.fingerprint import (
+    advisor_fingerprint,
+    brother_projection_fingerprint,
+    brother_summary_fingerprint,
+    role_fingerprint,
+)
 from ..models import BrotherIdentity, CampaignIdentity
 from ..perk_gear import perk_gear_facts
 from ..recruitment_prior import (
@@ -286,22 +292,34 @@ def validate_target_presentation(
         role["name"]: role.get("id", role["name"])
         for role in payloads["archetypes"]["roles"]
     }
-    expected_role_evidence = {
-        (row["BrotherID"], role_keys[row["Role"]])
-        for row in payloads["role_fit"]
-    }
+    role_by_key = {role_keys[role["name"]]: role for role in payloads["archetypes"]["roles"]}
+    expected_role_evidence = {}
+    for bro in bros:
+        state = brother_projection_fingerprint(bro)
+        for build_key, role in role_by_key.items():
+            expected_role_evidence[(bro.BrotherID, build_key)] = stable_hash({
+                "artifact": "role_projection",
+                "brother_state": state,
+                "build_definition": role_fingerprint(role),
+                "engine_version": ENGINE_VERSIONS[ArtifactKind.ROLE_PROJECTION],
+            })
     _validate_signature_evidence(
         artifacts["role_projection"], expected=expected_role_evidence,
         key_fields=("brother_id", "build_key"), roster=roster,
     )
-    expected_brother_evidence = {
-        (row["BrotherID"],) for row in payloads["classification"]
-    }
-    for artifact in ("strategic_classification", "level_advisor"):
-        _validate_signature_evidence(
-            artifacts[artifact], expected=expected_brother_evidence,
-            key_fields=("brother_id",), roster=roster,
-        )
+    roles = payloads["archetypes"]["roles"]
+    _validate_signature_evidence(
+        artifacts["strategic_classification"],
+        expected={(bro.BrotherID,): brother_summary_fingerprint(
+            bro, roles, payloads["classification_config"]
+        ) for bro in bros},
+        key_fields=("brother_id",), roster=roster,
+    )
+    _validate_signature_evidence(
+        artifacts["level_advisor"],
+        expected={(bro.BrotherID,): advisor_fingerprint(bro, roles) for bro in bros},
+        key_fields=("brother_id",), roster=roster,
+    )
     company = payload["company"]
     if not isinstance(company, dict) or set(company) != {"intrinsic_coverage"} \
             or not isinstance(company["intrinsic_coverage"], list):
@@ -351,7 +369,8 @@ def _validate_identity(value: Any, *, brother: bool) -> int | None:
 
 
 def _validate_signature_evidence(
-    rows: list[Any], *, expected: set[tuple], key_fields: tuple[str, ...], roster: dict,
+    rows: list[Any], *, expected: Mapping[tuple, str],
+    key_fields: tuple[str, ...], roster: dict,
 ) -> None:
     """Require one exact, well-formed dependency signature per public result."""
     keys = []
@@ -367,8 +386,11 @@ def _validate_signature_evidence(
                 or SHA256_PATTERN.fullmatch(signature) is None:
             raise ValueError("target presentation dependency evidence is malformed")
         keys.append(key)
-    if len(keys) != len(set(keys)) or set(keys) != expected:
+    if len(keys) != len(set(keys)) or set(keys) != set(expected):
         raise ValueError("target presentation dependency evidence is incomplete")
+    if any(item["dependency_signature"] != expected[key]
+           for item, key in zip(rows, keys, strict=True)):
+        raise ValueError("target presentation dependency evidence is mismatched")
 
 
 def _validate_recruitment_analysis(

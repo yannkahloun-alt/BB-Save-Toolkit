@@ -20,7 +20,13 @@ from bbtool.app.target_presentation import (
 from bbtool.app.config import _normalize_role
 from bbtool.build_identity import build_definition_hash
 from bbtool.company_planning import build_intrinsic_company_coverage
-from bbtool.incremental.dependencies import stable_hash
+from bbtool.incremental.dependencies import ArtifactKind, ENGINE_VERSIONS, stable_hash
+from bbtool.incremental.fingerprint import (
+    advisor_fingerprint,
+    brother_projection_fingerprint,
+    brother_summary_fingerprint,
+    role_fingerprint,
+)
 from bbtool.html_report import render_report_launcher
 from bbtool.models import BrotherIdentity, CampaignIdentity
 from bbtool.recruitment_prior import (
@@ -116,28 +122,35 @@ def _upgrade_to_target_v3(source: Path) -> Path:
         result_signatures={
             "role_projection": [
                 {
-                    "brother_id": fit["BrotherID"],
-                    "build_key": next(
-                        role["id"] for role in dataset.roles
-                        if role["name"] == fit["Role"]
-                    ),
-                    "dependency_signature": stable_hash({"fit": fit}),
+                    "brother_id": bro.BrotherID,
+                    "build_key": role["id"],
+                    "dependency_signature": stable_hash({
+                        "artifact": "role_projection",
+                        "brother_state": brother_projection_fingerprint(bro),
+                        "build_definition": role_fingerprint(role),
+                        "engine_version": ENGINE_VERSIONS[
+                            ArtifactKind.ROLE_PROJECTION
+                        ],
+                    }),
                 }
-                for fit in dataset.fits
+                for bro in dataset.bros
+                for role in dataset.roles
             ],
             "strategic_classification": [
                 {
-                    "brother_id": row["BrotherID"],
-                    "dependency_signature": stable_hash({"classification": row}),
+                    "brother_id": bro.BrotherID,
+                    "dependency_signature": brother_summary_fingerprint(
+                        bro, dataset.roles, dataset.classification
+                    ),
                 }
-                for row in dataset.summaries
+                for bro in dataset.bros
             ],
             "level_advisor": [
                 {
-                    "brother_id": row["BrotherID"],
-                    "dependency_signature": stable_hash({"advisor": row}),
+                    "brother_id": bro.BrotherID,
+                    "dependency_signature": advisor_fingerprint(bro, dataset.roles),
                 }
-                for row in dataset.summaries
+                for bro in dataset.bros
             ],
         },
         company_intrinsic_coverage=build_intrinsic_company_coverage(
@@ -270,6 +283,18 @@ def test_target_v3_rejects_incomplete_or_malformed_dependency_evidence(
     source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
     _rewrite_payload_and_hash(source, "presentation", mutate)
     with pytest.raises(RenderDatasetError, match="dependency evidence"):
+        load_render_dataset(source)
+
+
+def test_target_v3_rejects_well_formed_but_incorrect_dependency_signature(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["validity"]["artifacts"]["role_projection"][0].update(
+            dependency_signature="sha256:" + "0" * 64
+        ),
+    )
+    with pytest.raises(RenderDatasetError, match="dependency evidence is mismatched"):
         load_render_dataset(source)
 
 
