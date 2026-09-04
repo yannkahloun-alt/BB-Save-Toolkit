@@ -199,8 +199,12 @@ not rename outputs, remove run directories, or act on unrelated files.
 Its OS-appropriate `UserStateRoot` is outside repository, installation, output,
 manifest, and reference-cache trees. Bounded feature files use typed validation,
 atomic replacement, feature locks, optimistic revisions, explicit migrations,
-and feature-scoped recovery. See [`USER_STATE.md`](USER_STATE.md). Domain
-semantics for user archetypes and assigned builds remain downstream concerns.
+and feature-scoped recovery. See [`USER_STATE.md`](USER_STATE.md).
+`bbtool/app/archetype_catalog.py` composes the immutable shipped catalog with
+sparse conflict-detecting overrides, disabled base IDs, complete custom
+definitions, and retired-ID tombstones; see
+[`USER_ARCHETYPES.md`](USER_ARCHETYPES.md). Assigned-build semantics remain a
+downstream concern.
 
 ### `bbtool/html_report.py`, `report.js`, `report.css`
 
