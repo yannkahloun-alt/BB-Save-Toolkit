@@ -214,6 +214,22 @@
       "Alternative": {
         "AnchorFitAfterPct": 85.3,
         "AnchorFitBeforePct": 90.1,
+        "Consequences": {
+          "AssignedBuild": null,
+          "BestFit": {
+            "BuildIdentity": "nimble_frontline_dps",
+            "FitAfterPct": 85.3,
+            "FitBeforePct": 90.1,
+            "FitDeltaPct": -4.8,
+            "FitFeasibilityAfterPct": 0.0,
+            "FitFeasibilityBeforePct": 0.0,
+            "FitLikelyMaxAfterPct": 91.6,
+            "FitLikelyMinAfterPct": 79.4,
+            "FitMaxAfterPct": 91.6,
+            "FitMinAfterPct": 78.2,
+            "Role": "Nimble Frontline DPS"
+          }
+        },
         "FitDeltaPct": -4.8,
         "FitFeasibilityAfterPct": 0.0,
         "FitFeasibilityBeforePct": 0.0,
@@ -251,8 +267,27 @@
           "MDef"
         ]
       },
+      "Anchor": {
+        "AssignmentStatus": "unassigned",
+        "BuildIdentity": "nimble_frontline_dps",
+        "Role": "Nimble Frontline DPS",
+        "Source": "BestFitFallback"
+      },
       "AnchorRole": "Nimble Frontline DPS",
+      "AssignedBuild": {
+        "AssignedDefinitionHash": null,
+        "BuildIdentity": null,
+        "CurrentDefinitionHash": null,
+        "Status": "unassigned",
+        "ValidAdvisorAnchor": false
+      },
+      "BestFit": {
+        "BuildIdentity": "nimble_frontline_dps",
+        "ProjectedFitPct": 90.1,
+        "Role": "Nimble Frontline DPS"
+      },
       "CombinationsEvaluated": 4,
+      "ConditionalBranch": null,
       "DistinctFitDecisionsEvaluated": 2,
       "FreePickCandidates": [],
       "FreePickMode": false,
@@ -263,9 +298,25 @@
         "MAtk": "Fit stat · weight 40 · current +3 is MAX",
         "MDef": "Fit stat · weight 24 · current +3 is MAX"
       },
-      "Recommended": {
+      "Primary": {
         "AnchorFitAfterPct": 90.1,
         "AnchorFitBeforePct": 90.1,
+        "Consequences": {
+          "AssignedBuild": null,
+          "BestFit": {
+            "BuildIdentity": "nimble_frontline_dps",
+            "FitAfterPct": 90.1,
+            "FitBeforePct": 90.1,
+            "FitDeltaPct": 0.0,
+            "FitFeasibilityAfterPct": 0.0,
+            "FitFeasibilityBeforePct": 0.0,
+            "FitLikelyMaxAfterPct": 96.4,
+            "FitLikelyMinAfterPct": 84.2,
+            "FitMaxAfterPct": 96.4,
+            "FitMinAfterPct": 83.0,
+            "Role": "Nimble Frontline DPS"
+          }
+        },
         "FitDeltaPct": 0.0,
         "FitFeasibilityAfterPct": 0.0,
         "FitFeasibilityBeforePct": 0.0,
@@ -287,6 +338,106 @@
         },
         "Stats": [
           "HP",
+          "MAtk",
+          "MDef"
+        ]
+      },
+      "Recommended": {
+        "AnchorFitAfterPct": 90.1,
+        "AnchorFitBeforePct": 90.1,
+        "Consequences": {
+          "AssignedBuild": null,
+          "BestFit": {
+            "BuildIdentity": "nimble_frontline_dps",
+            "FitAfterPct": 90.1,
+            "FitBeforePct": 90.1,
+            "FitDeltaPct": 0.0,
+            "FitFeasibilityAfterPct": 0.0,
+            "FitFeasibilityBeforePct": 0.0,
+            "FitLikelyMaxAfterPct": 96.4,
+            "FitLikelyMinAfterPct": 84.2,
+            "FitMaxAfterPct": 96.4,
+            "FitMinAfterPct": 83.0,
+            "Role": "Nimble Frontline DPS"
+          }
+        },
+        "FitDeltaPct": 0.0,
+        "FitFeasibilityAfterPct": 0.0,
+        "FitFeasibilityBeforePct": 0.0,
+        "FitLikelyMaxAfterPct": 96.4,
+        "FitLikelyMinAfterPct": 84.2,
+        "FitMaxAfterPct": 96.4,
+        "FitMinAfterPct": 83.0,
+        "RoleAfter": "Nimble Frontline DPS",
+        "RoleBefore": "Nimble Frontline DPS",
+        "RollQuality": {
+          "HP": 1.0,
+          "MAtk": 1.0,
+          "MDef": 1.0
+        },
+        "Rolls": {
+          "HP": 4,
+          "MAtk": 3,
+          "MDef": 3
+        },
+        "Stats": [
+          "HP",
+          "MAtk",
+          "MDef"
+        ]
+      },
+      "RunnerUp": {
+        "AnchorFitAfterPct": 85.3,
+        "AnchorFitBeforePct": 90.1,
+        "Consequences": {
+          "AssignedBuild": null,
+          "BestFit": {
+            "BuildIdentity": "nimble_frontline_dps",
+            "FitAfterPct": 85.3,
+            "FitBeforePct": 90.1,
+            "FitDeltaPct": -4.8,
+            "FitFeasibilityAfterPct": 0.0,
+            "FitFeasibilityBeforePct": 0.0,
+            "FitLikelyMaxAfterPct": 91.6,
+            "FitLikelyMinAfterPct": 79.4,
+            "FitMaxAfterPct": 91.6,
+            "FitMinAfterPct": 78.2,
+            "Role": "Nimble Frontline DPS"
+          }
+        },
+        "FitDeltaPct": -4.8,
+        "FitFeasibilityAfterPct": 0.0,
+        "FitFeasibilityBeforePct": 0.0,
+        "FitLikelyMaxAfterPct": 91.6,
+        "FitLikelyMinAfterPct": 79.4,
+        "FitMaxAfterPct": 91.6,
+        "FitMinAfterPct": 78.2,
+        "Gamble": {
+          "AvgDownsideWhenLosesPct": 4.8,
+          "AvgUpsideWhenWinsPct": 0.0,
+          "ChanceToBeatPrimaryPct": 0.0,
+          "IsGamble": false,
+          "MaxDownsidePct": 4.8,
+          "MaxUpsidePct": 0.0,
+          "MeanDeltaPct": -4.8,
+          "PrimaryWinsPct": 100.0,
+          "Samples": 512,
+          "TiePct": 0.0
+        },
+        "RoleAfter": "Nimble Frontline DPS",
+        "RoleBefore": "Nimble Frontline DPS",
+        "RollQuality": {
+          "Fatigue": 0.5,
+          "MAtk": 1.0,
+          "MDef": 1.0
+        },
+        "Rolls": {
+          "Fatigue": 3,
+          "MAtk": 3,
+          "MDef": 3
+        },
+        "Stats": [
+          "Fatigue",
           "MAtk",
           "MDef"
         ]

@@ -319,12 +319,12 @@
     "relevant_roster_need": 112
   },
   "publication": {
-    "coherence_signature": "sha256:267b9960f2b3565030c4127f7ccef4e85d1da017d0beff7cb2ee9e938892f9fc",
+    "coherence_signature": "sha256:9377761b0196b1980a91344f6abd0f3d3e3158ea2e7299cdce9b5b7c584c9cc0",
     "provenance": {
       "artifact_hashes": {
         "analysis_health": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2",
         "archetypes": "c5434ea66e73bbefecebddcfcaee439771e3be266314a9f1ba925a3fd02731f6",
-        "classification": "803c95597b43e642a7afa9f277e3803eeb750da96fb4641112a4f8f7e9b53866",
+        "classification": "6f3bd0c25526bc345f507d27637ff09ab14d0314e697c7d323c2633b45e83a8b",
         "classification_config": "47a3b9d213863a2e1641e36979f8f831f6bed36bb767d257a7dd27012bca6011",
         "recruits": "121602914ab017a5e339f329bc9bfebcb13150e66febbae3a3bcc03e9cd712f6",
         "role_fit": "a431592a3e6d9dfc3322c556345ba86618f63fbc1d8260861057314d5e2e8846",
@@ -342,7 +342,7 @@
         "pending": "sha256:fb8fae9680dbd70bed1fa5a82893fe91a9724a10dd3bf99a109deab3fa914636",
         "recruitment": "sha256:af98a408ce2861e320cb8abe79423fb1833010981c361996b54bf3595c1341b2",
         "run_health": "sha256:78a9bd8413f61db8fabe47ad6bfa4e771f9500371e63c131bf97f64bbb81bf4e",
-        "validity": "sha256:4c36a6d42738d1a6c7db2363c655e9b85d9dbcb6bc8eaa1a85bb699a0204d134"
+        "validity": "sha256:e7790a952b559a3f3acbdf2c9655c6ff80784718494df1c722d6da4a2c745b85"
       },
       "source_fingerprint": "sha256:7bbe2a746fc358d0883d720a4a15302443e126c38cba62718e6efe2f2259d591"
     }
@@ -515,23 +515,23 @@
       "level_advisor": [
         {
           "brother_id": "human:101",
-          "dependency_signature": "sha256:59a1fd30a3d995cf177f33179122405cdb3ef446bfbcb5520eaf6081a2fd5959"
+          "dependency_signature": "sha256:f93f15763ba022b0aaa0f4a2120b188804d4bb73849b33e5043fc37bdaa18726"
         },
         {
           "brother_id": "human:202",
-          "dependency_signature": "sha256:b0ac4c9b932021671e993def1a4b01538217f12b027722f9c12b214e9ed4c16f"
+          "dependency_signature": "sha256:a88eefb18e90dcc7e39f884906e8f672b29e661e34a44e8d796f822f1039c2e8"
         },
         {
           "brother_id": "human:303",
-          "dependency_signature": "sha256:132b4358816464daef609c7affdec4a79667ce4a26c12a685321c232c06cb0c0"
+          "dependency_signature": "sha256:357970b5e572d230351401743a57c102568964842750dc19368e09820c7810d0"
         },
         {
           "brother_id": "human:404",
-          "dependency_signature": "sha256:c80e1cee394c43960055d37c6cf82ed0ab9142975564d2df41ccf1e2b15ff59c"
+          "dependency_signature": "sha256:aac753f15ac07d6247efdd9ad6b985aac41d8a7d34a5a69e6c2f2d021b9a7f95"
         },
         {
           "brother_id": "human:505",
-          "dependency_signature": "sha256:3c31b9cd8312f1e381e2c220b35ddc091948466f69eba87010ecbd88c6bae399"
+          "dependency_signature": "sha256:9b61850e5f54f28d9916654d607aeb59789f182cfaf363b047dab0ced9447742"
         }
       ],
       "role_projection": [

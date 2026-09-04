@@ -202,8 +202,13 @@ reflecting the new assignment.
 
 #107 is the bounded implementation owner for this state, its typed read/write
 operations, validation, resolved states, and normalized mutation evidence.
-#108 owns intent-aware Advisor behavior and its exact fallback semantics. The
-existing user-state, local-application mutation, dependency-signature, and
+#108 owns intent-aware Advisor behavior: only a resolved `current` assignment
+whose acknowledged and current definition hashes match the effective catalog
+anchors advice. Otherwise Advisor explicitly falls back to intrinsic Best Fit
+while retaining the unresolved assignment status as evidence. Primary and
+Runner-up expose separate AssignedBuild and Best Fit consequences, and Advisor
+cache validity includes the normalized assignment identity and semantic hash.
+The existing user-state, local-application mutation, dependency-signature, and
 background-publication infrastructure supplies persistence, conflicts,
 invalidation closure, and stale-result protection. No additional feature-local
 persistence or invalidation mechanism is required.

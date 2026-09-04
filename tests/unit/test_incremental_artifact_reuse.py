@@ -43,6 +43,7 @@ def test_cosmetic_rename_refreshes_reused_advisor_role_labels(
     cache=IncrementalCache(None)
     cache.store_advisor(bro,[original],{
         "AnchorRole":original["name"],
+        "BestFit":{"Role":original["name"]},
         "Recommended":{"RoleBefore":original["name"],"RoleAfter":original["name"]},
     })
     warm=IncrementalCache(cache.manifest_payload(generated_at="x",source_save="x"))
@@ -50,6 +51,7 @@ def test_cosmetic_rename_refreshes_reused_advisor_role_labels(
     result=warm.get_advisor(bro,[renamed])
 
     assert result["AnchorRole"]=="Renamed"
+    assert result["BestFit"]["Role"]=="Renamed"
     assert result["Recommended"]["RoleBefore"]=="Renamed"
     assert result["Recommended"]["RoleAfter"]=="Renamed"
 

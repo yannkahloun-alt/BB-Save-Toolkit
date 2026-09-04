@@ -51,7 +51,7 @@ def test_reused_summary_skips_unused_effective_stat_profile(monkeypatch, bro_fac
         def get_role_row(self, bro, role): return row(role['name'])
         def store_role_row(self, bro, role, value): pass
         def get_summary(self, bro, roles, cfg): return {'Name': bro.Name}
-        def get_advisor(self, bro, roles): return {'cached': True}
+        def get_advisor(self, bro, roles, assigned_build=None): return {'cached': True}
 
     monkeypatch.setattr(
         an, 'effective_stat_profile',
