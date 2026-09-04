@@ -294,6 +294,7 @@ class LocalApplication:
         }
 
     def _invalidate_publication(self, reason: str) -> None:
+        self.coordinator.invalidate_desired()
         publication = self.coordinator.last_success
         self._invalidated_generation = (
             publication.generation if publication is not None else None

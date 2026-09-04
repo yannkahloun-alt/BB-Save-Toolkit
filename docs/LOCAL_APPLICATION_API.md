@@ -75,5 +75,9 @@ Published fingerprints and timestamps are persisted through the #95
 Changing a followed save returns stale/unavailable freshness immediately.
 Archetype mutation responses return the committed revision, canonical effective
 catalog, definition hashes, and an explicit `request_analysis` recompute state.
+After any committed source/configuration mutation, the application invalidates
+the #97 desired generation and cancels queued/running pre-mutation work so it
+cannot publish. The previous successful publication remains available as
+explicitly stale until a new requested generation succeeds.
 No watcher or automatic source stabilization is implemented here; those belong
 to #99. The complete Target UI belongs to #100.

@@ -224,6 +224,22 @@ def test_cancellation_terminates_active_and_promotes_pending():
     assert service.last_success.job_id == second_id
 
 
+def test_application_invalidation_cancels_all_pre_mutation_work():
+    backend = Backend()
+    service = coordinator(backend)
+    active_id = service.submit(desired("active"))
+    active_handle = backend.handle
+    pending_id = service.submit(desired("pending"))
+
+    service.invalidate_desired()
+
+    assert active_handle.terminated
+    assert service.job(active_id).status == JobStatus.CANCELLED
+    assert service.job(pending_id).status == JobStatus.CANCELLED
+    assert service.desired_job_id is None
+    assert service.last_success is None
+
+
 def test_stabilizing_and_progress_are_explicit_without_running_analysis():
     backend = Backend()
     service = coordinator(backend)

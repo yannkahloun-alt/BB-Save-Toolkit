@@ -258,6 +258,9 @@ def test_published_result_exposes_identity_and_persists_last_success(tmp_path):
         def shutdown(self):
             pass
 
+        def invalidate_desired(self):
+            pass
+
     app = make_application(tmp_path, coordinator=PublishedCoordinator())
     result = app.last_result()
     durable = app.store.load("last_success")
@@ -291,6 +294,9 @@ def test_successful_mutation_marks_existing_publication_stale_on_later_reads(tmp
         def shutdown(self):
             pass
 
+        def invalidate_desired(self):
+            pass
+
     app = make_application(tmp_path, coordinator=PublishedCoordinator())
     api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
     mutation = post(api, "/api/v1/archetypes/set-override", {
@@ -304,6 +310,29 @@ def test_successful_mutation_marks_existing_publication_stale_on_later_reads(tmp
     assert later_result["available"] is True
     assert later_result["freshness"]["status"] == "stale"
     assert later_result["freshness"]["reason"] == "effective_archetypes_changed"
+
+
+def test_mutation_cancels_in_flight_pre_mutation_analysis(tmp_path):
+    backend = HoldingBackend()
+    coordinator = AnalysisCoordinator(backend=backend, monitor=False)
+    app = make_application(
+        tmp_path, coordinator=coordinator, read_save=lambda _path: b"save"
+    )
+    api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"unused")
+    post(api, "/api/v1/followed-save/select", {"path": str(save), "expected_revision": 0})
+    submitted = post(api, "/api/v1/analysis/jobs", {"expected_preferences_revision": 1})
+    job_id = decode(submitted)["data"]["id"]
+
+    mutation = post(api, "/api/v1/archetypes/set-override", {
+        "id": "reach_dps", "patch": {"name": "Polearm"}, "expected_revision": 0,
+    })
+
+    assert mutation.status == 200
+    assert coordinator.job(job_id).status.value == "cancelled"
+    assert coordinator.desired_job_id is None
+    assert coordinator.last_success is None
 
 
 def test_server_bind_is_fixed_to_ipv4_loopback(monkeypatch, tmp_path):
