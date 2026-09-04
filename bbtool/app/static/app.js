@@ -93,13 +93,13 @@ function renderFreshness() {
 function renderFollowedSave() {
   const element = document.getElementById('save-label');
   const followed = state.followedSave;
-  if (!followed?.selected_path) {
+  if (!followed?.name) {
     element.textContent = 'No save selected';
     element.removeAttribute('title');
     return;
   }
-  element.textContent = followed.name || 'Selected save';
-  element.title = followed.name || 'Selected save';
+  element.textContent = followed.name;
+  element.title = followed.name;
 }
 
 function renderHealth() {
@@ -158,14 +158,15 @@ function renderProgress() {
   }
 
   region.hidden = false;
-  const events = job?.progress || [];
-  const latest = events.at(-1);
+  const progress = job?.progress;
+  const completedCount = progress?.completed_count || 0;
+  const latestStage = progress?.latest_stage;
   const label = document.getElementById('progress-label');
   const detail = document.getElementById('progress-detail');
 
-  if (latest) {
-    label.textContent = humanizeStage(latest.stage);
-    detail.textContent = `${events.length} completed stage${events.length === 1 ? '' : 's'}`;
+  if (latestStage) {
+    label.textContent = humanizeStage(latestStage);
+    detail.textContent = `${completedCount} completed stage${completedCount === 1 ? '' : 's'}`;
   } else {
     label.textContent = FRESHNESS_LABELS[freshness?.status] || 'Analysis in progress';
     detail.textContent = job?.status === 'queued' ? 'Waiting for analysis worker' : '';
