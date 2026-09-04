@@ -84,5 +84,8 @@ job submission step against durable mutation commit plus invalidation. Analysis
 result/status reads use the same boundary, so they cannot observe a committed
 mutation before its publication invalidation. Analysis itself remains
 asynchronous in the worker process and never holds this lock.
-No watcher or automatic source stabilization is implemented here; those belong
-to #99. The complete Target UI belongs to #100.
+The persisted selection is watched and stabilized as documented in
+[`SAVE_WATCHING.md`](SAVE_WATCHING.md). Followed-save and result reads expose
+the detected/stabilizing/queued/analyzing/current/unavailable/failed freshness
+states through the existing responses. No generic filesystem endpoint is
+introduced. The complete Target UI belongs to #100.

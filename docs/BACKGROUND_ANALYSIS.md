@@ -18,9 +18,10 @@ most one worker process and retains at most
 one pending request; a newer request deterministically supersedes the pending
 request it replaces. Duplicate notifications for identical inputs coalesce.
 
-`stabilizing` is an explicit pre-queue state for a future filesystem adapter.
-Only that adapter may decide when bytes are stable and call `mark_stable`;
-stabilization policy is not implemented here.
+Filesystem stabilization is owned by `save_watcher`, not this coordinator. The
+watcher prevents the previous desired generation from publishing as soon as a
+change is detected, then submits only stable immutable bytes. This coordinator
+continues to own duplicate identity coalescing and the newest-pending slot.
 
 Analysis runs through `analysis_service.analyze_save` in a spawned process.
 Progress crosses the process queue and is retained on the job independently of
@@ -60,3 +61,6 @@ The local application may call `invalidate_desired()` after a committed durable
 source/configuration mutation. This cancels queued and active pre-mutation work,
 clears the desired generation, and prevents that obsolete snapshot from
 publishing. A later explicit submission establishes the new desired generation.
+For a transient source notification it instead calls `mark_desired_stale()`:
+the active process may finish, but cannot publish, and a later stable submission
+flows through normal coalescing rather than duplicating scheduling policy.
