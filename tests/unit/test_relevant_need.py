@@ -66,3 +66,12 @@ def test_transitive_inputs_change_signature_but_unaffected_artifacts_are_reusabl
     assert first["candidate_plausible_roles"] == changed_need["candidate_plausible_roles"]
     assert first["relevant_need"]["build_identity"] == changed_need["relevant_need"]["build_identity"] == "tank"
     assert changed_candidate["relevant_need"] is None
+
+
+def test_viability_threshold_invalidates_relevant_need_without_mutating_evidence():
+    analyses = [a("tank", 60)]
+    viable = build_relevant_roster_need(analyses, [gap("tank", ["single_point_of_failure"])], viable_fit=.5)
+    strict = build_relevant_roster_need(analyses, [gap("tank", ["single_point_of_failure"])], viable_fit=.7)
+    assert viable["candidate_plausible_roles"] == ["tank"]
+    assert strict["candidate_plausible_roles"] == []
+    assert viable["artifact_signature"] != strict["artifact_signature"]

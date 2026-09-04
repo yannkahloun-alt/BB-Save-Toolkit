@@ -69,7 +69,10 @@ def build_relevant_roster_need(
             for item in analyses if isinstance(item, Mapping)
         ],
         InputKind.COMPANY_NEED: list(company_intended_coverage),
-        InputKind.ENGINE_SEMANTICS: {"relevant_roster_need": ENGINE_VERSIONS.get(ArtifactKind.RELEVANT_ROSTER_NEED, 1)},
+        InputKind.ENGINE_SEMANTICS: {
+            "relevant_roster_need": ENGINE_VERSIONS.get(ArtifactKind.RELEVANT_ROSTER_NEED, 1),
+            "viable_fit": viable_fit,
+        },
     }
     candidate_upstream = stable_hash(inputs[InputKind.CANDIDATE_EVIDENCE])
     company_upstream = stable_hash([
