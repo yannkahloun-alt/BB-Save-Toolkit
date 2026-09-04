@@ -236,10 +236,13 @@ def validate_target_presentation(
         raise ValueError("target presentation brother joins do not match roster")
     campaign_value = _validate_identity(payload["campaign_identity"], brother=False)
     exact_brother_identities = set()
+    brother_by_id = {bro.BrotherID: bro for bro in bros}
     for row in brothers:
+        expected_facts = perk_gear_facts(brother_by_id[row["brother_id"]])
         if not isinstance(row, dict) or set(row) != {
             "brother_id", "brother_identity", "mechanical_facts",
-        } or row["mechanical_facts"] != roster[row["brother_id"]].get("PerkGearFacts", []):
+        } or row["mechanical_facts"] != expected_facts \
+                or roster[row["brother_id"]].get("PerkGearFacts") != expected_facts:
             raise ValueError("target presentation mechanical facts mismatch")
         brother_campaign = _validate_identity(row["brother_identity"], brother=True)
         if brother_campaign is not None and brother_campaign != campaign_value:

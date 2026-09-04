@@ -367,6 +367,20 @@ def test_target_v3_rejects_stale_company_coverage(tmp_path):
         load_render_dataset(source)
 
 
+def test_target_v3_rejects_coherently_duplicated_malformed_mechanical_facts(tmp_path):
+    source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
+    _rewrite_payload_and_hash(
+        source, "roster",
+        lambda value: value[0].update(PerkGearFacts=["garbage"]),
+    )
+    _rewrite_payload_and_hash(
+        source, "presentation",
+        lambda value: value["brothers"][0].update(mechanical_facts=["garbage"]),
+    )
+    with pytest.raises(RenderDatasetError, match="mechanical facts mismatch"):
+        load_render_dataset(source)
+
+
 def test_target_v3_rejects_bogus_recruitment_result(tmp_path):
     source = _upgrade_to_target_v3(_copy_fixture(tmp_path))
 
