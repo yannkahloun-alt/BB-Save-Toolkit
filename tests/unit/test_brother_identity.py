@@ -1,4 +1,5 @@
 from dataclasses import replace
+import json
 from pathlib import Path
 
 from bbtool.models import CampaignIdentity
@@ -43,6 +44,71 @@ def test_reference_save_exposes_unique_native_tokens():
     assert len(tokens) == 12
     assert all(isinstance(token, int) and token > 0 for token in tokens)
     assert len(set(tokens)) == len(tokens)
+
+
+def test_sanitized_successive_save_evidence_proves_token_continuity():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "fixtures"
+        / "brother_identity"
+        / "successive-save-evidence.json"
+    )
+    evidence = json.loads(path.read_text(encoding="utf-8"))
+    assert evidence["schema"] == "bbtool.brother_identity_evidence.v1"
+    assert len(evidence["snapshots"]) == 18
+    assert {row["campaign"] for row in evidence["snapshots"]} == {7496, 17110}
+    assert len(evidence["tracks"]) == 22
+
+    observations = [
+        observation
+        for track in evidence["tracks"]
+        for observation in track["observations"]
+    ]
+    assert len(observations) == 150
+    for track in evidence["tracks"]:
+        assert len({row["token"] for row in track["observations"]}) == 1
+        assert all(row["token"] > 0 for row in track["observations"])
+
+    for snapshot in evidence["snapshots"]:
+        tokens = [
+            row["token"]
+            for track in evidence["tracks"]
+            if track["campaign"] == snapshot["campaign"]
+            for row in track["observations"]
+            if row["snapshot"] == snapshot["snapshot"]
+        ]
+        assert len(tokens) == snapshot["roster_size"]
+        assert len(tokens) == len(set(tokens))
+
+    changed_fields = {
+        field
+        for field in (
+            "human_offset",
+            "level",
+            "xp",
+            "stats",
+            "perks",
+            "traits",
+            "permanent_injuries",
+            "equipment",
+            "future_rolls",
+        )
+        if any(
+            len({row[field] for row in track["observations"]}) > 1
+            for track in evidence["tracks"]
+        )
+    }
+    assert changed_fields == {
+        "human_offset",
+        "level",
+        "xp",
+        "stats",
+        "perks",
+        "traits",
+        "permanent_injuries",
+        "equipment",
+        "future_rolls",
+    }
 
 
 def test_exact_identity_is_campaign_namespaced_and_display_independent(bro_factory):

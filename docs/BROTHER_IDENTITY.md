@@ -74,14 +74,21 @@ that brother; this does not prove that a later save descends from it.
 
 ## Evidence
 
-The strongest available local evidence was an 18-save real sequence covering
+The strongest available evidence is a sanitized extraction from an 18-save
+real sequence covering
 two native campaigns (`CampaignID` 17110 and 7496). It contained 22 distinct
 player-brother tokens and 150 total brother observations. Every surviving
 brother retained the same token while `HumanOffset` changed repeatedly. The
 sequence included XP/stat progression, level-ups, perk, trait, permanent-injury,
 and equipment changes, new hires, and removals. New brothers received
 previously unseen roster tokens; removed brothers were not reassigned. No
-roster contained a duplicate token.
+roster contained a duplicate token. The checked-in
+`tests/fixtures/brother_identity/successive-save-evidence.json` preserves all
+150 observations with opaque analyst-assigned subject labels, native tokens,
+offset/level/XP, and hashes of mutable state categories. A deterministic test
+verifies continuity and per-roster uniqueness across the complete extraction.
+The opaque subject labels were assigned using display names for human
+validation only; neither labels nor names participate in production identity.
 
 The checked-in `reference-save.sav` independently provides 12 more unique,
 non-zero real roster tokens and locks the byte location in a deterministic
@@ -89,10 +96,10 @@ parser regression. Synthetic tests cover campaign namespacing, coincident
 cross-campaign entity tokens, name/offset/progression independence, and every
 failure class above.
 
-Repository fixtures do not contain the 18-save sequence because the historical
-run artifacts are not suitable source fixtures. They also do not prove a real
-rename, an explicit manual rollback, or two independent campaigns with a
-coincident entity token. Those limitations prevent
+Repository fixtures contain the sanitized extraction rather than the raw
+18-save sequence because those historical run artifacts are not suitable source
+fixtures. They do not prove a real rename, an explicit manual rollback, or two
+independent campaigns with a coincident entity token. Those limitations prevent
 stronger empirical claims, but none require a heuristic fallback. Future
 contradictory evidence must make the affected identity unavailable rather than
 silently widening this contract.
