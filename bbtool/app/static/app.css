@@ -1,0 +1,391 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #10100f;
+  color: #eee9df;
+  --page: #10100f;
+  --surface: #1a1917;
+  --surface-raised: #23211e;
+  --line: #3c3934;
+  --muted: #aaa39a;
+  --text: #eee9df;
+  --accent: #d8b46a;
+  --accent-strong: #f2cf81;
+  --good: #7cc695;
+  --warn: #e1b66c;
+  --bad: #de8378;
+  --focus: #f4d48e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  background: var(--page);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.45;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 30;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.4rem;
+  background: var(--accent-strong);
+  color: #17120b;
+  transform: translateY(-180%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.app-shell {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  background: #161512;
+  box-shadow: 0 0.35rem 1.1rem rgb(0 0 0 / 26%);
+}
+
+.shell-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  padding: 0.8rem clamp(0.8rem, 2vw, 1.5rem) 0.65rem;
+}
+
+.brand-block {
+  display: grid;
+  flex: 0 0 auto;
+}
+
+.eyebrow,
+.context-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.brand {
+  color: var(--accent-strong);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.015em;
+}
+
+.run-context {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.context-copy {
+  display: grid;
+  min-width: 8rem;
+  max-width: min(38vw, 34rem);
+  text-align: right;
+}
+
+.context-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-pill,
+.health-button {
+  min-height: 2.05rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+}
+
+.health-button {
+  cursor: pointer;
+  padding: 0.35rem 0.75rem;
+}
+
+.health-button:hover {
+  border-color: var(--accent);
+}
+
+.status-pill[data-state="current"],
+.health-button[data-state="healthy"] {
+  border-color: color-mix(in srgb, var(--good) 72%, var(--line));
+}
+
+.status-pill[data-state="stale"],
+.status-pill[data-state="detected"],
+.status-pill[data-state="stabilizing"],
+.status-pill[data-state="queued"],
+.status-pill[data-state="analyzing"],
+.health-button[data-state="degraded"] {
+  border-color: color-mix(in srgb, var(--warn) 72%, var(--line));
+}
+
+.status-pill[data-state="failed"],
+.status-pill[data-state="unavailable"] {
+  border-color: color-mix(in srgb, var(--bad) 72%, var(--line));
+}
+
+.progress-region {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 24rem);
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  padding: 0.45rem clamp(0.8rem, 2vw, 1.5rem);
+  border-top: 1px solid rgb(255 255 255 / 5%);
+  background: #1b1916;
+}
+
+.progress-region[hidden] {
+  display: none;
+}
+
+.progress-copy {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+}
+
+.progress-copy span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+progress {
+  width: 100%;
+  height: 0.55rem;
+  accent-color: var(--accent);
+}
+
+.primary-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  padding: 0 clamp(0.8rem, 2vw, 1.5rem);
+}
+
+.primary-nav a {
+  display: flex;
+  min-width: 0;
+  min-height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.primary-nav a:hover {
+  color: var(--text);
+}
+
+.primary-nav a[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.health-panel {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(18rem, 2fr);
+  gap: 0.85rem 1.25rem;
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  padding: 0.85rem clamp(0.8rem, 2vw, 1.5rem) 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.health-panel[hidden] {
+  display: none;
+}
+
+.health-panel > div:first-child {
+  display: grid;
+  align-content: start;
+}
+
+.health-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.health-counts div {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  background: var(--surface-raised);
+}
+
+.health-counts dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.health-counts dd {
+  margin: 0.15rem 0 0;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.health-detail {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.workspace {
+  width: min(100%, 1600px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem) clamp(0.8rem, 2vw, 1.5rem) 4rem;
+}
+
+.workspace-panel {
+  min-width: 0;
+  min-height: 16rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: linear-gradient(180deg, #1d1b18 0%, #181715 100%);
+  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 18%);
+}
+
+.workspace-panel[hidden] {
+  display: none;
+}
+
+.workspace-panel h1 {
+  margin: 0.2rem 0 0.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  color: var(--accent-strong);
+}
+
+.workspace-panel p {
+  max-width: 52rem;
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+  .shell-primary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .run-context {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .context-copy {
+    flex: 1 1 14rem;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .progress-region {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .health-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .health-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .shell-primary,
+  .primary-nav,
+  .progress-region,
+  .health-panel,
+  .workspace {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+
+  .run-context {
+    gap: 0.45rem;
+  }
+
+  .status-pill,
+  .health-button {
+    font-size: 0.75rem;
+  }
+
+  .primary-nav a {
+    min-height: 2.65rem;
+    padding: 0.25rem;
+    font-size: 0.82rem;
+  }
+
+  .health-counts {
+    grid-template-columns: 1fr;
+  }
+}
