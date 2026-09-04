@@ -33,6 +33,42 @@ function filterCategory(category, button) {
 }
 
 
+async function copyBestFit(button) {
+  const value = button.dataset.copyText;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(value);
+  } else {
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    input.remove();
+  }
+
+  const originalLabel = button.textContent;
+  button.textContent = "Copied";
+  window.setTimeout(() => {
+    button.textContent = originalLabel;
+  }, 1200);
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".best-fit-copy[data-copy-text]");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  copyBestFit(button).catch(() => {
+    button.textContent = "Copy failed";
+  });
+});
+
+
 function brotherPanels() {
   return Array.from(document.querySelectorAll("details.bro-panel"));
 }
