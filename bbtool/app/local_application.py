@@ -10,6 +10,7 @@ from contextlib import suppress
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
+import threading
 from typing import Any
 
 from ..incremental.fingerprint import stable_hash
@@ -64,6 +65,7 @@ class LocalApplication:
         self._source_timestamps: dict[int, str] = {}
         self._invalidated_generation: int | None = None
         self._invalidation_reason: str | None = None
+        self._command_lock = threading.RLock()
 
     def close(self) -> None:
         self.coordinator.shutdown()
@@ -97,6 +99,16 @@ class LocalApplication:
     def select_followed_save(
         self, path_value: str, *, expected_revision: int, auto_refresh: bool | None = None
     ) -> dict[str, Any]:
+        with self._command_lock:
+            return self._select_followed_save(
+                path_value,
+                expected_revision=expected_revision,
+                auto_refresh=auto_refresh,
+            )
+
+    def _select_followed_save(
+        self, path_value: str, *, expected_revision: int, auto_refresh: bool | None
+    ) -> dict[str, Any]:
         if not isinstance(path_value, str) or not path_value.strip():
             raise ApplicationOperationError("invalid_save_path", "path must be a non-empty string")
         path = Path(path_value).expanduser().resolve()
@@ -120,6 +132,10 @@ class LocalApplication:
         }
 
     def forget_followed_save(self, *, expected_revision: int) -> dict[str, Any]:
+        with self._command_lock:
+            return self._forget_followed_save(expected_revision=expected_revision)
+
+    def _forget_followed_save(self, *, expected_revision: int) -> dict[str, Any]:
         current = self.store.load("preferences")
         saved = self.store.save(
             "preferences",
@@ -166,6 +182,12 @@ class LocalApplication:
         return self._effective_catalog_payload(self.catalog.load())
 
     def mutate_archetypes(self, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._command_lock:
+            return self._mutate_archetypes(operation, payload)
+
+    def _mutate_archetypes(
+        self, operation: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         revision = payload["expected_revision"]
         identity = payload.get("id")
         operations = {
@@ -209,6 +231,12 @@ class LocalApplication:
         return {"document": self.catalog.export_json()}
 
     def request_analysis(self, *, expected_preferences_revision: int) -> dict[str, Any]:
+        with self._command_lock:
+            return self._request_analysis(
+                expected_preferences_revision=expected_preferences_revision
+            )
+
+    def _request_analysis(self, *, expected_preferences_revision: int) -> dict[str, Any]:
         preferences = self.store.load("preferences")
         if preferences.revision != expected_preferences_revision:
             from .user_state import StateConflictError

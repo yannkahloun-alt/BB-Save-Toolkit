@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import threading
 from types import SimpleNamespace
 
 from bbtool.app.analysis_coordinator import AnalysisCoordinator
@@ -333,6 +334,48 @@ def test_mutation_cancels_in_flight_pre_mutation_analysis(tmp_path):
     assert coordinator.job(job_id).status.value == "cancelled"
     assert coordinator.desired_job_id is None
     assert coordinator.last_success is None
+
+
+def test_snapshot_submit_and_mutation_invalidation_are_serialized(tmp_path):
+    backend = HoldingBackend()
+    coordinator = AnalysisCoordinator(backend=backend, monitor=False)
+    read_started = threading.Event()
+    release_read = threading.Event()
+    mutation_finished = threading.Event()
+
+    def blocking_read(_path):
+        read_started.set()
+        assert release_read.wait(2)
+        return b"old snapshot"
+
+    app = make_application(tmp_path, coordinator=coordinator, read_save=blocking_read)
+    save = tmp_path / "campaign.sav"
+    save.write_bytes(b"unused")
+    app.select_followed_save(str(save), expected_revision=0)
+
+    analysis_thread = threading.Thread(
+        target=lambda: app.request_analysis(expected_preferences_revision=1)
+    )
+    mutation_thread = threading.Thread(
+        target=lambda: (
+            app.mutate_archetypes(
+                "set_override",
+                {"id": "reach_dps", "patch": {"name": "Polearm"}, "expected_revision": 0},
+            ),
+            mutation_finished.set(),
+        )
+    )
+    analysis_thread.start()
+    assert read_started.wait(2)
+    mutation_thread.start()
+    assert not mutation_finished.wait(0.05)
+    release_read.set()
+    analysis_thread.join(2)
+    mutation_thread.join(2)
+
+    assert mutation_finished.is_set()
+    assert coordinator.job(1).status.value == "cancelled"
+    assert coordinator.desired_job_id is None
 
 
 def test_server_bind_is_fixed_to_ipv4_loopback(monkeypatch, tmp_path):
