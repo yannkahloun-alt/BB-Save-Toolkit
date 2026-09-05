@@ -7,6 +7,7 @@
   <title>Company · Battle Brothers Save Toolkit</title>
   <link rel="stylesheet" href="/app.css">
   <link rel="stylesheet" href="/level-up.css">
+  <link rel="stylesheet" href="/recruitment.css">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -228,14 +229,106 @@
       </div>
     </section>
 
-    <section class="workspace-panel" data-workspace-panel="recruitment" aria-labelledby="recruitment-heading" hidden>
-      <span class="eyebrow">Hiring workspace</span>
-      <h1 id="recruitment-heading">Recruitment</h1>
-      <p>Settlement-first candidate browsing will render here under the same freshness and Run Health context.</p>
+    <section class="workspace-panel recruitment-workspace" data-workspace-panel="recruitment" aria-labelledby="recruitment-heading" hidden>
+      <div class="recruitment-head">
+        <div>
+          <span class="eyebrow">Hiring workspace</span>
+          <h1 id="recruitment-heading">Recruitment</h1>
+          <p>Compare candidates in settlement context. Potential, Relevant Need, and economics stay separate.</p>
+        </div>
+      </div>
+
+      <label class="recruitment-mobile-select">
+        <span class="context-label">Candidate</span>
+        <select id="recruit-mobile-select" aria-label="Switch recruitment candidate"></select>
+      </label>
+
+      <div id="recruitment-loading" class="empty-state" role="status">Waiting for a completed analysis.</div>
+      <div id="recruitment-layout" class="recruitment-layout" hidden>
+        <aside id="recruit-browser" class="recruit-browser" aria-label="Settlements and candidates">
+          <div class="recruit-browser-head">
+            <h2>Settlements &amp; candidates</h2>
+            <div class="recruit-current-settlement" aria-live="polite" aria-atomic="true">
+              <span>Current settlement</span>
+              <strong id="recruit-current-settlement-name">—</strong>
+              <small id="recruit-current-settlement-summary">—</small>
+            </div>
+          </div>
+          <div id="recruit-browser-groups"></div>
+        </aside>
+
+        <article class="recruit-detail" aria-labelledby="recruit-name">
+          <header class="recruit-hero">
+            <div>
+              <span id="recruit-settlement" class="eyebrow">Settlement</span>
+              <h2 id="recruit-name">Candidate</h2>
+              <p id="recruit-meta">—</p>
+            </div>
+            <div class="recruit-money" aria-label="Hiring economics">
+              <div><span>Hire</span><strong id="recruit-hire-cost">—</strong></div>
+              <div><span>Daily</span><strong id="recruit-daily-wage">—</strong></div>
+            </div>
+          </header>
+
+          <div class="recruit-scanline" aria-label="Candidate scan">
+            <section id="recruit-top-scan" class="recruit-scan-card"></section>
+            <section id="recruit-need-scan" class="recruit-scan-card"></section>
+            <section id="recruit-evidence-scan" class="recruit-scan-card"></section>
+          </div>
+
+          <div class="recruit-decision-grid">
+            <section aria-labelledby="recruit-potential-heading">
+              <div class="recruit-section-title">
+                <h3 id="recruit-potential-heading">Potential</h3>
+                <p>Known-evidence estimate when justified; otherwise the Background prior remains explicit.</p>
+              </div>
+              <div id="recruit-potential" class="recruit-potential-list"></div>
+            </section>
+            <section aria-labelledby="recruit-needs-heading">
+              <div class="recruit-section-title">
+                <h3 id="recruit-needs-heading">Relevant Need</h3>
+                <p>Company context is independently inspectable and cannot alter Top Potential.</p>
+              </div>
+              <div id="recruit-needs" class="recruit-need-list"></div>
+              <div id="recruit-other-gaps" class="recruit-other-gaps"></div>
+            </section>
+          </div>
+
+          <div class="recruit-evidence-grid">
+            <section id="recruit-evidence" class="recruit-evidence-card" aria-labelledby="recruit-evidence-heading">
+              <h3 id="recruit-evidence-heading">Known evidence</h3>
+            </section>
+            <section id="recruit-observation" class="recruit-evidence-card" aria-labelledby="recruit-observation-heading">
+              <h3 id="recruit-observation-heading">Observation</h3>
+            </section>
+          </div>
+
+          <section class="recruit-shortlist" aria-labelledby="recruit-shortlist-heading">
+            <div class="recruit-shortlist-bar">
+              <div>
+                <span class="eyebrow" id="recruit-shortlist-heading">Shortlist</span>
+                <div id="recruit-shortlist-chips" class="recruit-shortlist-chips"></div>
+              </div>
+              <div class="recruit-shortlist-actions">
+                <button id="recruit-shortlist-current" class="btn" type="button">Add to shortlist</button>
+                <button id="recruit-compare-toggle" class="btn" type="button">Compare shortlist ↓</button>
+              </div>
+            </div>
+            <div id="recruit-compare" class="recruit-compare" hidden>
+              <div class="recruit-section-title">
+                <h3>Shortlist comparison</h3>
+                <p>No automatic winner. Potential, Relevant Need, evidence, and economics remain separate.</p>
+              </div>
+              <div id="recruit-compare-grid" class="recruit-compare-grid"></div>
+            </div>
+          </section>
+        </article>
+      </div>
     </section>
   </main>
 
   <script src="/app.js" defer></script>
   <script src="/level-up.js" defer></script>
+  <script src="/recruitment.js" defer></script>
 </body>
 </html>
