@@ -58,12 +58,19 @@ def _snapshot_view(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_company_brother_view(application) -> dict[str, Any]:
-    """Project the latest publication into one bounded Company/Brother read model.
+    """Project the latest publication into one coherent Company/Brother read model.
 
-    Intrinsic analytical meaning comes from the publication. AssignedBuild is read
-    again from durable state so a successful mutation is visible immediately while
-    the previous intent-aware Company aggregate remains explicitly marked stale.
+    The application's command boundary is held across publication and durable-intent
+    reads. That prevents the HTTP view from observing a mutation between its old
+    publication read and its authoritative AssignedBuild read. Intrinsic analytical
+    meaning still comes from the publication; freshly committed intent may differ and
+    is then exposed explicitly as stale until refreshed analysis publishes.
     """
+    with application._command_lock:
+        return _build_company_brother_view_locked(application)
+
+
+def _build_company_brother_view_locked(application) -> dict[str, Any]:
     publication = application.coordinator.last_success
     if publication is None:
         return {"available": False}
