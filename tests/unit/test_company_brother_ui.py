@@ -103,6 +103,7 @@ def test_company_and_brother_responsive_contract_has_anchored_dock_and_local_ove
     assert "top: var(--app-shell-height);" in css
     assert "position: sticky;" in css
     assert "scroll-margin-top: calc(var(--app-shell-height) + 4.3rem);" in css
+    assert "scroll-margin-top: calc(var(--app-shell-height) + 6.5rem);" in css
     assert ".matrix-wrap" in css and "overflow: auto;" in css
     assert "overflow-x: clip;" in css
     assert "@media (max-width: 980px)" in css
