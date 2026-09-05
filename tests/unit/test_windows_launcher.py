@@ -96,8 +96,11 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "Assert-PersistedState" in smoke
     assert "Packaging Smoke Build" in smoke
     assert "/api/v1/archetypes/set-disabled" in smoke
+    assert "Synthetic Smoke Brother" in smoke
+    assert "BROTHER_SIGNATURE" in smoke
+    assert "/api/v1/analysis/result" in smoke
     assert "Silent uninstall unexpectedly deleted user-owned state" in smoke
-    assert "AddMinutes(10)" in smoke
+    assert "AddMinutes(5)" in smoke
 
 
 def test_launcher_command_contract():
