@@ -22,6 +22,13 @@ _SNAPSHOT_FIELDS = (
     "MDef", "MDefStars", "RDef", "RDefStars",
     "Perks", "Traits", "Injuries", "Equipment", "GearFatigue",
 )
+_PRIVATE_FINGERPRINT_KEYS = frozenset({
+    "ArtifactSignature",
+    "BuildDefinitionHash",
+    "assigned_definition_hash",
+    "build_definition_hash",
+    "current_definition_hash",
+})
 
 
 def _best_fit(summary: dict[str, Any]) -> dict[str, Any]:
@@ -55,6 +62,19 @@ def _potential_row(row: dict[str, Any], build_identity: str | None) -> dict[str,
 def _snapshot_view(snapshot: dict[str, Any]) -> dict[str, Any]:
     """Keep only current Brother fields rendered by #115."""
     return {key: snapshot.get(key) for key in _SNAPSHOT_FIELDS}
+
+
+def _strip_private_fingerprints(value: Any) -> Any:
+    """Remove validity/provenance hashes from the least-privilege UI read model."""
+    if isinstance(value, dict):
+        return {
+            key: _strip_private_fingerprints(item)
+            for key, item in value.items()
+            if key not in _PRIVATE_FINGERPRINT_KEYS
+        }
+    if isinstance(value, list):
+        return [_strip_private_fingerprints(item) for item in value]
+    return value
 
 
 def build_company_brother_view(application) -> dict[str, Any]:
@@ -133,7 +153,9 @@ def _build_company_brother_view_locked(application) -> dict[str, Any]:
         # exact durable identity as the browser key whenever it is available, and
         # only fall back to the one-publication observation id conservatively.
         route_key = identity_value if isinstance(identity_value, str) else observation_id
-        assignment = dict(live_assignments.get(identity_value, _EMPTY_ASSIGNMENT))
+        assignment = _strip_private_fingerprints(
+            dict(live_assignments.get(identity_value, _EMPTY_ASSIGNMENT))
+        )
         address = None
         if (
             getattr(identity, "confidence", None) == "exact"
@@ -164,16 +186,22 @@ def _build_company_brother_view_locked(application) -> dict[str, Any]:
         })
 
     analyzed_assignments = dict(result.assigned_builds or {})
+    builds = [
+        {
+            "build_identity": item["build_identity"],
+            "display_name": item["display_name"],
+        }
+        for item in presentation["builds"]
+    ]
+    company = _strip_private_fingerprints(presentation["company"])
+    company["intent_fresh"] = analyzed_assignments == live_assignments
     return {
         "available": True,
         "generation": publication.generation,
         "assignment_revision": assignment_revision,
-        "builds": presentation["builds"],
+        "builds": builds,
         "brothers": brothers,
-        "company": {
-            **presentation["company"],
-            "intent_fresh": analyzed_assignments == live_assignments,
-        },
+        "company": company,
     }
 
 
