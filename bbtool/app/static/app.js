@@ -872,3 +872,605 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshApplicationState();
   window.setInterval(refreshApplicationState, 1000);
 });
+
+(() => {
+  const local = {
+    token: null,
+    followed: null,
+    shell: null,
+    catalog: null,
+    busy: false,
+    pendingInitialAnalysis: false,
+    editorSave: null,
+  };
+
+  function localNode(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined && text !== null) element.textContent = String(text);
+    return element;
+  }
+
+  async function localGet(path) {
+    const response = await fetch(path, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {Accept: 'application/json'},
+    });
+    const payload = await response.json();
+    if (!response.ok || payload.error) {
+      const error = new Error(payload.error?.message || `Request failed (${response.status})`);
+      error.code = payload.error?.code;
+      error.details = payload.error?.details;
+      throw error;
+    }
+    return payload.data;
+  }
+
+  async function localPost(path, body, retrySession = true) {
+    if (!local.token) local.token = (await localGet('/api/v1/session')).token;
+    const response = await fetch(path, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-BBST-Session': local.token,
+      },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (!response.ok || payload.error) {
+      if (payload.error?.code === 'invalid_session' && retrySession) {
+        local.token = null;
+        return localPost(path, body, false);
+      }
+      const error = new Error(payload.error?.message || `Request failed (${response.status})`);
+      error.code = payload.error?.code;
+      error.details = payload.error?.details;
+      throw error;
+    }
+    return payload.data;
+  }
+
+  function localErrorText(error) {
+    if (Array.isArray(error.details) && error.details.length) {
+      return `${error.message}: ${error.details.join('; ')}`;
+    }
+    return error.message || 'The local application operation failed.';
+  }
+
+  function announceLocal(message, kind = '') {
+    const status = document.getElementById('local-app-status');
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.state = kind;
+  }
+
+  function selectedName(path) {
+    if (!path) return null;
+    const parts = String(path).split(/[\\/]/).filter(Boolean);
+    return parts[parts.length - 1] || path;
+  }
+
+  function authoritativeFreshness() {
+    return local.shell?.result?.freshness || local.followed?.freshness || {status: 'unavailable'};
+  }
+
+  function renderLocalFlow() {
+    const flow = document.getElementById('local-app-flow');
+    if (!flow || !local.followed) return;
+    const title = document.getElementById('local-app-flow-title');
+    const detail = document.getElementById('local-app-flow-detail');
+    const run = document.getElementById('local-app-flow-run');
+    const selected = local.followed.selected_path;
+    const freshness = authoritativeFreshness();
+    const status = freshness.status || 'unavailable';
+    const resultAvailable = Boolean(local.shell?.result?.available);
+    flow.dataset.state = status;
+    run.hidden = true;
+
+    if (!selected) {
+      flow.hidden = false;
+      flow.dataset.state = 'first-run';
+      title.textContent = 'Choose a Battle Brothers save to begin';
+      detail.textContent = 'The loopback service will remember the selected .sav path. No terminal command is required.';
+      return;
+    }
+    if (!local.followed.available) {
+      flow.hidden = false;
+      title.textContent = 'Selected save is unavailable';
+      detail.textContent = `${selected} · choose another save or forget this selection. A previous successful analysis is never relabelled as current.`;
+      return;
+    }
+    if (resultAvailable && status === 'current') {
+      flow.hidden = true;
+      return;
+    }
+
+    flow.hidden = false;
+    if (resultAvailable) {
+      title.textContent = status === 'failed'
+        ? 'Refresh failed — previous analysis is still visible'
+        : `Analysis is not current · ${FRESHNESS_LABELS[status] || humanize(status)}`;
+      detail.textContent = `${selectedName(selected)} · previous analytical output remains visible, but it is explicitly stale until a current generation publishes.`;
+    } else {
+      title.textContent = ['queued', 'analyzing'].includes(status)
+        ? 'Preparing current analysis'
+        : 'Save selected — analysis is not current yet';
+      detail.textContent = `${selectedName(selected)} · the Target workspaces populate only from an authoritative successful publication.`;
+    }
+    run.hidden = ['queued', 'analyzing', 'stabilizing'].includes(status);
+    run.disabled = local.busy;
+  }
+
+  function renderSavePanel() {
+    if (!local.followed) return;
+    const input = document.getElementById('local-save-path');
+    if (document.activeElement !== input) input.value = local.followed.selected_path || '';
+    document.getElementById('local-save-auto').checked = Boolean(local.followed.auto_refresh);
+    const stateLabel = local.followed.selected_path
+      ? (local.followed.available ? 'Available' : 'Unavailable')
+      : 'No save selected';
+    document.getElementById('local-save-summary').textContent = `${stateLabel} · preferences revision ${local.followed.revision} · ${local.followed.freshness?.status || 'unavailable'}`;
+    document.getElementById('local-save-forget').disabled = local.busy || !local.followed.selected_path;
+    document.getElementById('local-save-run').disabled = local.busy || !local.followed.available;
+    document.getElementById('local-save-select').disabled = local.busy;
+  }
+
+  function catalogEntry(kind, id) {
+    return (local.catalog?.user_entries || []).find((entry) => {
+      if (entry.kind !== kind) return false;
+      return kind === 'custom' ? entry.definition?.id === id : entry.id === id;
+    }) || null;
+  }
+
+  function cleanDefinition(role) {
+    const copy = JSON.parse(JSON.stringify(role));
+    delete copy.id;
+    for (const stat of Object.values(copy.stats || {})) {
+      if (stat && typeof stat === 'object') {
+        delete stat.fit;
+        delete stat.projected_curve;
+      }
+    }
+    return copy;
+  }
+
+  function localButton(text, callback, className = 'btn') {
+    const button = localNode('button', className, text);
+    button.type = 'button';
+    button.disabled = local.busy;
+    button.addEventListener('click', callback);
+    return button;
+  }
+
+  function openCatalogEditor(title, value, save) {
+    document.getElementById('local-editor-title').textContent = title;
+    document.getElementById('local-editor-json').value = JSON.stringify(value, null, 2);
+    document.getElementById('local-editor').hidden = false;
+    local.editorSave = save;
+    document.getElementById('local-editor-json').focus();
+  }
+
+  function closeCatalogEditor() {
+    document.getElementById('local-editor').hidden = true;
+    local.editorSave = null;
+  }
+
+  function renderCatalog() {
+    const container = document.getElementById('local-archetype-list');
+    if (!container || !local.catalog) return;
+    container.replaceChildren();
+    document.getElementById('local-archetype-summary').textContent = `${local.catalog.roles.length} effective build${local.catalog.roles.length === 1 ? '' : 's'} · catalog revision ${local.catalog.revision}`;
+    const visible = new Set();
+
+    for (const role of local.catalog.roles) {
+      visible.add(role.id);
+      const provenance = local.catalog.provenance?.[role.id] || 'base';
+      const row = localNode('article', 'coverage-card');
+      const head = localNode('div', 'coverage-head');
+      const identity = localNode('div');
+      identity.append(localNode('strong', '', role.name || role.id));
+      identity.append(localNode('small', 'subtle', `${role.id} · ${provenance.replaceAll('_', ' ')}`));
+      head.append(identity);
+      row.append(head);
+      const actions = localNode('div', 'chip-list');
+
+      if (provenance === 'user_custom') {
+        actions.append(localButton('Edit', () => openCatalogEditor(
+          `Edit ${role.name}`,
+          cleanDefinition(role),
+          (documentValue) => mutateCatalog('edit_custom', {id: role.id, definition: documentValue}, `Updated ${role.name}`),
+        )));
+        actions.append(localButton('Duplicate', () => mutateCatalog('duplicate', {id: role.id}, `Duplicated ${role.name}`)));
+        actions.append(localButton('Delete', () => mutateCatalog('delete_custom', {id: role.id}, `Deleted ${role.name}`)));
+      } else {
+        const override = catalogEntry('override', role.id);
+        actions.append(localButton(override ? 'Edit override' : 'Override', () => openCatalogEditor(
+          `${override ? 'Edit' : 'Create'} override · ${role.name}`,
+          override?.patch || {name: role.name},
+          (patch) => mutateCatalog('set_override', {id: role.id, patch}, `Updated override for ${role.name}`),
+        )));
+        if (override) {
+          actions.append(localButton('Reset override', () => mutateCatalog('reset_override', {id: role.id}, `Reset override for ${role.name}`)));
+        }
+        actions.append(localButton('Duplicate', () => mutateCatalog('duplicate', {id: role.id}, `Duplicated ${role.name}`)));
+        actions.append(localButton('Disable', () => mutateCatalog('set_disabled', {id: role.id, disabled: true}, `Disabled ${role.name}`)));
+      }
+      row.append(actions);
+      container.append(row);
+    }
+
+    for (const entry of local.catalog.user_entries || []) {
+      if (entry.kind !== 'disabled' || visible.has(entry.id)) continue;
+      const row = localNode('article', 'coverage-card');
+      const head = localNode('div', 'coverage-head');
+      head.append(localNode('strong', '', 'Disabled shipped build'));
+      head.append(localNode('small', 'subtle', entry.id));
+      row.append(head);
+      const actions = localNode('div', 'chip-list');
+      actions.append(localButton('Enable', () => mutateCatalog('set_disabled', {id: entry.id, disabled: false}, `Enabled ${entry.id}`)));
+      actions.append(localButton('Reset shipped', () => mutateCatalog('reset_base', {id: entry.id}, `Reset ${entry.id} to shipped definition`)));
+      row.append(actions);
+      container.append(row);
+    }
+  }
+
+  async function refreshLocalAuthority(renderDialog = false) {
+    try {
+      const [followed, shell] = await Promise.all([
+        localGet('/api/v1/followed-save'),
+        localGet('/api/v1/shell'),
+      ]);
+      local.followed = followed;
+      local.shell = shell;
+      renderLocalFlow();
+      if (renderDialog) renderSavePanel();
+      if (
+        local.pendingInitialAnalysis
+        && followed.selected_path
+        && followed.available
+        && followed.freshness?.status === 'detected'
+      ) {
+        local.pendingInitialAnalysis = false;
+        await requestLocalAnalysis('Save selection persisted and initial analysis requested.');
+      }
+    } catch (_error) {
+      const flow = document.getElementById('local-app-flow');
+      if (!flow) return;
+      flow.hidden = false;
+      flow.dataset.state = 'unavailable';
+      document.getElementById('local-app-flow-title').textContent = 'Local application service unavailable';
+      document.getElementById('local-app-flow-detail').textContent = 'Durable changes cannot be made or confirmed until the loopback service is reachable.';
+    }
+  }
+
+  async function loadCatalog() {
+    local.catalog = await localGet('/api/v1/archetypes');
+    renderCatalog();
+  }
+
+  async function requestLocalAnalysis(successMessage = 'Analysis request accepted by the local service.') {
+    if (!local.followed?.selected_path) {
+      announceLocal('Choose a save before requesting analysis.', 'error');
+      return false;
+    }
+    try {
+      await localPost('/api/v1/analysis/jobs', {
+        expected_preferences_revision: local.followed.revision,
+      });
+      announceLocal(successMessage, 'success');
+      await refreshLocalAuthority(true);
+      return true;
+    } catch (error) {
+      if (error.code === 'selected_save_stabilizing') {
+        local.pendingInitialAnalysis = true;
+        announceLocal('The save selection is persisted. Waiting for the file to become stable before analysis starts.', 'success');
+        return false;
+      }
+      if (error.code === 'state_revision_conflict') {
+        await refreshLocalAuthority(true);
+        announceLocal('Save preferences changed elsewhere. Reloaded authoritative state; retry the analysis request.', 'error');
+        return false;
+      }
+      announceLocal(`Analysis did not start: ${localErrorText(error)}`, 'error');
+      return false;
+    }
+  }
+
+  async function selectLocalSave() {
+    if (local.busy) return;
+    const input = document.getElementById('local-save-path');
+    const requestedPath = input.value.trim();
+    const autoRefresh = document.getElementById('local-save-auto').checked;
+    if (!requestedPath) {
+      announceLocal('Enter the full path to an existing .sav file.', 'error');
+      input.focus();
+      return;
+    }
+    local.busy = true;
+    renderSavePanel();
+    try {
+      local.followed = await localPost('/api/v1/followed-save/select', {
+        path: requestedPath,
+        expected_revision: local.followed.revision,
+        auto_refresh: autoRefresh,
+      });
+      announceLocal('Save selection persisted by the local service.', 'success');
+      local.pendingInitialAnalysis = !autoRefresh;
+      renderSavePanel();
+      await refreshLocalAuthority(true);
+      if (
+        !autoRefresh
+        && local.pendingInitialAnalysis
+        && local.followed.freshness?.status !== 'stabilizing'
+      ) {
+        local.pendingInitialAnalysis = false;
+        await requestLocalAnalysis('Save selection persisted and initial analysis requested.');
+      }
+    } catch (error) {
+      if (error.code === 'state_revision_conflict') {
+        await refreshLocalAuthority(true);
+        input.value = requestedPath;
+        document.getElementById('local-save-auto').checked = autoRefresh;
+        announceLocal('Save preferences changed elsewhere. Reloaded authoritative revision; review and retry your selection.', 'error');
+      } else {
+        announceLocal(`Save selection was not changed: ${localErrorText(error)}`, 'error');
+      }
+    } finally {
+      local.busy = false;
+      renderSavePanel();
+      renderLocalFlow();
+    }
+  }
+
+  async function forgetLocalSave() {
+    if (local.busy || !local.followed?.selected_path) return;
+    local.busy = true;
+    renderSavePanel();
+    try {
+      local.followed = await localPost('/api/v1/followed-save/forget', {
+        expected_revision: local.followed.revision,
+      });
+      local.pendingInitialAnalysis = false;
+      announceLocal('Save selection was removed from authoritative user state.', 'success');
+      await refreshLocalAuthority(true);
+    } catch (error) {
+      if (error.code === 'state_revision_conflict') {
+        await refreshLocalAuthority(true);
+        announceLocal('Save preferences changed elsewhere. Reloaded authoritative state; retry if needed.', 'error');
+      } else {
+        announceLocal(`Save selection was not forgotten: ${localErrorText(error)}`, 'error');
+      }
+    } finally {
+      local.busy = false;
+      renderSavePanel();
+      renderLocalFlow();
+    }
+  }
+
+  async function refreshAfterCatalogMutation(message) {
+    await refreshLocalAuthority(true);
+    if (!local.followed?.selected_path || !local.followed.available) {
+      announceLocal(`${message} persisted. Choose an available save before recomputing analysis.`, 'success');
+      return;
+    }
+    try {
+      await localPost('/api/v1/analysis/jobs', {
+        expected_preferences_revision: local.followed.revision,
+      });
+      announceLocal(`${message} persisted. Analysis refresh requested; old derived output remains stale until publication.`, 'success');
+    } catch (error) {
+      announceLocal(`${message} persisted, but analysis refresh did not start: ${localErrorText(error)}`, 'error');
+    }
+    await refreshLocalAuthority(true);
+  }
+
+  async function mutateCatalog(operation, payload, message) {
+    if (local.busy || !local.catalog) return;
+    local.busy = true;
+    renderCatalog();
+    const endpoint = operation.replaceAll('_', '-');
+    try {
+      local.catalog = await localPost(`/api/v1/archetypes/${endpoint}`, {
+        ...payload,
+        expected_revision: local.catalog.revision,
+      });
+      closeCatalogEditor();
+      renderCatalog();
+      await refreshAfterCatalogMutation(message);
+    } catch (error) {
+      if (error.code === 'state_revision_conflict' || error.code === 'catalog_conflict') {
+        try {
+          await loadCatalog();
+        } catch (_reloadError) {
+          // Preserve the original actionable conflict message.
+        }
+        announceLocal(`Archetype state changed elsewhere or conflicts with the shipped catalog. Reloaded authoritative state where possible: ${localErrorText(error)}`, 'error');
+      } else {
+        announceLocal(`Archetype change was not persisted: ${localErrorText(error)}`, 'error');
+      }
+    } finally {
+      local.busy = false;
+      renderCatalog();
+    }
+  }
+
+  async function exportCatalog() {
+    try {
+      const result = await localGet('/api/v1/archetypes/export');
+      document.getElementById('local-import-json').value = result.document;
+      announceLocal('Authoritative user archetype state exported below. No analysis state is embedded.', 'success');
+    } catch (error) {
+      announceLocal(`Archetype export failed: ${localErrorText(error)}`, 'error');
+    }
+  }
+
+  async function importCatalog(merge) {
+    const documentText = document.getElementById('local-import-json').value;
+    if (!documentText.trim()) {
+      announceLocal('Paste an archetype export document before importing.', 'error');
+      return;
+    }
+    await mutateCatalog(
+      'import',
+      {document: documentText, merge},
+      merge ? 'Merged archetype import' : 'Replaced user archetype state from import',
+    );
+  }
+
+  async function openLocalApplication() {
+    const dialog = document.getElementById('local-app-dialog');
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+    announceLocal('Loading authoritative local application state.');
+    try {
+      const [followed, shell, catalog] = await Promise.all([
+        localGet('/api/v1/followed-save'),
+        localGet('/api/v1/shell'),
+        localGet('/api/v1/archetypes'),
+      ]);
+      local.followed = followed;
+      local.shell = shell;
+      local.catalog = catalog;
+      renderSavePanel();
+      renderCatalog();
+      renderLocalFlow();
+      announceLocal('Authoritative local application state loaded.');
+    } catch (error) {
+      announceLocal(`Could not load local application state: ${localErrorText(error)}`, 'error');
+    }
+  }
+
+  function installLocalApplication() {
+    const trigger = localButton('Local app', openLocalApplication, 'health-button');
+    trigger.id = 'local-app-trigger';
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-controls', 'local-app-dialog');
+    document.querySelector('.run-context').append(trigger);
+
+    const flow = localNode('section', 'card');
+    flow.id = 'local-app-flow';
+    flow.setAttribute('role', 'status');
+    flow.setAttribute('aria-live', 'polite');
+    flow.setAttribute('aria-atomic', 'true');
+    const flowHead = localNode('div', 'card-head');
+    const flowCopy = localNode('div');
+    const flowTitle = localNode('strong');
+    flowTitle.id = 'local-app-flow-title';
+    const flowDetail = localNode('p', 'subtle');
+    flowDetail.id = 'local-app-flow-detail';
+    flowCopy.append(flowTitle, flowDetail);
+    const flowActions = localNode('div', 'chip-list');
+    const manage = localButton('Manage local app', openLocalApplication);
+    manage.id = 'local-app-flow-manage';
+    const run = localButton('Analyze now', () => requestLocalAnalysis());
+    run.id = 'local-app-flow-run';
+    flowActions.append(manage, run);
+    flowHead.append(flowCopy, flowActions);
+    flow.append(flowHead);
+    document.getElementById('workspace').before(flow);
+
+    const dialog = localNode('dialog', 'card');
+    dialog.id = 'local-app-dialog';
+    dialog.setAttribute('aria-labelledby', 'local-app-heading');
+    dialog.innerHTML = `
+      <div class="card-body">
+        <div class="card-head">
+          <div>
+            <span class="eyebrow">Authoritative local state</span>
+            <h2 id="local-app-heading">Local app</h2>
+            <p class="subtle">The browser requests changes. The loopback service validates, persists, revisions, and returns authoritative state.</p>
+          </div>
+          <form method="dialog"><button class="btn" type="submit" aria-label="Close local app">Close</button></form>
+        </div>
+        <p id="local-app-status" class="intent-note" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div class="fact-columns">
+          <section class="intent-card" aria-labelledby="local-save-heading">
+            <span class="eyebrow">First run & recovery</span>
+            <h3 id="local-save-heading">Followed save</h3>
+            <p id="local-save-summary" class="subtle">Loading…</p>
+            <label class="search-field">
+              <span>Full path to Battle Brothers .sav file</span>
+              <input id="local-save-path" type="text" spellcheck="false" autocomplete="off" placeholder="C:\\Users\\…\\save.sav">
+            </label>
+            <label><input id="local-save-auto" type="checkbox"> Automatically refresh after stable save changes</label>
+            <div class="chip-list">
+              <button id="local-save-select" class="btn" type="button">Save selection</button>
+              <button id="local-save-run" class="btn" type="button">Analyze now</button>
+              <button id="local-save-forget" class="btn" type="button">Forget selection</button>
+            </div>
+          </section>
+          <section class="intent-card" aria-labelledby="local-archetype-heading">
+            <span class="eyebrow">Persistent configuration</span>
+            <h3 id="local-archetype-heading">Archetypes</h3>
+            <p id="local-archetype-summary" class="subtle">Loading…</p>
+            <div class="chip-list">
+              <button id="local-archetype-new" class="btn" type="button">New custom build</button>
+              <button id="local-archetype-refresh" class="btn" type="button">Reload authoritative state</button>
+            </div>
+            <div id="local-archetype-list" class="coverage-grid"></div>
+          </section>
+        </div>
+        <section id="local-editor" class="intent-card" hidden aria-labelledby="local-editor-title">
+          <h3 id="local-editor-title">Edit archetype</h3>
+          <p class="subtle">JSON is submitted to the local service for authoritative validation. Base-build overrides are sparse patches; custom builds are complete definitions.</p>
+          <label><span class="context-label">Definition / patch JSON</span><textarea id="local-editor-json" rows="12" cols="40" spellcheck="false"></textarea></label>
+          <div class="chip-list"><button id="local-editor-save" class="btn" type="button">Validate & save</button><button id="local-editor-cancel" class="btn" type="button">Cancel</button></div>
+        </section>
+        <section class="intent-card" aria-labelledby="local-import-heading">
+          <span class="eyebrow">Backup & transfer</span>
+          <h3 id="local-import-heading">Import / export user archetypes</h3>
+          <p class="subtle">Exports contain user-owned archetype state only. Replace and merge imports remain revision-checked durable mutations.</p>
+          <label><span class="context-label">Archetype document</span><textarea id="local-import-json" rows="12" cols="40" spellcheck="false"></textarea></label>
+          <div class="chip-list"><button id="local-export" class="btn" type="button">Export current state</button><button id="local-import-replace" class="btn" type="button">Replace from import</button><button id="local-import-merge" class="btn" type="button">Merge import</button></div>
+        </section>
+      </div>`;
+    document.body.append(dialog);
+
+    document.getElementById('local-save-select').addEventListener('click', selectLocalSave);
+    document.getElementById('local-save-run').addEventListener('click', () => requestLocalAnalysis());
+    document.getElementById('local-save-forget').addEventListener('click', forgetLocalSave);
+    document.getElementById('local-archetype-refresh').addEventListener('click', async () => {
+      try {
+        await loadCatalog();
+        announceLocal('Authoritative archetype state reloaded.');
+      } catch (error) {
+        announceLocal(`Could not reload archetypes: ${localErrorText(error)}`, 'error');
+      }
+    });
+    document.getElementById('local-archetype-new').addEventListener('click', () => {
+      if (!local.catalog?.roles?.length) return;
+      const template = cleanDefinition(local.catalog.roles[0]);
+      template.name = 'New Custom Build';
+      openCatalogEditor(
+        'Create custom build',
+        template,
+        (definition) => mutateCatalog('create_custom', {definition}, 'Created custom build'),
+      );
+    });
+    document.getElementById('local-editor-save').addEventListener('click', async () => {
+      if (!local.editorSave) return;
+      let documentValue;
+      try {
+        documentValue = JSON.parse(document.getElementById('local-editor-json').value);
+      } catch (error) {
+        announceLocal(`JSON is not valid: ${error.message}`, 'error');
+        return;
+      }
+      await local.editorSave(documentValue);
+    });
+    document.getElementById('local-editor-cancel').addEventListener('click', closeCatalogEditor);
+    document.getElementById('local-export').addEventListener('click', exportCatalog);
+    document.getElementById('local-import-replace').addEventListener('click', () => importCatalog(false));
+    document.getElementById('local-import-merge').addEventListener('click', () => importCatalog(true));
+    dialog.addEventListener('close', closeCatalogEditor);
+
+    refreshLocalAuthority();
+    window.setInterval(() => refreshLocalAuthority(false), 1000);
+  }
+
+  document.addEventListener('DOMContentLoaded', installLocalApplication);
+})();
