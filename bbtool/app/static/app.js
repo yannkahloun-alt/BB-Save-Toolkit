@@ -50,6 +50,7 @@ const state = {
   analysisHealth: null,
   activeJob: null,
   companyData: null,
+  loadedJobId: null,
   companySubview: 'roster',
   companySearch: '',
   companyReturn: null,
@@ -271,10 +272,7 @@ function renderShell() {
   renderFreshness();
   renderHealth();
   renderProgress();
-  const route = routeFromHash();
-  if (route.workspace === 'company' && route.brotherId) {
-    renderBrother(route.brotherId, route.section);
-  }
+  updateBrotherMutationAvailability();
 }
 
 function matchesSearch(brother) {
@@ -621,6 +619,20 @@ function assignmentLabel(assignment) {
   return humanize(assignment.status);
 }
 
+function updateBrotherMutationAvailability() {
+  const route = routeFromHash();
+  if (route.workspace !== 'company' || !route.brotherId || !state.companyData?.available) return;
+  const brother = brotherById(route.brotherId);
+  if (!brother) return;
+  const select = document.getElementById('assigned-build-select');
+  const current = freshnessFromState()?.status === 'current';
+  select.disabled = state.mutatingAssignment || !brother.assignment_address || !current;
+  if (!current && !state.mutatingAssignment) {
+    const status = document.getElementById('assignment-status');
+    status.textContent = `${assignmentLabel(brother.assigned_build)} · wait for current analysis before changing intent`;
+  }
+}
+
 function populateAssignmentSelect(brother) {
   const select = document.getElementById('assigned-build-select');
   clear(select);
@@ -722,6 +734,7 @@ async function loadCompanyData() {
   try {
     const payload = await fetchData('/api/v1/company-brother');
     state.companyData = payload;
+    state.loadedJobId = state.activeJob?.id ?? null;
     renderCompanyRoute(routeFromHash());
   } catch (_error) {
     const loading = document.getElementById('company-loading');
@@ -801,7 +814,14 @@ async function refreshApplicationState() {
     state.activeJob = shell.active_job;
     renderShell();
     const currentStatus = freshnessFromState()?.status;
-    if (state.result?.available && (!state.companyData || (currentStatus === 'current' && previousStatus !== 'current'))) {
+    const publishedJobChanged = currentStatus === 'current'
+      && state.activeJob?.id != null
+      && state.loadedJobId !== state.activeJob.id;
+    if (state.result?.available && (
+      !state.companyData
+      || (currentStatus === 'current' && previousStatus !== 'current')
+      || publishedJobChanged
+    )) {
       await loadCompanyData();
     }
   } catch (_error) {
