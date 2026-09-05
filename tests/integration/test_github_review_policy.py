@@ -271,7 +271,7 @@ def test_github_enforcement_docs_match_operational_no_hosted_baseline():
 
     assert "expected to report no GitHub-hosted required-check enforcement" in development
     assert "operationally required merge-gate identities" in testing
-    assert "configured GitHub required-status-check contexts" in testing
+    assert "not currently\nconfigured GitHub required-status-check contexts" in testing
 
     for stale_prescription in (
         "Add branch protection rule",
