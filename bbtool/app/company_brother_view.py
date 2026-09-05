@@ -15,6 +15,13 @@ _EMPTY_ASSIGNMENT = {
     "current_definition_hash": None,
     "display_name": None,
 }
+_SNAPSHOT_FIELDS = (
+    "Name", "Title", "Background", "Level",
+    "HP", "HPStars", "Fatigue", "FatigueStars", "Resolve", "ResolveStars",
+    "Initiative", "InitiativeStars", "MAtk", "MAtkStars", "RAtk", "RAtkStars",
+    "MDef", "MDefStars", "RDef", "RDefStars",
+    "Perks", "Traits", "Injuries", "Equipment", "GearFatigue",
+)
 
 
 def _best_fit(summary: dict[str, Any]) -> dict[str, Any]:
@@ -43,6 +50,11 @@ def _potential_row(row: dict[str, Any], build_identity: str | None) -> dict[str,
         "projected_ranges": row.get("ProjectedRanges") or {},
         "projected_components": row.get("ProjectedComponents") or {},
     }
+
+
+def _snapshot_view(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Keep only current Brother fields rendered by #115."""
+    return {key: snapshot.get(key) for key in _SNAPSHOT_FIELDS}
 
 
 def build_company_brother_view(application) -> dict[str, Any]:
@@ -135,7 +147,7 @@ def build_company_brother_view(application) -> dict[str, Any]:
             "assignment_address": address,
             "assigned_build": assignment,
             "best_fit": _best_fit(summary),
-            "snapshot": snapshot,
+            "snapshot": _snapshot_view(snapshot),
             "mechanical_facts": facts_by_brother[brother_id]["mechanical_facts"],
             "potential": potential,
         })
