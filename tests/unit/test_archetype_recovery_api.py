@@ -41,6 +41,7 @@ def test_restarted_api_exposes_revisioned_recovery_for_stale_shipped_override(tm
     changed_roles = json.loads(json.dumps(config.roles))
     changed_base = next(role for role in changed_roles if role["id"] == "reach_dps")
     changed_base["name"] = f"{changed_base['name']} · shipped v2"
+    changed_base["stats"]["MAtk"]["target"] += 1
 
     restarted_store = UserStateStore(state_root)
     application = LocalApplication(
