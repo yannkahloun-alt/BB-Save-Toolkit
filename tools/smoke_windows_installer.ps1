@@ -158,11 +158,19 @@ $preferencesRevision = [int]$selected.revision
 $jobResponse = Request-AnalysisWhenStable -Origin $firstOrigin -Token $token `
     -PreferencesRevision $preferencesRevision
 $jobId = [int]$jobResponse.data.id
-$deadline = [DateTime]::UtcNow.AddMinutes(10)
+# The approved real-save full analysis is deliberately excluded from routine PR
+# CI because a cold run is expensive; the repository's full-preview contract
+# gives that workload a 30-minute hard timeout. Use the same bound here.
+$deadline = [DateTime]::UtcNow.AddMinutes(30)
 $jobStatus = ""
+$reportedStatus = ""
 while ([DateTime]::UtcNow -lt $deadline) {
     $job = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/analysis/jobs/$jobId" -TimeoutSec 10).data
     $jobStatus = [string]$job.status
+    if ($jobStatus -ne $reportedStatus) {
+        Write-Host "Installed analysis job status: $jobStatus"
+        $reportedStatus = $jobStatus
+    }
     if ($jobStatus -eq "succeeded") {
         break
     }
@@ -172,7 +180,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
     Start-Sleep -Seconds 1
 }
 if ($jobStatus -ne "succeeded") {
-    throw "Installed analysis job did not complete within the smoke-test timeout."
+    throw "Installed analysis job did not complete within 30 minutes (last status: $jobStatus)."
 }
 
 $catalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
