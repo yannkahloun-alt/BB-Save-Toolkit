@@ -32,6 +32,18 @@
     return rows;
   }
 
+  function publicationChanged(previous, next) {
+    if (!previous || !next) return false;
+    return previous.generation !== next.generation || previous.job_id !== next.job_id;
+  }
+
+  function resetPublicationDecisionState() {
+    recruitmentState.selectedIndex = null;
+    recruitmentState.shortlist.clear();
+    recruitmentState.currentSettlementIndex = 0;
+    recruitmentState.compareOpen = false;
+  }
+
   function potentialLabel(top) {
     if (!top) return 'Unavailable';
     return `${top.role || 'Unknown role'} · ${formatPct(top.score_pct)}`;
@@ -296,6 +308,7 @@
         ['Top Potential', potentialLabel(candidate.top_potential)],
         ['Relevant Need', needLabel(candidate)],
         ['Evidence', evidenceLabel(candidate)],
+        ['Tryout', candidate.facts?.TryoutDone ? 'Purchased' : 'Not purchased'],
       ]) {
         const line = node('div', 'recruit-compare-line');
         line.append(node('span', '', label));
@@ -367,7 +380,11 @@
     if (recruitmentState.loading) return;
     recruitmentState.loading = true;
     try {
-      recruitmentState.data = await fetchData('/api/v1/recruitment');
+      const nextData = await fetchData('/api/v1/recruitment');
+      if (publicationChanged(recruitmentState.data, nextData)) {
+        resetPublicationDecisionState();
+      }
+      recruitmentState.data = nextData;
       recruitmentState.loadedJobId = recruitmentState.data?.job_id ?? null;
       renderRecruitment();
     } catch (_error) {
