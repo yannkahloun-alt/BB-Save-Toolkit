@@ -127,6 +127,34 @@ bypassed as part of this flow. An ordinary issue handoff does not authorize a
 release, deployment, tag, or publication; those remain governed by
 `docs/RELEASE.md`.
 
+### GitHub-host enforcement boundary
+
+The stable `tests`, `ruff`, and `pyflakes` checks and the independent exact-head
+approval are mandatory merge guards, but they are enforced by the
+coordinator/reviewer procedure rather than by GitHub branch protection or a
+repository ruleset. Under the current policy baseline, `main` is intentionally
+expected to report no GitHub-hosted required-check enforcement.
+
+Verify that boundary directly from GitHub before relying on it:
+
+- `GET /repos/yannkahloun-alt/BB-Save-Toolkit/branches/main` is expected to
+  report `protected: false`, `protection.enabled: false`, and
+  `required_status_checks.enforcement_level: off` with no contexts/checks.
+- `GET /repos/yannkahloun-alt/BB-Save-Toolkit/rulesets` is expected to return an
+  empty list.
+
+The detailed classic branch-protection endpoint may return `403 Resource not
+accessible by integration` for the managed GitHub connection. That response is
+inconclusive and must not be represented as evidence that protection is either
+enabled or disabled. If either supported read above stops matching this
+baseline, treat it as policy/configuration drift and reconcile the documentation
+and GitHub settings explicitly before claiming the merge-safety boundary is
+unchanged.
+
+Normal ticket work must not create, remove, weaken, bypass, or otherwise change
+branch protection or rulesets. The prohibition on changing or bypassing branch
+protection does not imply that protection is currently enabled.
+
 ## Branch discipline
 
 - `main` should remain releasable or close to releasable.

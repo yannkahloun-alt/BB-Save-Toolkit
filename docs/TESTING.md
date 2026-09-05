@@ -22,6 +22,13 @@ merge-readiness checks:
 
 The stable CI identities are `tests`, `ruff`, and `pyflakes`.
 
+These names are operationally required merge-gate identities, not currently
+configured GitHub required-status-check contexts. GitHub's merge UI is therefore
+not the trust boundary: the coordinator and independent reviewer must verify all
+three checks against the exact current PR head before merge. The expected
+GitHub-host enforcement state and its verification procedure are documented in
+`docs/DEVELOPMENT_WORKFLOW.md`.
+
 CI evidence must be green for the exact current head before independent review
 and merge. A changed implementation head receives new evidence on the same PR;
 it never creates another implementation PR for the named ticket.

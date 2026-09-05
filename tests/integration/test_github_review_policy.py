@@ -249,17 +249,36 @@ def test_selected_ticket_deferral_requires_traceable_comment_without_closure():
     assert "Do not post a" in workflow and "duplicate deferral comment" in workflow
 
 
-def test_branch_protection_requires_all_checks_without_native_approval():
+def test_github_enforcement_docs_match_operational_no_hosted_baseline():
     protection = _read("docs/GITHUB_BRANCH_PROTECTION.md")
+    development = _read("docs/DEVELOPMENT_WORKFLOW.md")
+    testing = _read("docs/TESTING.md")
 
     for check in ("tests", "ruff", "pyflakes"):
         assert f"`{check}`" in protection
 
-    assert "Coverage is" in protection
-    assert "temporarily excluded" in protection
-    assert "zero required approving reviews" in protection
-    assert "not a GitHub-enforced status check" in protection
-    assert "current head SHA" in protection
-    assert "Require branches to be up to date before merging" in protection
-    assert "Restrict who can push to matching branches" in protection
-    assert "Do not allow bypassing the above settings" in protection
+    assert "exact current 40-character head SHA" in protection
+    assert "`APPROVE` verdict" in protection
+    assert "GitHub's merge UI is not" in protection
+    assert "`protected: false`" in protection
+    assert "`protection.enabled: false`" in protection
+    assert "`required_status_checks.enforcement_level: off`" in protection
+    assert "no required\n  contexts/checks" in protection
+    assert "empty list" in protection
+    assert "`403 Resource not accessible by integration`" in protection
+    assert "inconclusive" in protection
+    assert "must not create, remove, weaken, bypass" in protection
+
+    assert "expected to report no GitHub-hosted required-check enforcement" in development
+    assert "operationally required merge-gate identities" in testing
+    assert "not currently\nconfigured GitHub required-status-check contexts" in testing
+
+    for stale_prescription in (
+        "Add branch protection rule",
+        "Require status checks to pass before merging",
+        "Require branches to be up to date before merging",
+        "zero required approving reviews",
+        "Do not allow bypassing the above settings",
+        "Restrict who can push to matching branches",
+    ):
+        assert stale_prescription not in protection

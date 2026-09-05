@@ -1,39 +1,60 @@
-# GitHub branch protection
+# GitHub merge-safety enforcement
 
-GitHub Actions provides deterministic validation gates for pull requests into
-`main`. The shared workflow orchestrates independent read-only review. Its
-verdict is not a GitHub-enforced status check in the free single-account design.
-Repository owners must configure branch protection separately; workflows do
-not change repository settings.
+GitHub Actions provides deterministic validation for pull requests into `main`,
+and the pinned shared workflow provides an independent read-only review gate.
+Under the current repository policy, those merge guards are operationally
+mandatory but are **not** configured as GitHub-hosted branch-protection or
+ruleset requirements.
 
-In **Settings > Branches > Add branch protection rule**, use the branch name
-pattern `main` and enable:
+## Operational merge guards
 
-- **Require a pull request before merging**;
-- **Require status checks to pass before merging**;
-- **Require branches to be up to date before merging**;
-- the exact required checks `tests`, `ruff`, and `pyflakes`;
-- **zero required approving reviews**; the same human account cannot provide a
-  distinct native approval, so the shared workflow supplies the independent
-  operational review gate;
-- **Do not allow bypassing the above settings**, where appropriate for the
-  repository owner;
-- **Restrict who can push to matching branches**, so routine changes reach
-  `main` through pull requests rather than direct pushes;
-- block force pushes and branch deletion.
+Before the coordinator may merge a normal ticket pull request, all of the
+following must hold for the exact current 40-character head SHA:
 
-The three validation checks appear after PR validation has run. Coverage is
-temporarily excluded from PR CI and branch protection until its runtime is
-optimized. Configure
-strict/up-to-date checks so success on an old head SHA cannot satisfy a changed
-pull request. Restrict bypass permission to an explicitly documented emergency
-owner path; routine automation identities must not bypass the rule. After an
-exact-head `APPROVE`, the coordinator verifies the current head SHA and required
-checks again, then automatically squash-merges.
-GitHub cannot enforce the independent verdict without a distinct external
-identity or service.
+- the stable GitHub Actions checks `tests`, `ruff`, and `pyflakes` are green;
+- a fresh independent read-only reviewer has returned an explicit exact-head
+  `APPROVE` verdict;
+- the pull request is re-fetched after approval and the head SHA plus all three
+  checks are confirmed unchanged and green; and
+- the coordinator follows the repository's normal squash-merge procedure.
+
+Any new implementation commit invalidates the prior CI/review generation and
+requires fresh exact-head evidence on the same implementation pull request.
+These requirements are enforced by the coordinator/reviewer procedure described
+in `docs/DEVELOPMENT_WORKFLOW.md` and `docs/TESTING.md`; GitHub's merge UI is not
+the trust boundary for this repository.
+
+## Expected GitHub-hosted enforcement baseline
+
+The intentional current baseline is no GitHub-hosted required-check enforcement
+for `main` and no repository rulesets. Verify that boundary with the supported
+GitHub reads before relying on it:
+
+- `GET /repos/yannkahloun-alt/BB-Save-Toolkit/branches/main` is expected to
+  report `protected: false`, `protection.enabled: false`, and
+  `required_status_checks.enforcement_level: off`, with no required
+  contexts/checks.
+- `GET /repos/yannkahloun-alt/BB-Save-Toolkit/rulesets` is expected to return an
+  empty list.
+
+The detailed classic branch-protection endpoint
+`GET /repos/yannkahloun-alt/BB-Save-Toolkit/branches/main/protection` may return
+`403 Resource not accessible by integration` for the managed GitHub connection.
+That response is inconclusive and must not be treated as evidence that branch
+protection is either enabled or disabled. The supported branch summary and
+ruleset reads above define the observable policy/configuration baseline.
+
+If either supported read stops matching this baseline, treat the difference as
+policy/configuration drift. Reconcile the documentation and GitHub settings
+explicitly before claiming that the merge-safety boundary is unchanged.
+
+Normal ticket work must not create, remove, weaken, bypass, or otherwise change
+branch protection or repository rulesets. That prohibition is a safety rule; it
+does not imply that protection is currently enabled.
+
+## Release-only checks
 
 The manually dispatched release workflow's stable `release-tests`,
-`release-quality`, `release-package`, and `release-summary` jobs are
-deliberately not required PR checks. They include expensive or release-only
-work and run only when a release or production handoff is being prepared.
+`release-quality`, `release-package`, and `release-summary` jobs are deliberately
+not routine PR merge guards. They contain release-only work and remain governed
+by `docs/TESTING.md` and `docs/RELEASE.md`.
