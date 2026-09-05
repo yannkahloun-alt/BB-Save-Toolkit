@@ -12,14 +12,20 @@ from pathlib import Path
 import threading
 from typing import Any
 
+from ..build_identity import build_definition_hash
 from ..incremental.fingerprint import stable_hash
 from ..models import BrotherIdentity, CampaignIdentity
 from .assigned_build import AssignedBuildStore, DurableAssignedBuildResolver
 from .analysis_coordinator import AnalysisCoordinator, DesiredAnalysis
 from .analysis_service import AnalysisServiceRequest, SaveSource
-from .archetype_catalog import ArchetypeCatalogStore, EffectiveCatalog
+from .archetype_catalog import (
+    ArchetypeCatalogStore,
+    CatalogValidationError,
+    EffectiveCatalog,
+    effective_catalog,
+)
 from .config import AnalyzerConfig
-from .user_state import LastSuccessState, PreferencesState, UserStateStore
+from .user_state import ArchetypeState, LastSuccessState, PreferencesState, UserStateStore
 from .save_watcher import SaveWatcher, StableSave
 
 
@@ -233,8 +239,66 @@ class LocalApplication:
             "user_entries": list(value.state.entries),
         }
 
+    def _catalog_conflict_entries(
+        self, state: ArchetypeState, errors: tuple[str, ...]
+    ) -> list[dict[str, Any]]:
+        base = {role["id"]: role for role in self.catalog.base_roles}
+        conflicts: list[dict[str, Any]] = []
+        for index, entry in enumerate(state.entries):
+            kind = entry.get("kind")
+            identity = entry.get("id")
+            if kind not in {"override", "disabled"} or not isinstance(identity, str):
+                continue
+            prefix = f"entries[{index}]"
+            entry_errors = [error for error in errors if error.startswith(prefix)]
+            if not entry_errors:
+                continue
+            current = base.get(identity)
+            if current is None:
+                reason = "shipped_definition_missing"
+                current_hash = None
+            elif kind == "override" and entry.get("base_definition_hash") != build_definition_hash(current):
+                reason = "base_definition_changed"
+                current_hash = build_definition_hash(current)
+            else:
+                reason = "invalid_shipped_entry"
+                current_hash = build_definition_hash(current)
+            conflict: dict[str, Any] = {
+                "entry_index": index,
+                "id": identity,
+                "kind": kind,
+                "reason": reason,
+                "recovery_operation": "reset_base",
+                "errors": entry_errors,
+            }
+            if kind == "override":
+                conflict["persisted_base_definition_hash"] = entry.get("base_definition_hash")
+                conflict["current_base_definition_hash"] = current_hash
+            conflicts.append(conflict)
+        return conflicts
+
     def effective_archetypes(self) -> dict[str, Any]:
-        return self._effective_catalog_payload(self.catalog.load())
+        state = self.store.load("archetypes")
+        try:
+            return self._effective_catalog_payload(
+                effective_catalog(self.catalog.base_roles, state)
+            )
+        except CatalogValidationError as exc:
+            conflicts = self._catalog_conflict_entries(state, exc.errors)
+            if not conflicts:
+                raise
+            return {
+                "revision": state.revision,
+                "roles": [],
+                "definition_hashes": {},
+                "provenance": {},
+                "user_entries": list(state.entries),
+                "catalog_conflict": {
+                    "code": "shipped_user_entry_conflict",
+                    "errors": list(exc.errors),
+                    "entries": conflicts,
+                },
+            }
 
     @staticmethod
     def _assigned_identity(campaign_value: int, native_token: int) -> tuple[CampaignIdentity, BrotherIdentity]:
