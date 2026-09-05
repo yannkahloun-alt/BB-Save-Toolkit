@@ -49,6 +49,7 @@ field-level details where applicable.
 | GET | `/api/v1/health` | Service health, toolkit/API version, bind policy |
 | GET | `/api/v1/session` | Same-origin mutation capability |
 | GET | `/api/v1/shell` | Least-privilege shell read model: save display context, freshness, public Run Health, and summarized current progress |
+| GET | `/api/v1/company-brother` | Company + Brother read model from the latest publication plus current AssignedBuild intent |
 | GET | `/api/v1/followed-save` | Inspect selected-save preference and availability |
 | POST | `/api/v1/followed-save/select` | Select/change an existing `.sav` with expected revision |
 | POST | `/api/v1/followed-save/forget` | Forget the selected save with expected revision |
@@ -85,6 +86,22 @@ debug/reference provenance, hidden rolls, save bytes, and generic durable state.
 The full job/result endpoints remain available to explicit consumers that need
 their documented data.
 
+`GET /api/v1/company-brother` is a read-only UI composition endpoint. Intrinsic
+Fit, Best Fit, Company coverage, durable identity, and Mechanical Facts are
+projected from the latest successful backend publication rather than inferred in
+JavaScript. Current AssignedBuild is re-read from durable state so a successful
+intent mutation becomes visible immediately; if that intent differs from the
+publication used for Company intended coverage, the response marks
+`company.intent_fresh=false` until refreshed analysis publishes. The endpoint
+also exposes the AssignedBuild revision and exact campaign/entity mutation
+address only when authoritative identity evidence exists. The UI read model
+keeps BuildIdentity and display/status semantics but deliberately strips
+BuildDefinitionHash / ArtifactSignature metadata and AssignedBuild definition
+hashes, because those validity fingerprints are internal analytical provenance
+and are not required by the Company/Brother frontend. It also does not expose
+FutureRolls, source/configuration/artifact fingerprints, filesystem paths,
+diagnostic samples, save bytes, or generic durable state.
+
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a
 `DesiredAnalysis` to `AnalysisCoordinator`. Job and publication responses carry
@@ -111,4 +128,5 @@ The persisted selection is watched and stabilized as documented in
 [`SAVE_WATCHING.md`](SAVE_WATCHING.md). Followed-save and result reads expose
 the detected/stabilizing/queued/analyzing/current/unavailable/failed freshness
 states through the existing responses. No generic filesystem endpoint is
-introduced. The complete workspace bodies belong to #115–#117.
+introduced. Level Up and Recruitment workspace bodies remain owned by #116 and
+#117.

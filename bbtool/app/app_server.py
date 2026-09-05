@@ -15,6 +15,7 @@ from .archetype_catalog import (
     CatalogConflictError,
     CatalogValidationError,
 )
+from .company_brother_view import build_company_brother_view
 from .config import load_config
 from .health import build_public_analysis_health
 from .local_application import ApplicationOperationError, LocalApplication
@@ -86,6 +87,8 @@ class LocalApplicationApi:
                 })
             if method == "GET" and path == "/api/v1/shell":
                 return self._ok(self._shell_state())
+            if method == "GET" and path == "/api/v1/company-brother":
+                return self._ok(build_company_brother_view(self.application))
             if method == "GET" and path == "/api/v1/followed-save":
                 return self._ok(self.application.followed_save())
             if method == "GET" and path == "/api/v1/archetypes":
