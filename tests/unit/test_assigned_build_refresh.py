@@ -68,6 +68,9 @@ def test_assigned_build_change_invalidates_old_desired_generation_and_refreshes(
         ),
     )
     coordinator._desired_id = 41
+    # The synthetic publication exists only to authorize the intent mutation;
+    # keep persistence bookkeeping out of this scheduling-focused regression.
+    app._persisted_generation = 7
     app._invalidated_generation = None
 
     mutation = app.mutate_assigned_build(
