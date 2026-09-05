@@ -162,7 +162,10 @@ def test_restarted_auto_refresh_catalog_conflict_keeps_watcher_alive_after_recov
         coordinator.poll()
         assert coordinator.job(first_job_id).status == JobStatus.SUCCEEDED
         application.analysis_job(first_job_id)
-        assert watcher.status()["status"] == "current"
+        current = watcher.status()
+        assert current["status"] == "current"
+        assert "reason" not in current
+        assert "message" not in current
 
         save.write_bytes(b"after-recovery-change")
         watcher.notify()

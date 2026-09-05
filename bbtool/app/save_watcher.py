@@ -168,12 +168,16 @@ class SaveWatcher:
         with self._lock:
             if status == "running":
                 self._state = "analyzing"
+                self._reason = None
+                self._error = None
             elif status == "failed":
                 self._state = "failed"
                 self._reason = "analysis_failed"
+                self._error = None
             elif status == "succeeded":
                 self._state = "current"
                 self._reason = None
+                self._error = None
 
     def close(self) -> None:
         with self._lock:
