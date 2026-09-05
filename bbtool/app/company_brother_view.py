@@ -125,10 +125,14 @@ def _build_company_brother_view_locked(application) -> dict[str, Any]:
 
     brothers = []
     for snapshot in public_data["roster"]:
-        brother_id = snapshot["BrotherID"]
-        summary = summary_by_brother.get(brother_id, {})
-        identity = result.brother_identities.get(brother_id)
+        observation_id = snapshot["BrotherID"]
+        summary = summary_by_brother.get(observation_id, {})
+        identity = result.brother_identities.get(observation_id)
         identity_value = getattr(identity, "value", None)
+        # Brother is a stable UI context, not a save-observation destination. Use
+        # exact durable identity as the browser key whenever it is available, and
+        # only fall back to the one-publication observation id conservatively.
+        route_key = identity_value if isinstance(identity_value, str) else observation_id
         assignment = dict(live_assignments.get(identity_value, _EMPTY_ASSIGNMENT))
         address = None
         if (
@@ -143,19 +147,19 @@ def _build_company_brother_view_locked(application) -> dict[str, Any]:
         potential = [
             _potential_row(row, build_id_by_name.get(row.get("Role")))
             for row in sorted(
-                fits_by_brother.get(brother_id, []),
+                fits_by_brother.get(observation_id, []),
                 key=lambda item: float(item.get("ProjectedFitPct") or 0),
                 reverse=True,
             )
         ]
         brothers.append({
-            "brother_id": brother_id,
-            "brother_identity": facts_by_brother[brother_id]["brother_identity"],
+            "brother_id": route_key,
+            "brother_identity": facts_by_brother[observation_id]["brother_identity"],
             "assignment_address": address,
             "assigned_build": assignment,
             "best_fit": _best_fit(summary),
             "snapshot": _snapshot_view(snapshot),
-            "mechanical_facts": facts_by_brother[brother_id]["mechanical_facts"],
+            "mechanical_facts": facts_by_brother[observation_id]["mechanical_facts"],
             "potential": potential,
         })
 
