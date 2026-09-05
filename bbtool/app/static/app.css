@@ -1057,11 +1057,11 @@ progress {
 
 @media (max-width: 720px) {
   .brother-row {
-    grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.7fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .brother-row .roster-role:nth-of-type(3) {
-    display: none;
+  .roster-identity {
+    grid-column: 1 / -1;
   }
 
   .intent-grid,
