@@ -34,15 +34,6 @@ const STAT_LABELS = {
   MDef: 'MDef',
   RDef: 'RDef',
 };
-const GEAR_SLOTS = [
-  ['Head', 'Head'],
-  ['Body', 'Body'],
-  ['MainHand', 'Main Hand'],
-  ['OffHand', 'Off Hand'],
-  ['Accessory', 'Accessory'],
-  ['Ammo', 'Ammo'],
-  ['Bag', 'Bag'],
-];
 
 const state = {
   followedSave: null,
@@ -497,64 +488,15 @@ function renderStats(snapshot) {
   }
 }
 
-function gearItemName(value) {
-  if (value === null || value === undefined) return 'Empty';
-  if (Array.isArray(value)) return value.length ? `${value.length} item${value.length === 1 ? '' : 's'}` : 'Empty';
-  if (typeof value !== 'object') return String(value);
-  return value.Name || value.DisplayName || value.name || value.ItemName || value.ID || value.id || 'Equipped item';
-}
-
-function gearDetails(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
-  const fields = [
-    ['Armor', 'Armor'], ['Durability', 'Durability'], ['Condition', 'Condition'],
-    ['Fatigue', 'FAT'], ['WeaponType', 'Type'], ['Class', 'Class'],
-    ['DamageMin', 'Damage min'], ['DamageMax', 'Damage max'], ['Range', 'Range'],
-    ['TwoHanded', 'Two-handed'], ['ShieldMeleeDefense', 'MDef'], ['ShieldRangedDefense', 'RDef'],
-  ];
-  return fields.filter(([key]) => value[key] !== undefined && value[key] !== null)
-    .map(([key, label]) => `${label}: ${value[key]}`);
-}
-
 function renderGear(snapshot) {
-  const container = document.getElementById('gear-grid');
-  clear(container);
-  const equipment = snapshot?.Equipment || {};
-  const fatigue = snapshot?.GearFatigue || {};
-  for (const [key, label] of GEAR_SLOTS) {
-    const card = node('div', 'gear-card');
-    card.append(node('span', 'context-label', label));
-    card.append(node('strong', '', gearItemName(equipment[key])));
-    const detailParts = gearDetails(equipment[key]);
-    if (fatigue[key] !== undefined) detailParts.push(`FAT ${formatNumber(fatigue[key])}`);
-    if (detailParts.length) card.append(node('small', 'gear-detail', detailParts.join(' · ')));
-    container.append(card);
-  }
-  document.getElementById('gear-fatigue').textContent = `Gear FAT ${formatNumber(fatigue.Total)}`;
+  BrotherViews.renderGear(snapshot?.Equipment, snapshot?.GearFatigue, {
+    gridId: 'gear-grid',
+    fatigueId: 'gear-fatigue',
+  });
 }
 
 function renderMechanics(facts) {
-  const container = document.getElementById('mechanics-list');
-  clear(container);
-  if (!facts?.length) {
-    container.append(node('p', 'subtle', 'No deterministic perk / gear Mechanical Facts are available for this Brother.'));
-    return;
-  }
-  for (const fact of facts) {
-    const row = node('div', 'mechanic-row');
-    const title = node('div');
-    title.append(node('strong', '', fact.Perk || fact.Mechanic || 'Mechanical fact'));
-    title.append(node('small', 'subtle', fact.Basis ? humanize(fact.Basis) : 'Current state'));
-    row.append(title);
-    row.append(node('strong', 'mechanic-state', humanize(fact.State || 'known')));
-    const evidence = node('div', 'mechanic-evidence');
-    for (const [key, value] of Object.entries(fact)) {
-      if (['Perk', 'Mechanic', 'Basis', 'State'].includes(key)) continue;
-      evidence.append(node('span', 'tag', `${humanize(key)}: ${value}`));
-    }
-    row.append(evidence);
-    container.append(row);
-  }
+  BrotherViews.renderMechanics(facts, 'mechanics-list');
 }
 
 function renderPotential(potential) {

@@ -70,6 +70,20 @@ def _assignment(value: Any) -> dict[str, Any]:
     }
 
 
+def _current_facts(
+    snapshot: Mapping[str, Any], brother_contract: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Expose only current backend facts needed by reusable Gear/Mechanics views."""
+    equipment = snapshot.get("Equipment")
+    gear_fatigue = snapshot.get("GearFatigue")
+    mechanical_facts = brother_contract.get("mechanical_facts")
+    return {
+        "equipment": dict(equipment) if isinstance(equipment, Mapping) else {},
+        "gear_fatigue": dict(gear_fatigue) if isinstance(gear_fatigue, Mapping) else {},
+        "mechanical_facts": list(mechanical_facts) if isinstance(mechanical_facts, list) else [],
+    }
+
+
 def _rolls(advice: Mapping[str, Any], snapshot: Mapping[str, Any]) -> list[dict[str, Any]]:
     all_rolls = advice.get("AllRolls")
     if not isinstance(all_rolls, Mapping):
@@ -195,6 +209,7 @@ def build_level_up_view(application) -> dict[str, Any]:
                     "role": anchor.get("Role"),
                     "assignment_status": anchor.get("AssignmentStatus"),
                 },
+                **_current_facts(snapshot, brother_contract),
                 "rolls": _rolls(advice, snapshot),
                 "primary": _candidate(advice.get("Primary")),
                 "runner_up": _candidate(advice.get("RunnerUp")),
