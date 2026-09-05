@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import threading
 from types import SimpleNamespace
 
 import pytest
@@ -16,6 +17,7 @@ HOST = "127.0.0.1:48123"
 class EmptyApplication:
     def __init__(self):
         self.coordinator = SimpleNamespace(last_success=None)
+        self._command_lock = threading.RLock()
 
 
 def decode(response):
@@ -84,6 +86,7 @@ def test_shell_polling_does_not_rebuild_brother_content_or_reset_open_detail_sta
 def test_company_brother_read_model_keeps_intent_and_intrinsic_analysis_separate():
     source = (ROOT / "bbtool" / "app" / "company_brother_view.py").read_text(encoding="utf-8")
 
+    assert 'with application._command_lock:' in source
     assert '"assigned_build": assignment' in source
     assert '"best_fit": _best_fit(summary)' in source
     assert 'application.assigned_builds.read_campaign(campaign)' in source
