@@ -189,8 +189,18 @@ function Assert-PersistedState {
         [string]$ExpectedBuildId
     )
     $followed = (Invoke-RestMethod -Uri "$Origin/api/v1/followed-save" -TimeoutSec 5).data
-    if ([string]$followed.selected_path -ne $ExpectedSave) {
-        throw "Selected save did not survive the application lifecycle."
+    $actualSave = [string]$followed.selected_path
+    if (-not $actualSave) {
+        throw "Selected save did not survive the application lifecycle (observed no selected path)."
+    }
+    $actualFull = [System.IO.Path]::GetFullPath($actualSave)
+    $expectedFull = [System.IO.Path]::GetFullPath($ExpectedSave)
+    if (-not [string]::Equals(
+        $actualFull,
+        $expectedFull,
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Selected save did not survive the application lifecycle (expected '$expectedFull', observed '$actualFull')."
     }
     $catalog = (Invoke-RestMethod -Uri "$Origin/api/v1/archetypes" -TimeoutSec 5).data
     $ids = @($catalog.roles | ForEach-Object { [string]$_.id })
