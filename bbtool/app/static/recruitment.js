@@ -19,7 +19,10 @@
   }
 
   function candidateByIndex(index) {
-    return recruitmentState.candidates.find((item) => item.recruit_index === Number(index)) || null;
+    if (index === null || index === undefined || index === '') return null;
+    const numericIndex = Number(index);
+    if (!Number.isInteger(numericIndex)) return null;
+    return recruitmentState.candidates.find((item) => item.recruit_index === numericIndex) || null;
   }
 
   function flattenCandidates(data) {
