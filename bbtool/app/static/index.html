@@ -59,10 +59,101 @@
   </header>
 
   <main id="workspace" class="workspace" tabindex="-1">
-    <section class="workspace-panel" data-workspace-panel="company" aria-labelledby="company-heading">
-      <span class="eyebrow">Operational workspace</span>
-      <h1 id="company-heading">Company</h1>
-      <p>Roster, Planning / Coverage, and Fit Matrix content will render here without changing the shared shell.</p>
+    <section class="workspace-panel company-workspace" data-workspace-panel="company" aria-labelledby="company-heading">
+      <div id="company-view">
+        <div class="workspace-head">
+          <div>
+            <span class="eyebrow">Operational workspace</span>
+            <h1 id="company-heading">Company</h1>
+            <p>Scan the roster first; use Planning / Coverage or the Fit Matrix when the question requires comparison.</p>
+          </div>
+          <div class="company-toolbar" aria-label="Company controls">
+            <label class="search-field">
+              <span>Search roster</span>
+              <input id="roster-search" type="search" autocomplete="off" placeholder="Name, background, build…">
+            </label>
+            <div class="segmented" role="group" aria-label="Company subview">
+              <button type="button" data-company-view="roster" aria-pressed="true">Roster</button>
+              <button type="button" data-company-view="planning" aria-pressed="false">Planning / Coverage</button>
+              <button type="button" data-company-view="matrix" aria-pressed="false">Fit Matrix</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="company-loading" class="empty-state" role="status">Waiting for a completed analysis.</div>
+        <section id="company-roster" class="company-subview" aria-label="Roster"></section>
+        <section id="company-planning" class="company-subview" aria-label="Planning and coverage" hidden></section>
+        <section id="company-matrix" class="company-subview" aria-label="Fit Matrix" hidden></section>
+      </div>
+
+      <article id="brother-view" class="brother-view" hidden aria-labelledby="brother-name">
+        <div id="brother-dock" class="brother-dock">
+          <button id="back-to-company" class="btn" type="button">← Company</button>
+          <label class="brother-switcher">
+            <span>Brother</span>
+            <select id="brother-select" aria-label="Switch Brother"></select>
+          </label>
+          <nav class="brother-sections" aria-label="Brother sections">
+            <a href="#" data-brother-section="current">Current State</a>
+            <a href="#" data-brother-section="gear">Gear</a>
+            <a href="#" data-brother-section="mechanics">Mechanics</a>
+            <a href="#" data-brother-section="potential">Potential</a>
+            <a href="#" data-brother-section="development">Development</a>
+          </nav>
+        </div>
+
+        <div class="brother-hero">
+          <div>
+            <span class="eyebrow" id="brother-context">Brother</span>
+            <h1 id="brother-name">Brother</h1>
+            <p id="brother-meta"></p>
+          </div>
+          <div class="intent-grid">
+            <section class="intent-card" aria-labelledby="assigned-build-heading">
+              <span class="context-label" id="assigned-build-heading">Assigned Build · Intent</span>
+              <select id="assigned-build-select" aria-label="Assigned Build"></select>
+              <p id="assignment-status" class="intent-note" role="status" aria-live="polite"></p>
+            </section>
+            <section class="intent-card" aria-labelledby="best-fit-heading">
+              <span class="context-label" id="best-fit-heading">Best Fit · Intrinsic analysis</span>
+              <strong id="best-fit-role" class="intent-value">—</strong>
+              <span id="best-fit-score" class="intent-note">—</span>
+            </section>
+          </div>
+        </div>
+
+        <section id="brother-current" class="brother-section card" data-section="current">
+          <div class="card-head"><div><span class="eyebrow">Fact</span><h2>Current State</h2></div></div>
+          <div class="card-body">
+            <div id="brother-stats" class="stat-grid"></div>
+            <div class="fact-columns">
+              <div><h3>Perks</h3><div id="brother-perks" class="chip-list"></div></div>
+              <div><h3>Traits</h3><div id="brother-traits" class="chip-list"></div></div>
+              <div><h3>Injuries</h3><div id="brother-injuries" class="chip-list"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="brother-gear" class="brother-section card" data-section="gear">
+          <div class="card-head"><div><span class="eyebrow">Fact</span><h2>Gear</h2></div><strong id="gear-fatigue">Gear FAT —</strong></div>
+          <div class="card-body"><div id="gear-grid" class="gear-grid"></div></div>
+        </section>
+
+        <section id="brother-mechanics" class="brother-section card" data-section="mechanics">
+          <div class="card-head"><div><span class="eyebrow">Fact</span><h2>Mechanics</h2></div></div>
+          <div class="card-body" id="mechanics-list"></div>
+        </section>
+
+        <section id="brother-potential" class="brother-section card" data-section="potential">
+          <div class="card-head"><div><span class="eyebrow">Analysis</span><h2>Potential</h2></div><span class="subtle">Ranked intrinsic trajectories</span></div>
+          <div class="card-body" id="potential-list"></div>
+        </section>
+
+        <section id="brother-development" class="brother-section card" data-section="development">
+          <div class="card-head"><div><span class="eyebrow">Analysis</span><h2>Development</h2></div><span class="subtle">Best Fit trajectory</span></div>
+          <div class="card-body" id="development-list"></div>
+        </section>
+      </article>
     </section>
 
     <section class="workspace-panel" data-workspace-panel="level-up" aria-labelledby="level-up-heading" hidden>
