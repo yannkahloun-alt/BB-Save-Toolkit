@@ -32,8 +32,19 @@ analytical identity:
 - Versioned public/report, Target-presentation, BuildIdentity,
   CampaignIdentity, BrotherIdentity, and dependency-signature contracts can be
   reused at a transport boundary without changing their analytical meaning.
-- Deterministic fixtures and the application-service tests provide reusable
-  equivalence evidence for future worker and API adapters.
+- The presentation builders in `bbtool.app.target_presentation`,
+  `bbtool.app.company_brother_view`, `bbtool.app.level_up_view`, and
+  `bbtool.app.recruitment_view` are reusable read-model boundaries where their
+  existing exposure rules remain appropriate.
+- The static frontend assets under `bbtool/app/static/` provide reusable screen
+  structure, styles, and interaction patterns. Their local API URLs,
+  same-origin session bootstrap, and local capability handling are adapters to
+  replace rather than hosted authentication mechanisms.
+- `tests/fixtures/reference_analysis/` provides deterministic analysis,
+  configuration, health, roster/recruit, role-fit, and Target-presentation
+  reference artifacts. `tests/fixtures/full_preview/` and the browser/UI tests
+  provide additional end-to-end presentation evidence. These are reusable
+  equivalence fixtures for future worker, API, and frontend adapters.
 
 The local HTTP adapter itself is **not** a hosted security boundary. Its
 loopback Host/Origin checks and per-process session capability assume a trusted
@@ -169,7 +180,10 @@ production implementation.
 - normalized archetype and classification inputs;
 - CampaignIdentity, BrotherIdentity, BuildIdentity and dependency signatures;
 - public/Target presentation schemas where their exposure remains appropriate;
-- deterministic tests and fixtures for analytical equivalence;
+- presentation read-model builders listed above, subject to the same data
+  exposure contracts;
+- deterministic `reference_analysis` and `full_preview` fixtures for analytical
+  and presentation equivalence;
 - stale-result publication rule from the coordinator.
 
 ### Adapt behind a new hosted boundary
@@ -178,8 +192,11 @@ production implementation.
   preserving generation/fingerprint checks;
 - durable feature schemas move from local atomic files to tenant-scoped
   transactional persistence with equivalent revision/conflict semantics;
-- frontend components may be reused against an authenticated hosted API, but
-  their current same-origin loopback session bootstrap is replaced;
+- `bbtool/app/static/index.html`, `app.css`, `app.js`, `catalog_recovery.js`,
+  `level-up.js`/`level-up.css`, and `recruitment.js`/`recruitment.css` may reuse
+  their current screen composition and interaction behavior, but their local
+  endpoint wiring, same-origin session bootstrap, and capability handling must
+  be replaced by the selected authenticated hosted API/session model;
 - last-success/result retention becomes an explicit product retention policy
   rather than an implicit local-machine lifecycle.
 
