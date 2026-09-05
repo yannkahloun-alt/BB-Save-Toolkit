@@ -95,8 +95,9 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "Second launch created a conflicting application instance" in smoke
     assert "Assert-PersistedState" in smoke
     assert "Packaging Smoke Build" in smoke
+    assert "/api/v1/archetypes/set-disabled" in smoke
     assert "Silent uninstall unexpectedly deleted user-owned state" in smoke
-    assert "AddMinutes(30)" in smoke
+    assert "AddMinutes(10)" in smoke
 
 
 def test_launcher_command_contract():
