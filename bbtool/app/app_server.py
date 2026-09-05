@@ -18,6 +18,7 @@ from .archetype_catalog import (
 from .company_brother_view import build_company_brother_view
 from .config import load_config
 from .health import build_public_analysis_health
+from .level_up_view import build_level_up_view
 from .local_application import ApplicationOperationError, LocalApplication
 from .telemetry import TOOLKIT_VERSION
 from .user_state import (
@@ -76,8 +77,12 @@ class LocalApplicationApi:
                 return _static_response("index.html", "text/html; charset=utf-8")
             if method == "GET" and path == "/app.css":
                 return _static_response("app.css", "text/css; charset=utf-8")
+            if method == "GET" and path == "/level-up.css":
+                return _static_response("level-up.css", "text/css; charset=utf-8")
             if method == "GET" and path == "/app.js":
                 return _static_response("app.js", "text/javascript; charset=utf-8")
+            if method == "GET" and path == "/level-up.js":
+                return _static_response("level-up.js", "text/javascript; charset=utf-8")
             if method == "GET" and path == "/api/v1/session":
                 return self._ok({"token": self.token})
             if method == "GET" and path == "/api/v1/health":
@@ -89,6 +94,8 @@ class LocalApplicationApi:
                 return self._ok(self._shell_state())
             if method == "GET" and path == "/api/v1/company-brother":
                 return self._ok(build_company_brother_view(self.application))
+            if method == "GET" and path == "/api/v1/level-up":
+                return self._ok(build_level_up_view(self.application))
             if method == "GET" and path == "/api/v1/followed-save":
                 return self._ok(self.application.followed_save())
             if method == "GET" and path == "/api/v1/archetypes":

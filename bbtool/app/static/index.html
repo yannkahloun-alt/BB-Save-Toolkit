@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <title>Company · Battle Brothers Save Toolkit</title>
   <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/level-up.css">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -156,10 +157,75 @@
       </article>
     </section>
 
-    <section class="workspace-panel" data-workspace-panel="level-up" aria-labelledby="level-up-heading" hidden>
-      <span class="eyebrow">Decision workspace</span>
-      <h1 id="level-up-heading">Level Up</h1>
-      <p>Pending Brother decisions will render here while the global run context remains stable.</p>
+    <section class="workspace-panel levelup-workspace" data-workspace-panel="level-up" aria-labelledby="level-up-heading" hidden>
+      <div class="levelup-head">
+        <div>
+          <span class="eyebrow">Decision workspace</span>
+          <h1 id="level-up-heading">Level Up</h1>
+          <p>Scan the answer first, keep every current roll visible, then inspect consequences or Explain when needed.</p>
+        </div>
+        <label class="levelup-mobile-select">
+          <span>Pending Brother</span>
+          <select id="levelup-brother-select" aria-label="Switch pending Brother"></select>
+        </label>
+      </div>
+
+      <div id="levelup-loading" class="empty-state" role="status">Waiting for a completed analysis.</div>
+      <div id="levelup-layout" class="levelup-layout" hidden>
+        <aside id="levelup-queue" class="levelup-queue" aria-label="Pending Brothers"></aside>
+        <article id="levelup-decision" class="levelup-decision" aria-labelledby="levelup-brother-name">
+          <header class="levelup-hero">
+            <div>
+              <span class="eyebrow">Pending decision</span>
+              <h2 id="levelup-brother-name">Brother</h2>
+              <p id="levelup-brother-meta"></p>
+            </div>
+            <div class="levelup-context-grid">
+              <section class="levelup-context-card">
+                <span class="context-label">Assigned Build · Player intent</span>
+                <strong id="levelup-assigned-build">—</strong>
+                <small id="levelup-assigned-note" class="subtle">Player intent</small>
+              </section>
+              <section class="levelup-context-card">
+                <span class="context-label">Best Fit · Intrinsic analysis</span>
+                <strong id="levelup-best-fit">—</strong>
+                <small id="levelup-best-note" class="subtle">—</small>
+              </section>
+            </div>
+          </header>
+
+          <section id="levelup-primary-preview" class="levelup-primary-preview" aria-label="Primary recommendation preview"></section>
+
+          <section class="card" aria-labelledby="levelup-rolls-heading">
+            <div class="card-head">
+              <div><span class="eyebrow">Fact</span><h2 id="levelup-rolls-heading">Current Rolls</h2></div>
+              <span class="subtle">All offered rolls</span>
+            </div>
+            <div class="card-body"><div id="levelup-rolls" class="levelup-rolls"></div></div>
+          </section>
+
+          <div class="levelup-recommendations">
+            <section class="card levelup-recommendation" aria-labelledby="levelup-primary-heading">
+              <div class="card-head"><div><span class="eyebrow">Recommendation</span><h2 id="levelup-primary-heading">Primary</h2></div></div>
+              <div id="levelup-primary-body" class="card-body"></div>
+            </section>
+            <section class="card levelup-recommendation" aria-labelledby="levelup-runner-heading">
+              <div class="card-head"><div><span class="eyebrow">Recommendation</span><h2 id="levelup-runner-heading">Runner-up</h2></div></div>
+              <div id="levelup-runner-body" class="card-body"></div>
+            </section>
+          </div>
+
+          <section id="levelup-gamble" class="card levelup-gamble" aria-labelledby="levelup-gamble-heading" hidden>
+            <div class="card-head"><div><span class="eyebrow">Conditional branch</span><h2 id="levelup-gamble-heading">Gamble</h2></div></div>
+            <div id="levelup-gamble-body" class="card-body"></div>
+          </section>
+
+          <details id="levelup-explain" class="card levelup-explain">
+            <summary>Detailed reasoning / Explain</summary>
+            <div id="levelup-explain-body" class="levelup-explain-body"></div>
+          </details>
+        </article>
+      </div>
     </section>
 
     <section class="workspace-panel" data-workspace-panel="recruitment" aria-labelledby="recruitment-heading" hidden>
@@ -170,5 +236,6 @@
   </main>
 
   <script src="/app.js" defer></script>
+  <script src="/level-up.js" defer></script>
 </body>
 </html>
