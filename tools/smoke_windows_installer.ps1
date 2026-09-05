@@ -146,6 +146,44 @@ if ([int]$duplicate.Runtime.pid -ne $firstPid) {
 }
 
 $token = Get-Session -Origin $firstOrigin
+
+# Keep the installed-runtime smoke deterministic and bounded while still using
+# the approved real .sav and the production worker/analysis path. Create one
+# durable custom build, then disable all shipped builds so the analysis performs
+# a single real role projection instead of the full expensive preview matrix.
+$catalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
+if (@($catalog.roles).Count -lt 1) {
+    throw "Installed archetype catalog is empty."
+}
+$sourceBuildId = [string]$catalog.roles[0].id
+$baseBuildIds = @($catalog.roles | ForEach-Object { [string]$_.id })
+$duplicated = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/archetypes/duplicate" `
+    -Payload @{
+        id = $sourceBuildId
+        expected_revision = [int]$catalog.revision
+        name = "Packaging Smoke Build"
+    }).data
+$customBuild = $duplicated.roles | Where-Object { $_.name -eq "Packaging Smoke Build" } | Select-Object -First 1
+if (-not $customBuild) {
+    throw "Failed to create deterministic user archetype state."
+}
+$customBuildId = [string]$customBuild.id
+$catalogRevision = [int]$duplicated.revision
+foreach ($baseBuildId in $baseBuildIds) {
+    $reduced = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/archetypes/set-disabled" `
+        -Payload @{
+            id = $baseBuildId
+            disabled = $true
+            expected_revision = $catalogRevision
+        }).data
+    $catalogRevision = [int]$reduced.revision
+}
+$reducedCatalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
+$remainingBuildIds = @($reducedCatalog.roles | ForEach-Object { [string]$_.id })
+if ($remainingBuildIds.Count -ne 1 -or $remainingBuildIds[0] -ne $customBuildId) {
+    throw "Smoke catalog reduction did not leave exactly the custom build."
+}
+
 $followed = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/followed-save" -TimeoutSec 5).data
 $selected = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/followed-save/select" `
     -Payload @{
@@ -158,10 +196,7 @@ $preferencesRevision = [int]$selected.revision
 $jobResponse = Request-AnalysisWhenStable -Origin $firstOrigin -Token $token `
     -PreferencesRevision $preferencesRevision
 $jobId = [int]$jobResponse.data.id
-# The approved real-save full analysis is deliberately excluded from routine PR
-# CI because a cold run is expensive; the repository's full-preview contract
-# gives that workload a 30-minute hard timeout. Use the same bound here.
-$deadline = [DateTime]::UtcNow.AddMinutes(30)
+$deadline = [DateTime]::UtcNow.AddMinutes(10)
 $jobStatus = ""
 $reportedStatus = ""
 while ([DateTime]::UtcNow -lt $deadline) {
@@ -180,29 +215,16 @@ while ([DateTime]::UtcNow -lt $deadline) {
     Start-Sleep -Seconds 1
 }
 if ($jobStatus -ne "succeeded") {
-    throw "Installed analysis job did not complete within 30 minutes (last status: $jobStatus)."
+    throw "Installed analysis job did not complete within 10 minutes (last status: $jobStatus)."
 }
-
-$catalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
-$sourceBuildId = [string]$catalog.roles[0].id
-$duplicated = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/archetypes/duplicate" `
-    -Payload @{
-        id = $sourceBuildId
-        expected_revision = [int]$catalog.revision
-        name = "Packaging Smoke Build"
-    }).data
-$customBuild = $duplicated.roles | Where-Object { $_.name -eq "Packaging Smoke Build" } | Select-Object -First 1
-if (-not $customBuild) {
-    throw "Failed to create deterministic user archetype state."
-}
-$customBuildId = [string]$customBuild.id
 
 Stop-App
 $restarted = Start-App
 Assert-PersistedState -Origin ([string]$restarted.Origin) -ExpectedSave $fixture -ExpectedBuildId $customBuildId
 
-# Re-running the installer is the supported repair/update path. It must stop the
-# old process and preserve the durable per-user state root.
+# Re-running the installer is the supported repair/update path. The selected
+# save and custom build must survive installer repair/update without moving the
+# durable per-user state into the installation directory.
 Invoke-Installer
 $updated = Start-App
 Assert-PersistedState -Origin ([string]$updated.Origin) -ExpectedSave $fixture -ExpectedBuildId $customBuildId
