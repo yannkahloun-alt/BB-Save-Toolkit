@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from bbtool.app.app_server import LocalApplicationApi
+from bbtool.app.company_brother_view import _strip_private_fingerprints
 
 pytestmark = pytest.mark.unit
 
@@ -31,6 +32,41 @@ def test_company_brother_endpoint_is_read_only_and_handles_no_publication():
 
     assert response.status == 200
     assert decode(response)["data"] == {"available": False}
+
+
+def test_company_brother_view_strips_internal_fingerprints_recursively():
+    value = {
+        "build_definition_hash": "sha256:build",
+        "display_name": "BF Tank",
+        "assignment": {
+            "assigned_definition_hash": "sha256:assigned",
+            "current_definition_hash": "sha256:current",
+            "status": "current",
+        },
+        "company": [{
+            "ArtifactSignature": "sha256:artifact",
+            "BuildDefinitionHash": "sha256:definition",
+            "BuildIdentity": "battle_forged_tank",
+            "NeedBases": [],
+        }],
+    }
+
+    redacted = _strip_private_fingerprints(value)
+    serialized = json.dumps(redacted)
+
+    assert redacted == {
+        "display_name": "BF Tank",
+        "assignment": {"status": "current"},
+        "company": [{"BuildIdentity": "battle_forged_tank", "NeedBases": []}],
+    }
+    for private_key in (
+        "build_definition_hash",
+        "assigned_definition_hash",
+        "current_definition_hash",
+        "ArtifactSignature",
+        "BuildDefinitionHash",
+    ):
+        assert private_key not in serialized
 
 
 def test_company_and_brother_structure_preserves_validated_information_architecture():
@@ -92,9 +128,10 @@ def test_company_brother_read_model_keeps_intent_and_intrinsic_analysis_separate
     assert '"assigned_build": assignment' in source
     assert '"best_fit": _best_fit(summary)' in source
     assert 'application.assigned_builds.read_campaign(campaign)' in source
-    assert '"intent_fresh": analyzed_assignments == live_assignments' in source
+    assert 'company["intent_fresh"] = analyzed_assignments == live_assignments' in source
     assert '"assignment_address": address' in source
     assert '"potential": potential' in source
+    assert '_strip_private_fingerprints(presentation["company"])' in source
     assert "FutureRolls" not in source
 
 
