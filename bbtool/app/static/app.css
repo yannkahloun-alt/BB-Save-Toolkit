@@ -1053,6 +1053,10 @@ progress {
     flex: 1;
     width: auto;
   }
+
+  .brother-section {
+    scroll-margin-top: calc(var(--app-shell-height) + 6.5rem);
+  }
 }
 
 @media (max-width: 720px) {
