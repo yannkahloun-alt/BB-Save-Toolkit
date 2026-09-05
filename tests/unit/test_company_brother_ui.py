@@ -63,6 +63,8 @@ def test_company_navigation_and_mutation_behavior_are_explicit_not_browser_infer
     assert "`/api/v1/assigned-builds/${operation}`" in js
     assert "expected_revision: state.companyData.assignment_revision" in js
     assert "state.companyData.company.intent_fresh = false" in js
+    assert "saved; refresh could not start" in js
+    assert "Assigned Build was not changed" in js
     assert "innerHTML" not in js
     assert "report.js" not in js
 
