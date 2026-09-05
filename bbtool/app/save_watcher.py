@@ -13,6 +13,8 @@ import hashlib
 import threading
 from typing import Any
 
+from .archetype_catalog import CatalogValidationError
+
 
 @dataclass(frozen=True)
 class StableSave:
@@ -157,7 +159,10 @@ class SaveWatcher:
         if detected:
             self._on_detected("selected_save_content_changed")
         if stable:
-            self._on_stable(snapshot, auto_refresh)
+            try:
+                self._on_stable(snapshot, auto_refresh)
+            except CatalogValidationError as exc:
+                self._mark_catalog_conflict(exc)
 
     def set_job_state(self, status: str) -> None:
         with self._lock:
@@ -199,6 +204,12 @@ class SaveWatcher:
             self._error = str(exc)
         if notify:
             self._on_detected("selected_save_unavailable")
+
+    def _mark_catalog_conflict(self, exc: CatalogValidationError) -> None:
+        with self._lock:
+            self._state = "failed"
+            self._reason = "archetype_catalog_conflict"
+            self._error = str(exc)
 
     def _monitor(self) -> None:
         while True:
