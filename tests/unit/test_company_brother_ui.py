@@ -87,6 +87,8 @@ def test_company_brother_read_model_keeps_intent_and_intrinsic_analysis_separate
     source = (ROOT / "bbtool" / "app" / "company_brother_view.py").read_text(encoding="utf-8")
 
     assert 'with application._command_lock:' in source
+    assert 'route_key = identity_value if isinstance(identity_value, str) else observation_id' in source
+    assert '"brother_id": route_key' in source
     assert '"assigned_build": assignment' in source
     assert '"best_fit": _best_fit(summary)' in source
     assert 'application.assigned_builds.read_campaign(campaign)' in source
