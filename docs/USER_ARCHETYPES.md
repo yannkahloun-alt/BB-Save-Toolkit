@@ -40,24 +40,36 @@ exposes the current shipped definition. Missing shipped IDs referenced by durabl
 override/disabled records are also explicit conflicts; no name or definition
 similarity migration is attempted.
 
+When more than one shipped override/disabled record conflicts after an upgrade,
+`reset-base` is a narrow recovery mutation: it may remove one explicitly chosen
+conflicting shipped identity under the expected durable revision even while
+other shipped conflicts remain. The returned state still reports those remaining
+conflicts and exposes no effective catalog until recovery is complete. Recovery
+never writes the shipped base and refuses to persist an intermediate state when
+validation failures are not attributable to shipped-entry recovery.
+
 ## Validation and import/export
 
-All mutations validate the complete prospective effective catalog before the
-optimistic-revision write. Errors retain deterministic field paths. Invalid
+Ordinary mutations validate the complete prospective effective catalog before
+the optimistic-revision write. Errors retain deterministic field paths. Invalid
 state, duplicate IDs/names, retired-ID reuse, empty effective catalogs, stale
 base hashes, and unsupported fields fail without persisting a partial change.
+The recovery-only `reset-base` behavior above is the sole exception and remains
+revision checked.
 
 Export uses `bbtool.user-archetypes-export.v1` and contains only user-owned
-records. Replace import round-trips that state. Merge import accepts identical
-records idempotently and reports any same-kind/same-ID differing record as a
-conflict; IDs are never remapped. Local retired-ID tombstones are monotonic and
-survive replacement imports, so an older export cannot resurrect a deleted ID
-as a different logical build. Explicit import of a
+records. Export reads the durable user records directly, so it remains available
+while shipped conflicts are unresolved and user intent can be preserved before
+reset/recreation. Replace import round-trips that state. Merge import accepts
+identical records idempotently and reports any same-kind/same-ID differing record
+as a conflict; IDs are never remapped. Local retired-ID tombstones are monotonic
+and survive replacement imports, so an older export cannot resurrect a deleted
+ID as a different logical build. Explicit import of a
 `bb-archetypes-v0.9` legacy object containing an id-less `roles` array is the
-supported migration into managed state: each
-id-less role receives an opaque ID once, and that ID is then persisted.
-Missing, mistyped, unknown, and future schema identifiers are rejected; the
-presence of a `roles` field alone never selects legacy migration.
+supported migration into managed state: each id-less role receives an opaque ID
+once, and that ID is then persisted. Missing, mistyped, unknown, and future
+schema identifiers are rejected; the presence of a `roles` field alone never
+selects legacy migration.
 
 The resulting normalized roles are supplied unchanged to `AnalyzerConfig` and
 the transport-independent analysis service. Existing artifact-specific role
