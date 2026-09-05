@@ -69,6 +69,18 @@ def test_company_navigation_and_mutation_behavior_are_explicit_not_browser_infer
     assert "report.js" not in js
 
 
+def test_shell_polling_does_not_rebuild_brother_content_or_reset_open_detail_state():
+    js = (ROOT / "bbtool" / "app" / "static" / "app.js").read_text(encoding="utf-8")
+    render_shell = js.split("function renderShell()", 1)[1].split(
+        "function matchesSearch", 1
+    )[0]
+
+    assert "renderBrother" not in render_shell
+    assert "updateBrotherMutationAvailability" in render_shell
+    assert "loadedJobId" in js
+    assert "publishedJobChanged" in js
+
+
 def test_company_brother_read_model_keeps_intent_and_intrinsic_analysis_separate():
     source = (ROOT / "bbtool" / "app" / "company_brother_view.py").read_text(encoding="utf-8")
 
