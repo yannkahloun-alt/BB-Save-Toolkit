@@ -103,5 +103,8 @@ def test_company_and_brother_responsive_contract_has_anchored_dock_and_local_ove
     assert ".matrix-wrap" in css and "overflow: auto;" in css
     assert "overflow-x: clip;" in css
     assert "@media (max-width: 980px)" in css
+    assert "@media (max-width: 720px)" in css
     assert "@media (max-width: 420px)" in css
+    assert ".roster-identity {\n    grid-column: 1 / -1;" in css
+    assert ".brother-row .roster-role:nth-of-type(3)" not in css
     assert ":focus-visible" in css
