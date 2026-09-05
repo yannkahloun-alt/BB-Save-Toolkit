@@ -221,7 +221,7 @@ def _chrome_driver_path():
     return Path(discovered) if discovered else None
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def browser():
     driver_path = _chrome_driver_path()
     if driver_path is None:
@@ -385,13 +385,24 @@ def test_publication_change_clears_ordinal_scoped_decision_state(browser, surfac
     _load_surface(browser, server, base_url, _publication(101, "A"))
 
     browser.execute_script("document.querySelector('[data-recruit-index=\"1\"]').click()")
+    WebDriverWait(browser, 5).until(
+        lambda current: current.execute_script(
+            "return document.getElementById('recruit-name').textContent"
+        )
+        == "A Birkhaven 2"
+    )
     browser.execute_script("document.getElementById('recruit-shortlist-current').click()")
-    browser.execute_script("document.getElementById('recruit-compare-toggle').click()")
     WebDriverWait(browser, 5).until(
         lambda current: current.execute_script(
             "return document.querySelectorAll('.recruit-shortlist-chip').length"
         )
         == 1
+    )
+    browser.execute_script("document.getElementById('recruit-compare-toggle').click()")
+    WebDriverWait(browser, 5).until(
+        lambda current: not current.execute_script(
+            "return document.getElementById('recruit-compare').hidden"
+        )
     )
 
     server.payload = _publication(202, "B")
