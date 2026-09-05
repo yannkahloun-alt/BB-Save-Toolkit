@@ -409,7 +409,6 @@ class LocalApplication:
             "set_disabled": lambda: self.catalog.set_disabled(
                 identity, payload["disabled"], expected_revision=revision
             ),
-            "reset_base": lambda: self.catalog.reset_base(identity, expected_revision=revision),
             "reset_override": lambda: self.catalog.reset_override(identity, expected_revision=revision),
             "create_custom": lambda: self.catalog.create_custom(
                 payload["definition"], expected_revision=revision
@@ -427,11 +426,17 @@ class LocalApplication:
                 payload["document"], expected_revision=revision, merge=payload.get("merge", False)
             ),
         }
-        if operation not in operations:
-            raise ApplicationOperationError("unknown_operation", "unknown archetype operation")
-        result = operations[operation]()
+        if operation == "reset_base":
+            self.catalog.reset_base_recovery(
+                identity, expected_revision=revision
+            )
+            result_payload = self.effective_archetypes()
+        else:
+            if operation not in operations:
+                raise ApplicationOperationError("unknown_operation", "unknown archetype operation")
+            result_payload = self._effective_catalog_payload(operations[operation]())
         self._invalidate_publication("effective_archetypes_changed")
-        return self._effective_catalog_payload(result) | {
+        return result_payload | {
             "freshness": {
                 "status": "stale",
                 "reason": "effective_archetypes_changed",

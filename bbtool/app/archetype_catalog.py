@@ -335,6 +335,29 @@ def effective_catalog(
     return EffectiveCatalog(tuple(deepcopy(effective)), state)
 
 
+def _recoverable_shipped_conflict_indexes(
+    state: ArchetypeState, errors: tuple[str, ...]
+) -> set[int]:
+    """Return shipped-entry conflicts that may be reset one revision at a time."""
+    indexes: set[int] = set()
+    matched: set[str] = set()
+    for index, entry in enumerate(state.entries):
+        if not isinstance(entry, dict) or entry.get("kind") not in {
+            "override",
+            "disabled",
+        }:
+            continue
+        prefix = f"entries[{index}]"
+        entry_errors = {error for error in errors if error.startswith(prefix)}
+        if entry_errors:
+            indexes.add(index)
+            matched.update(entry_errors)
+    unmatched = set(errors) - matched
+    if unmatched - {"effective display names must be unique for report-v1 compatibility"}:
+        return set()
+    return indexes
+
+
 class ArchetypeCatalogStore:
     """Domain operations over the #95 durable-state substrate."""
 
@@ -421,6 +444,49 @@ class ArchetypeCatalogStore:
         ]
         return self._save(entries, expected_revision)
 
+    def reset_base_recovery(
+        self, identity: str, *, expected_revision: int
+    ) -> ArchetypeState:
+        """Reset one explicit shipped conflict, even while other conflicts remain."""
+        current = self.store.load("archetypes")
+        try:
+            effective_catalog(self.base_roles, current)
+        except CatalogValidationError as exc:
+            indexes = _recoverable_shipped_conflict_indexes(current, exc.errors)
+            requested = {
+                index
+                for index in indexes
+                if current.entries[index].get("id") == identity
+            }
+            if requested:
+                entries = [
+                    deepcopy(entry)
+                    for index, entry in enumerate(current.entries)
+                    if not (
+                        index in requested
+                        or (
+                            entry.get("id") == identity
+                            and entry.get("kind") in {"override", "disabled"}
+                        )
+                    )
+                ]
+                candidate = ArchetypeState(entries=tuple(entries))
+                try:
+                    effective_catalog(self.base_roles, candidate)
+                except CatalogValidationError as remaining:
+                    if not _recoverable_shipped_conflict_indexes(
+                        candidate, remaining.errors
+                    ):
+                        raise
+                return self.store.save(
+                    "archetypes",
+                    candidate,
+                    expected_revision=expected_revision,
+                )
+        return self.reset_base(
+            identity, expected_revision=expected_revision
+        ).state
+
     def reset_override(
         self, identity: str, *, expected_revision: int
     ) -> EffectiveCatalog:
@@ -498,7 +564,7 @@ class ArchetypeCatalogStore:
         return self._save(entries, expected_revision)
 
     def export_json(self) -> str:
-        state = self.load().state
+        state = self.store.load("archetypes")
         payload = {"schema": EXPORT_SCHEMA, "entries": list(state.entries)}
         return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 

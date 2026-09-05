@@ -115,6 +115,14 @@ Published fingerprints and timestamps are persisted through the #95
 Changing a followed save returns stale/unavailable freshness immediately.
 Archetype mutation responses return the committed revision, canonical effective
 catalog, definition hashes, and an explicit `request_analysis` recompute state.
+The recovery-only exception is `reset-base` while `GET /api/v1/archetypes`
+reports shipped override/disabled conflicts: one explicitly selected conflicting
+identity may be removed under the expected revision even when other shipped
+conflicts remain. That successful response continues to expose the remaining
+`catalog_conflict` and no effective roles until recovery is complete. Unrelated
+catalog validation failures still block the write. `GET /api/v1/archetypes/export`
+reads bounded user-owned durable records directly and remains available during
+this recovery state so the player can preserve intent before reset/recreation.
 After any committed source/configuration mutation, the application invalidates
 the #97 desired generation and cancels queued/running pre-mutation work so it
 cannot publish. The previous successful publication remains available as
