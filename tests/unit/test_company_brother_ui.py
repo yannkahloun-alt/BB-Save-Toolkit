@@ -7,6 +7,7 @@ import pytest
 
 from bbtool.app.app_server import LocalApplicationApi
 from bbtool.app.company_brother_view import _strip_private_fingerprints
+from bbtool.models import BrotherIdentity, CampaignIdentity
 
 pytestmark = pytest.mark.unit
 
@@ -67,6 +68,99 @@ def test_company_brother_view_strips_internal_fingerprints_recursively():
         "BuildDefinitionHash",
     ):
         assert private_key not in serialized
+
+
+def test_company_brother_endpoint_redacts_presentation_and_assignment_hashes(monkeypatch):
+    from bbtool.app import company_brother_view
+
+    campaign = CampaignIdentity(7, confidence="exact")
+    identity = BrotherIdentity(7, 9, confidence="exact")
+    observation_id = "human:12"
+    assignment = {
+        "status": "current",
+        "build_identity": "battle_forged_tank",
+        "assigned_definition_hash": "sha256:assigned",
+        "current_definition_hash": "sha256:current",
+        "display_name": "Battle Forged Tank",
+    }
+    presentation = {
+        "builds": [{
+            "build_identity": "battle_forged_tank",
+            "build_definition_hash": "sha256:build",
+            "display_name": "Battle Forged Tank",
+        }],
+        "brothers": [{
+            "brother_id": observation_id,
+            "brother_identity": {"confidence": "exact", "value": identity.value},
+            "mechanical_facts": [],
+        }],
+        "company": {
+            "intrinsic_coverage": [{
+                "BuildIdentity": "battle_forged_tank",
+                "BuildDefinitionHash": "sha256:intrinsic-definition",
+                "ArtifactSignature": "sha256:intrinsic-artifact",
+                "ViableCount": 1,
+            }],
+            "intended_coverage": [{
+                "BuildIdentity": "battle_forged_tank",
+                "BuildDefinitionHash": "sha256:intended-definition",
+                "ArtifactSignature": "sha256:intended-artifact",
+                "AssignedCount": 1,
+            }],
+            "intent_available": True,
+        },
+    }
+    monkeypatch.setattr(
+        company_brother_view, "build_target_presentation", lambda **_kwargs: presentation
+    )
+
+    result = SimpleNamespace(
+        roster=[], recruits=[], roles=[], campaign_identity=campaign,
+        brother_identities={observation_id: identity}, source_fingerprint="sha256:source",
+        configuration_fingerprints={}, recruitment_analysis=[],
+        incremental_cache=SimpleNamespace(publication_signatures=lambda: {}),
+        analysis=SimpleNamespace(
+            company_intrinsic_coverage=[], company_intended_coverage=[], summaries=[]
+        ),
+        assigned_builds={identity.value: assignment},
+        diagnostics={},
+        public_data={
+            "roster": [{"BrotherID": observation_id, "Name": "Aldric"}],
+            "summaries": [{"BrotherID": observation_id, "BestRole": "Battle Forged Tank"}],
+            "fits": [],
+        },
+    )
+    assigned = SimpleNamespace(read_campaign=lambda _campaign: {
+        "revision": 3, "assignments": {identity.value: assignment}
+    })
+    app = SimpleNamespace(
+        coordinator=SimpleNamespace(last_success=SimpleNamespace(generation=2, result=result)),
+        assigned_builds=assigned,
+        store=SimpleNamespace(load=lambda _feature: SimpleNamespace(revision=3)),
+        _command_lock=threading.RLock(),
+    )
+    api = LocalApplicationApi(app, origin=ORIGIN, token="capability")
+
+    response = api.handle("GET", "/api/v1/company-brother", {"Host": HOST})
+    payload = decode(response)["data"]
+    serialized = json.dumps(payload)
+
+    assert response.status == 200
+    assert payload["builds"] == [{
+        "build_identity": "battle_forged_tank",
+        "display_name": "Battle Forged Tank",
+    }]
+    assert payload["brothers"][0]["assigned_build"] == {
+        "status": "current",
+        "build_identity": "battle_forged_tank",
+        "display_name": "Battle Forged Tank",
+    }
+    for private in (
+        "sha256:build", "sha256:assigned", "sha256:current",
+        "sha256:intrinsic-definition", "sha256:intrinsic-artifact",
+        "sha256:intended-definition", "sha256:intended-artifact",
+    ):
+        assert private not in serialized
 
 
 def test_company_and_brother_structure_preserves_validated_information_architecture():
