@@ -1,0 +1,223 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$InstallerPath
+)
+
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+
+if (-not $IsWindows) {
+    throw "Windows installer smoke validation must run on Windows."
+}
+
+$installer = (Resolve-Path $InstallerPath).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$fixture = (Resolve-Path (Join-Path $repoRoot "tests\fixtures\full_preview\reference-save.sav")).Path
+$installRoot = Join-Path $env:LOCALAPPDATA "Programs\BB-Save-Toolkit"
+$userStateRoot = Join-Path $env:LOCALAPPDATA "BB-Save-Toolkit"
+$runtimeFile = Join-Path $env:TEMP "BB-Save-Toolkit\runtime.json"
+$startupShortcut = Join-Path ([Environment]::GetFolderPath("Startup")) "BB Save Toolkit.lnk"
+$exe = Join-Path $installRoot "BB-Save-Toolkit.exe"
+
+function Invoke-Installer {
+    & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="autostart"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Installer exited with code $LASTEXITCODE"
+    }
+    if (-not (Test-Path $exe)) {
+        throw "Installed executable is missing."
+    }
+    if (-not (Test-Path $startupShortcut)) {
+        throw "Per-user startup shortcut is missing."
+    }
+}
+
+function Wait-Runtime {
+    param([int]$TimeoutSeconds = 30)
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        if (Test-Path $runtimeFile) {
+            try {
+                $runtime = Get-Content $runtimeFile -Raw | ConvertFrom-Json
+                if ($runtime.schema -eq "bbtool.windows-runtime.v1" -and $runtime.port) {
+                    $origin = "http://127.0.0.1:$($runtime.port)"
+                    $health = Invoke-RestMethod -Uri "$origin/api/v1/health" -TimeoutSec 2
+                    if ($health.data.status -eq "ok") {
+                        return @{ Runtime = $runtime; Origin = $origin }
+                    }
+                }
+            }
+            catch {
+                # The app may still be binding or replacing the runtime file.
+            }
+        }
+        Start-Sleep -Milliseconds 250
+    }
+    throw "Installed application did not become healthy."
+}
+
+function Start-App {
+    Start-Process -FilePath $exe -ArgumentList "background" | Out-Null
+    return Wait-Runtime
+}
+
+function Stop-App {
+    if (Test-Path $exe) {
+        & $exe stop
+        if ($LASTEXITCODE -ne 0) {
+            throw "Installed application stop command failed with code $LASTEXITCODE"
+        }
+    }
+}
+
+function Get-Session {
+    param([string]$Origin)
+    return (Invoke-RestMethod -Uri "$Origin/api/v1/session" -TimeoutSec 5).data.token
+}
+
+function Invoke-ApiPost {
+    param(
+        [string]$Origin,
+        [string]$Token,
+        [string]$Path,
+        [hashtable]$Payload
+    )
+    $headers = @{
+        Origin = $Origin
+        "X-BBST-Session" = $Token
+    }
+    return Invoke-RestMethod -Uri "$Origin$Path" -Method Post -Headers $headers `
+        -ContentType "application/json" -Body ($Payload | ConvertTo-Json -Compress -Depth 20) `
+        -TimeoutSec 30
+}
+
+function Request-AnalysisWhenStable {
+    param(
+        [string]$Origin,
+        [string]$Token,
+        [int]$PreferencesRevision
+    )
+    $deadline = [DateTime]::UtcNow.AddSeconds(30)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        try {
+            return Invoke-ApiPost -Origin $Origin -Token $Token -Path "/api/v1/analysis/jobs" `
+                -Payload @{ expected_preferences_revision = $PreferencesRevision }
+        }
+        catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    throw "Selected save never became stable enough to analyze."
+}
+
+function Assert-PersistedState {
+    param(
+        [string]$Origin,
+        [string]$ExpectedSave,
+        [string]$ExpectedBuildId
+    )
+    $followed = (Invoke-RestMethod -Uri "$Origin/api/v1/followed-save" -TimeoutSec 5).data
+    if ([string]$followed.selected_path -ne $ExpectedSave) {
+        throw "Selected save did not survive the application lifecycle."
+    }
+    $catalog = (Invoke-RestMethod -Uri "$Origin/api/v1/archetypes" -TimeoutSec 5).data
+    $ids = @($catalog.roles | ForEach-Object { [string]$_.id })
+    if ($ExpectedBuildId -notin $ids) {
+        throw "User archetype state did not survive the application lifecycle."
+    }
+}
+
+if (Test-Path $userStateRoot) {
+    throw "Smoke validation requires a clean user-state root: $userStateRoot"
+}
+
+Invoke-Installer
+$first = Start-App
+$firstPid = [int]$first.Runtime.pid
+$firstOrigin = [string]$first.Origin
+
+Start-Process -FilePath $exe -ArgumentList "background" -Wait | Out-Null
+$duplicate = Wait-Runtime
+if ([int]$duplicate.Runtime.pid -ne $firstPid) {
+    throw "Second launch created a conflicting application instance."
+}
+
+$token = Get-Session -Origin $firstOrigin
+$followed = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/followed-save" -TimeoutSec 5).data
+$selected = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/followed-save/select" `
+    -Payload @{
+        path = $fixture
+        expected_revision = [int]$followed.revision
+        auto_refresh = $false
+    }).data
+$preferencesRevision = [int]$selected.revision
+
+$jobResponse = Request-AnalysisWhenStable -Origin $firstOrigin -Token $token `
+    -PreferencesRevision $preferencesRevision
+$jobId = [int]$jobResponse.data.id
+$deadline = [DateTime]::UtcNow.AddMinutes(10)
+$jobStatus = ""
+while ([DateTime]::UtcNow -lt $deadline) {
+    $job = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/analysis/jobs/$jobId" -TimeoutSec 10).data
+    $jobStatus = [string]$job.status
+    if ($jobStatus -eq "succeeded") {
+        break
+    }
+    if ($jobStatus -in @("failed", "cancelled", "superseded")) {
+        throw "Installed analysis job ended as $jobStatus."
+    }
+    Start-Sleep -Seconds 1
+}
+if ($jobStatus -ne "succeeded") {
+    throw "Installed analysis job did not complete within the smoke-test timeout."
+}
+
+$catalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
+$sourceBuildId = [string]$catalog.roles[0].id
+$duplicated = (Invoke-ApiPost -Origin $firstOrigin -Token $token -Path "/api/v1/archetypes/duplicate" `
+    -Payload @{
+        id = $sourceBuildId
+        expected_revision = [int]$catalog.revision
+        name = "Packaging Smoke Build"
+    }).data
+$customBuild = $duplicated.roles | Where-Object { $_.name -eq "Packaging Smoke Build" } | Select-Object -First 1
+if (-not $customBuild) {
+    throw "Failed to create deterministic user archetype state."
+}
+$customBuildId = [string]$customBuild.id
+
+Stop-App
+$restarted = Start-App
+Assert-PersistedState -Origin ([string]$restarted.Origin) -ExpectedSave $fixture -ExpectedBuildId $customBuildId
+
+# Re-running the installer is the supported repair/update path. It must stop the
+# old process and preserve the durable per-user state root.
+Invoke-Installer
+$updated = Start-App
+Assert-PersistedState -Origin ([string]$updated.Origin) -ExpectedSave $fixture -ExpectedBuildId $customBuildId
+
+Stop-App
+$uninstaller = Join-Path $installRoot "unins000.exe"
+if (-not (Test-Path $uninstaller)) {
+    throw "Uninstaller is missing."
+}
+& $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+if ($LASTEXITCODE -ne 0) {
+    throw "Uninstaller failed while preserving user data."
+}
+if (-not (Test-Path $userStateRoot)) {
+    throw "Silent uninstall unexpectedly deleted user-owned state."
+}
+
+Invoke-Installer
+$uninstaller = Join-Path $installRoot "unins000.exe"
+& $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DELETEUSERDATA
+if ($LASTEXITCODE -ne 0) {
+    throw "Uninstaller failed while deleting user data."
+}
+if (Test-Path $userStateRoot) {
+    throw "Explicit /DELETEUSERDATA uninstall did not remove user-owned state."
+}
+
+Write-Output "Windows installer smoke validation passed."
