@@ -55,6 +55,16 @@ def _static_response(name: str, content_type: str) -> HttpResponse:
     return HttpResponse(200, (_STATIC_ROOT / name).read_bytes(), content_type)
 
 
+def _application_script_response() -> HttpResponse:
+    """Bundle the validated workspace script with additive local recovery controls."""
+    body = (
+        (_STATIC_ROOT / "app.js").read_bytes()
+        + b"\n"
+        + (_STATIC_ROOT / "catalog_recovery.js").read_bytes()
+    )
+    return HttpResponse(200, body, "text/javascript; charset=utf-8")
+
+
 class LocalApplicationApi:
     """Framework-free request dispatcher, directly exercised by in-process tests."""
 
@@ -83,7 +93,7 @@ class LocalApplicationApi:
             if method == "GET" and path == "/recruitment.css":
                 return _static_response("recruitment.css", "text/css; charset=utf-8")
             if method == "GET" and path == "/app.js":
-                return _static_response("app.js", "text/javascript; charset=utf-8")
+                return _application_script_response()
             if method == "GET" and path == "/level-up.js":
                 return _static_response("level-up.js", "text/javascript; charset=utf-8")
             if method == "GET" and path == "/recruitment.js":
