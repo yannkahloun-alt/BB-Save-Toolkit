@@ -108,17 +108,28 @@ in this repository.
 ## Validation
 
 `.github/workflows/windows-installer.yml` runs for packaging changes and may
-also be dispatched manually. It builds the installer, installs it into a clean
-Windows runner profile, and proves the ticket lifecycle against the deterministic
-`tests/fixtures/full_preview/reference-save.sav` fixture:
+also be dispatched manually. It builds the installer and installs it into a
+clean Windows runner profile.
+
+The installed-runtime smoke creates a deterministic **synthetic structural
+`.sav`** in the runner's temporary directory using the same minimal byte layout
+covered by the parser regression tests: one brother and no recruit records. It
+also reduces the effective catalog to one durable custom build. This is
+intentional: the smoke must prove the installed parser -> worker -> analysis
+service -> publication path, not duplicate the comparatively expensive approved
+real-save full-application preview workload. The latter remains covered by the
+separate full-preview workflow and its approved real fixture.
+
+The installer smoke proves:
 
 - per-user install and startup shortcut;
 - healthy loopback startup;
 - duplicate launch reuses the same PID;
-- save selection through the real bounded API;
-- successful background analysis using the installed runtime;
-- restart retains the selected-save preference;
-- installer repair/update retains the preference;
+- synthetic `.sav` selection through the real bounded API;
+- successful background analysis and result publication using the installed
+  runtime, bundled references, real parser, worker process, and analysis service;
+- durable custom-archetype state plus selected-save preference survive restart;
+- installer repair/update preserves that durable state;
 - default uninstall preserves durable user state;
 - explicit `/DELETEUSERDATA` uninstall removes it.
 
