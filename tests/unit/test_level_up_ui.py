@@ -73,6 +73,52 @@ def _application(monkeypatch, *, conditional_branch=None):
 
     observation_id = "human:12"
     identity = SimpleNamespace(value="campaign:7/entity:9")
+    equipment = {
+        "Head": {
+            "Name": "Nasal Helmet", "ItemID": "31323334", "Type": "helmet",
+            "Condition": 87, "ConditionMax": 105, "Armor": 87, "ArmorMax": 105,
+            "Fatigue": 5,
+        },
+        "Body": {
+            "Name": "Mail Hauberk", "ItemID": "21222324", "Type": "armor",
+            "Condition": 175, "ConditionMax": 210, "Armor": 175, "ArmorMax": 210,
+            "Fatigue": 24,
+        },
+        "MainHand": {
+            "Name": "Famed Blade", "ItemID": "01020304", "Type": "weapon",
+            "Condition": 61, "ConditionMax": 80, "Fatigue": 8, "Quantity": 0,
+            "DamageMin": 45, "DamageMax": 50, "ArmorDamagePercent": 90,
+            "DirectDamagePercent": 25,
+        },
+        "OffHand": {
+            "Name": "Kite Shield", "ItemID": "11121314", "Type": "shield",
+            "Condition": 38, "ConditionMax": 48, "Fatigue": 14,
+        },
+        "Accessory": None,
+        "Ammo": None,
+        "Bag": [
+            {
+                "Slot": 2, "Name": "Throwing Net", "ItemID": "51525354",
+                "Type": "accessory", "Quantity": 1,
+            },
+            {
+                "Slot": 1, "Name": "Dagger", "ItemID": "41424344", "Type": "weapon",
+                "Condition": 40, "ConditionMax": 40, "Fatigue": 2, "Quantity": 0,
+            },
+        ],
+    }
+    gear_fatigue = {
+        "MainHand": 8, "OffHand": 14, "Body": 24, "Head": 5,
+        "Accessory": 0, "Ammo": 0, "Bag": 2, "Total": 53,
+    }
+    mechanical_facts = [{
+        "Perk": "Battle Forged",
+        "State": "active",
+        "Basis": "current_body_and_head_armor",
+        "CurrentArmor": 262,
+        "ArmorDamageMultiplier": 0.869,
+        "ArmorDamageReductionPct": 13.1,
+    }]
     primary = _candidate(["MDef", "Fatigue", "HP"], 74.0, 87.0)
     runner = _candidate(["MDef", "Resolve", "HP"], 72.0, 88.0)
     advice = {
@@ -124,6 +170,7 @@ def _application(monkeypatch, *, conditional_branch=None):
                 "assigned_definition_hash": "sha256:assignment-private",
                 "current_definition_hash": "sha256:definition-private",
             },
+            "mechanical_facts": mechanical_facts,
         }],
         "advisors": [{"brother_id": observation_id, "advice": advice}],
     }
@@ -145,6 +192,7 @@ def _application(monkeypatch, *, conditional_branch=None):
             "Background": "Farmhand", "Level": 7,
             "HP": 78, "HPStars": 2, "Fatigue": 104, "FatigueStars": 1,
             "Resolve": 48, "ResolveStars": 0, "MDef": 23, "MDefStars": 3,
+            "Equipment": equipment, "GearFatigue": gear_fatigue,
             "FutureRolls": {"MDef": [3, 3, 3]},
             "SourcePath": "C:/private/quicksave.sav",
         }]},
@@ -187,6 +235,18 @@ def test_level_up_endpoint_projects_backend_decision_without_internal_provenance
     assert decision["best_fit"] == {
         "build_identity": "reach_dps", "role": "Reach DPS", "fit_pct": 86.0
     }
+    assert decision["gear_fatigue"]["Total"] == 53
+    assert [item["Slot"] for item in decision["equipment"]["Bag"]] == [2, 1]
+    assert decision["equipment"]["MainHand"]["DamageMin"] == 45
+    assert decision["equipment"]["MainHand"]["DirectDamagePercent"] == 25
+    assert decision["mechanical_facts"] == [{
+        "Perk": "Battle Forged",
+        "State": "active",
+        "Basis": "current_body_and_head_armor",
+        "CurrentArmor": 262,
+        "ArmorDamageMultiplier": 0.869,
+        "ArmorDamageReductionPct": 13.1,
+    }]
     assert {row["stat"] for row in decision["rolls"]} == {"HP", "Fatigue", "Resolve", "MDef"}
     mdef = next(row for row in decision["rolls"] if row["stat"] == "MDef")
     assert mdef == {
@@ -227,6 +287,37 @@ def test_level_up_exposes_gamble_only_from_backend_conditional_branch(monkeypatc
     assert "Gamble" not in gamble
 
 
+def test_shared_brother_views_preserve_bag_order_detail_and_backend_mechanics():
+    js = (ROOT / "bbtool" / "app" / "static" / "level-up.js").read_text(encoding="utf-8")
+
+    assert "const BrotherViews = (() => {" in js
+    assert "window.renderGear = function renderGear(snapshot)" in js
+    assert "window.renderMechanics = function renderMechanics(facts)" in js
+    assert "BrotherViews.renderLevelUp(decision)" in js
+    assert "levelup-gear-grid" in js
+    assert "levelup-mechanics-list" in js
+
+    gear_renderer = js.split("function renderGear(equipment, fatigue, targets)", 1)[1].split(
+        "function factValue", 1
+    )[0]
+    assert "for (const [index, item] of bag.entries())" in gear_renderer
+    assert ".sort(" not in gear_renderer
+    assert "safeFatigue.Total" in gear_renderer
+    for field in (
+        "ItemID", "Type", "Condition", "ConditionMax", "Armor", "ArmorMax",
+        "Fatigue", "Quantity", "DamageMin", "DamageMax", "ArmorDamagePercent",
+        "DirectDamagePercent", "Slot",
+    ):
+        assert f"['{field}'," in js
+
+    mechanics_renderer = js.split("function renderMechanics(facts, targetId)", 1)[1].split(
+        "function ensureLevelUpPanels", 1
+    )[0]
+    assert "Object.entries(fact)" in mechanics_renderer
+    for formula_fragment in ("1.23", "0.0005", "Math.pow", "ArmorFatiguePenaltyAfter"):
+        assert formula_fragment not in mechanics_renderer
+
+
 def test_level_up_static_contract_preserves_scan_decision_explain_and_responsiveness():
     page = (ROOT / "bbtool" / "app" / "static" / "index.html").read_text(encoding="utf-8")
     js = (ROOT / "bbtool" / "app" / "static" / "level-up.js").read_text(encoding="utf-8")
@@ -245,6 +336,7 @@ def test_level_up_static_contract_preserves_scan_decision_explain_and_responsive
     assert "renderRoleContext(decision)" in js
     assert "renderPrimaryPreview(decision.primary)" in js
     assert "renderRolls(decision)" in js
+    assert "BrotherViews.renderLevelUp(decision)" in js
     assert "renderGamble(decision.gamble)" in js
     assert "innerHTML" not in js
     assert "ChanceToBeatPrimaryPct" not in js
