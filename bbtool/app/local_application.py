@@ -303,6 +303,12 @@ class LocalApplication:
             changes = result.get("changes") or (
                 [result["change"]] if result.get("change") is not None else []
             )
+            # The durable write is authoritative. Prevent any pre-mutation desired
+            # generation from remaining current/coalescing with an explicit refresh;
+            # the old publication can still supply intrinsic data while intent-aware
+            # consumers expose staleness until the refreshed generation publishes.
+            if changes:
+                self._invalidate_publication("assigned_build_changed")
             refresh_errors = []
             if self._assigned_build_changed is not None:
                 for change in changes:
