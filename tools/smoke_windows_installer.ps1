@@ -21,9 +21,11 @@ $startupShortcut = Join-Path ([Environment]::GetFolderPath("Startup")) "BB Save 
 $exe = Join-Path $installRoot "BB-Save-Toolkit.exe"
 
 function Invoke-Installer {
-    & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="autostart"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Installer exited with code $LASTEXITCODE"
+    $process = Start-Process -FilePath $installer -ArgumentList @(
+        "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/TASKS=autostart"
+    ) -Wait -PassThru
+    if ($process.ExitCode -ne 0) {
+        throw "Installer exited with code $($process.ExitCode)"
     }
     if (-not (Test-Path $exe)) {
         throw "Installed executable is missing."
@@ -64,9 +66,9 @@ function Start-App {
 
 function Stop-App {
     if (Test-Path $exe) {
-        & $exe stop
-        if ($LASTEXITCODE -ne 0) {
-            throw "Installed application stop command failed with code $LASTEXITCODE"
+        $process = Start-Process -FilePath $exe -ArgumentList "stop" -Wait -PassThru
+        if ($process.ExitCode -ne 0) {
+            throw "Installed application stop command failed with code $($process.ExitCode)"
         }
     }
 }
@@ -202,8 +204,10 @@ $uninstaller = Join-Path $installRoot "unins000.exe"
 if (-not (Test-Path $uninstaller)) {
     throw "Uninstaller is missing."
 }
-& $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-if ($LASTEXITCODE -ne 0) {
+$process = Start-Process -FilePath $uninstaller -ArgumentList @(
+    "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"
+) -Wait -PassThru
+if ($process.ExitCode -ne 0) {
     throw "Uninstaller failed while preserving user data."
 }
 if (-not (Test-Path $userStateRoot)) {
@@ -212,8 +216,10 @@ if (-not (Test-Path $userStateRoot)) {
 
 Invoke-Installer
 $uninstaller = Join-Path $installRoot "unins000.exe"
-& $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DELETEUSERDATA
-if ($LASTEXITCODE -ne 0) {
+$process = Start-Process -FilePath $uninstaller -ArgumentList @(
+    "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DELETEUSERDATA"
+) -Wait -PassThru
+if ($process.ExitCode -ne 0) {
     throw "Uninstaller failed while deleting user data."
 }
 if (Test-Path $userStateRoot) {
