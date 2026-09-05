@@ -37,6 +37,40 @@ def _catalog(revision=0):
     }
 
 
+def _catalog_conflict(revision=7):
+    error = "entries[0].base_definition_hash conflicts with the current shipped definition for bf_tank"
+    return {
+        "revision": revision,
+        "roles": [],
+        "definition_hashes": {},
+        "provenance": {},
+        "user_entries": [
+            {
+                "kind": "override",
+                "id": "bf_tank",
+                "base_definition_hash": "sha256:old-base",
+                "patch": {"name": "Old BF Tank Override"},
+            }
+        ],
+        "catalog_conflict": {
+            "code": "shipped_user_entry_conflict",
+            "errors": [error],
+            "entries": [
+                {
+                    "entry_index": 0,
+                    "id": "bf_tank",
+                    "kind": "override",
+                    "reason": "base_definition_changed",
+                    "recovery_operation": "reset_base",
+                    "errors": [error],
+                    "persisted_base_definition_hash": "sha256:old-base",
+                    "current_base_definition_hash": "sha256:base",
+                }
+            ],
+        },
+    }
+
+
 def _data(value):
     return json.dumps({"data": value}, sort_keys=True).encode("utf-8")
 
@@ -122,7 +156,10 @@ window.addEventListener('unhandledrejection', (event) => window.__localErrors.pu
 """
             self._send(
                 200,
-                bootstrap + (STATIC / "app.js").read_bytes(),
+                bootstrap
+                + (STATIC / "app.js").read_bytes()
+                + b"\n"
+                + (STATIC / "catalog_recovery.js").read_bytes(),
                 "text/javascript; charset=utf-8",
             )
             return
@@ -231,6 +268,20 @@ window.addEventListener('unhandledrejection', (event) => window.__localErrors.pu
                     catalog["roles"].insert(0, base)
                     catalog["provenance"][identity] = "base"
                     catalog["definition_hashes"][identity] = "sha256:base"
+            elif operation == "reset-base":
+                identity = payload["id"]
+                catalog["user_entries"] = [
+                    entry
+                    for entry in catalog["user_entries"]
+                    if not (
+                        entry.get("id") == identity
+                        and entry.get("kind") in {"override", "disabled"}
+                    )
+                ]
+                catalog.pop("catalog_conflict", None)
+                catalog["roles"] = [_base_role()]
+                catalog["provenance"] = {"bf_tank": "base"}
+                catalog["definition_hashes"] = {"bf_tank": "sha256:base"}
             elif operation == "import":
                 imported = json.loads(payload["document"])
                 if not payload.get("merge"):
@@ -460,4 +511,48 @@ def test_archetype_mutations_use_revisions_and_conflicts_reload_authority(browse
     rows = browser.find_elements(By.CSS_SELECTOR, "#local-archetype-list .coverage-card")
     assert any("BF Tank Copy" in row.text for row in rows)
     assert any("Disabled shipped build" in row.text for row in rows)
+    _assert_no_js_errors(browser)
+
+
+def test_stale_shipped_override_reload_renders_revision_checked_reset(browser, surface_server):
+    server, base_url = surface_server
+    server.preferences = {
+        "revision": 1,
+        "selected_path": r"C:\Users\Player\Documents\Battle Brothers\savegames\company.sav",
+        "auto_refresh": False,
+    }
+    server.save_available = True
+    server.catalog = _catalog_conflict(revision=7)
+    server.posts = []
+    server.followed_status = "current"
+    server.result = {"available": True, "freshness": {"status": "current"}}
+
+    browser.get(f"{base_url}/#company")
+    _open_dialog(browser)
+    _wait(browser, "return document.querySelector('[data-catalog-recovery]') !== null")
+    assert "authoritative revision 7" in browser.find_element(By.ID, "local-archetype-summary").text.lower()
+    recovery_row = browser.find_element(By.CSS_SELECTOR, "[data-catalog-recovery]")
+    assert "BF Tank" not in recovery_row.text
+    assert "bf_tank" in recovery_row.text
+    assert "Base Definition Changed" in recovery_row.text
+
+    browser.refresh()
+    _open_dialog(browser)
+    _wait(browser, "return document.querySelector('[data-catalog-recovery]') !== null")
+    assert "authoritative revision 7" in browser.find_element(By.ID, "local-archetype-summary").text.lower()
+
+    assert _click_role_action(browser, "Shipped build conflict", "Reset shipped")
+    WebDriverWait(browser, 5).until(lambda _current: server.catalog["revision"] == 8)
+    reset_posts = [
+        payload
+        for path, payload in server.posts
+        if path == "/api/v1/archetypes/reset-base"
+    ]
+    assert len(reset_posts) == 1
+    assert reset_posts[0] == {"id": "bf_tank", "expected_revision": 7}
+
+    _wait(browser, "return !document.querySelector('[data-catalog-recovery]') && [...document.querySelectorAll('#local-archetype-list .coverage-card')].some((row) => row.textContent.includes('BF Tank'))")
+    assert "catalog revision 8" in browser.find_element(By.ID, "local-archetype-summary").text.lower()
+    assert "catalog_conflict" not in server.catalog
+    assert server.catalog["user_entries"] == []
     _assert_no_js_errors(browser)
