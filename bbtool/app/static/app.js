@@ -657,7 +657,12 @@ function populateAssignmentSelect(brother) {
 function renderBrother(brotherId, section = 'current') {
   const brother = brotherById(brotherId);
   if (!brother) {
-    if (state.companyData?.available) history.replaceState(null, '', '#company');
+    if (state.companyData?.available) {
+      history.replaceState(null, '', '#company');
+      document.getElementById('brother-view').hidden = true;
+      document.getElementById('company-view').hidden = false;
+      renderCompany();
+    }
     return;
   }
   document.getElementById('company-view').hidden = true;
@@ -727,10 +732,11 @@ async function loadCompanyData() {
 
 async function refreshAnalysisAfterAssignment() {
   const preferences = await fetchData('/api/v1/followed-save');
-  if (!preferences.selected_path) return;
+  if (!preferences.selected_path) return false;
   await postData('/api/v1/analysis/jobs', {
     expected_preferences_revision: preferences.revision,
   });
+  return true;
 }
 
 async function changeAssignedBuild() {
@@ -746,6 +752,7 @@ async function changeAssignedBuild() {
   populateAssignmentSelect(brother);
   const status = document.getElementById('assignment-status');
   status.textContent = 'Saving Assigned Build…';
+  let feedback = null;
   try {
     const operation = requested ? (old.build_identity ? 'change' : 'assign') : 'clear';
     const payload = {
@@ -762,10 +769,17 @@ async function changeAssignedBuild() {
     }
     renderFreshness();
     renderPlanning();
-    await refreshAnalysisAfterAssignment();
-    status.textContent = `${assignmentLabel(result.assignment)} · saved; refreshing intent-aware analysis`;
+
+    try {
+      const started = await refreshAnalysisAfterAssignment();
+      feedback = started
+        ? `${assignmentLabel(result.assignment)} · saved; refreshing intent-aware analysis`
+        : `${assignmentLabel(result.assignment)} · saved; no selected save is available to refresh`;
+    } catch (refreshError) {
+      feedback = `${assignmentLabel(result.assignment)} · saved; refresh could not start: ${refreshError.message}`;
+    }
   } catch (error) {
-    status.textContent = error.code === 'state_revision_conflict'
+    feedback = error.code === 'state_revision_conflict'
       ? 'Assigned Build changed elsewhere; reloading current state.'
       : `Assigned Build was not changed: ${error.message}`;
     await loadCompanyData();
@@ -773,6 +787,7 @@ async function changeAssignedBuild() {
     state.mutatingAssignment = false;
     const current = brotherById(route.brotherId);
     if (current) populateAssignmentSelect(current);
+    if (feedback) status.textContent = feedback;
   }
 }
 
