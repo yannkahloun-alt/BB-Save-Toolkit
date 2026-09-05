@@ -16,6 +16,7 @@ from .archetype_catalog import (
     CatalogValidationError,
 )
 from .config import load_config
+from .health import build_public_analysis_health
 from .local_application import ApplicationOperationError, LocalApplication
 from .telemetry import TOOLKIT_VERSION
 from .user_state import (
@@ -29,17 +30,7 @@ from .user_state import (
 API_SCHEMA = "bbtool.local-api.v1"
 MAX_REQUEST_BYTES = 256 * 1024
 LOOPBACK_HOST = "127.0.0.1"
-
-_INDEX = b"""<!doctype html><html><head><meta charset=\"utf-8\">
-<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-<title>Battle Brothers Save Toolkit</title></head><body>
-<main><h1>Battle Brothers Save Toolkit</h1><p id=\"status\">Starting local application...</p></main>
-<script src=\"/app.js\"></script></body></html>"""
-_SCRIPT = b"""'use strict';
-fetch('/api/v1/health', {credentials: 'same-origin'}).then(r => r.json()).then(v => {
-  document.getElementById('status').textContent = `Local service ready (v${v.data.toolkit_version}).`;
-}).catch(() => { document.getElementById('status').textContent = 'Local service unavailable.'; });
-"""
+_STATIC_ROOT = Path(__file__).with_name("static")
 
 
 @dataclass(frozen=True)
@@ -54,6 +45,11 @@ def _json_response(status: int, payload: dict[str, Any]) -> HttpResponse:
         status,
         json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8"),
     )
+
+
+def _static_response(name: str, content_type: str) -> HttpResponse:
+    """Serve one fixed application asset; request paths never map to disk."""
+    return HttpResponse(200, (_STATIC_ROOT / name).read_bytes(), content_type)
 
 
 class LocalApplicationApi:
@@ -76,9 +72,11 @@ class LocalApplicationApi:
         try:
             self._validate_host(headers)
             if method == "GET" and path == "/":
-                return HttpResponse(200, _INDEX, "text/html; charset=utf-8")
+                return _static_response("index.html", "text/html; charset=utf-8")
+            if method == "GET" and path == "/app.css":
+                return _static_response("app.css", "text/css; charset=utf-8")
             if method == "GET" and path == "/app.js":
-                return HttpResponse(200, _SCRIPT, "text/javascript; charset=utf-8")
+                return _static_response("app.js", "text/javascript; charset=utf-8")
             if method == "GET" and path == "/api/v1/session":
                 return self._ok({"token": self.token})
             if method == "GET" and path == "/api/v1/health":
@@ -86,6 +84,8 @@ class LocalApplicationApi:
                     "status": "ok", "toolkit_version": TOOLKIT_VERSION,
                     "api_schema": API_SCHEMA, "bind": LOOPBACK_HOST,
                 })
+            if method == "GET" and path == "/api/v1/shell":
+                return self._ok(self._shell_state())
             if method == "GET" and path == "/api/v1/followed-save":
                 return self._ok(self.application.followed_save())
             if method == "GET" and path == "/api/v1/archetypes":
@@ -167,6 +167,85 @@ class LocalApplicationApi:
             # Keep the bounded service alive without reflecting private internal
             # payloads or filesystem details to the browser.
             return self._error(500, "internal_error", "the application operation failed")
+
+    def _shell_state(self) -> dict[str, Any]:
+        """Compose a least-privilege shell snapshot from authoritative state."""
+        followed = self.application.followed_save()
+        watcher = followed.get("freshness", {})
+        followed_freshness = {
+            "status": watcher.get("status", "unavailable"),
+        }
+        if "reason" in watcher:
+            followed_freshness["reason"] = watcher["reason"]
+        followed_save = {
+            "name": followed.get("name"),
+            "available": bool(followed.get("available")),
+            "freshness": followed_freshness,
+        }
+
+        desired_job_id = self.application.coordinator.desired_job_id
+        active_job = None
+        if desired_job_id is not None:
+            try:
+                # The authoritative job read also performs the existing
+                # publication-persistence bookkeeping when a worker completes.
+                job = self.application.analysis_job(desired_job_id)
+                progress = job.get("progress") or []
+                latest = progress[-1] if progress else None
+                active_job = {
+                    "id": job["id"],
+                    "status": job["status"],
+                    "progress": {
+                        "completed_count": len(progress),
+                        "latest_stage": latest.get("stage") if latest else None,
+                        "latest_status": latest.get("status") if latest else None,
+                    },
+                }
+            except ApplicationOperationError as exc:
+                if exc.code != "job_not_found":
+                    raise
+
+        publication = self.application.coordinator.last_success
+        analysis_health = None
+        if publication is None:
+            result_status = {
+                "available": False,
+                "freshness": followed_freshness,
+            }
+        else:
+            diagnostics = getattr(publication.result, "diagnostics", {}) or {}
+            analysis_health = build_public_analysis_health(
+                diagnostics.get("run_health", {})
+            )
+            freshness = {
+                "status": (
+                    "current"
+                    if publication.job_id == desired_job_id
+                    else "stale"
+                ),
+            }
+            desired_source = watcher.get("desired_source_fingerprint")
+            if (
+                desired_source is not None
+                and desired_source != publication.source_fingerprint
+            ):
+                freshness["status"] = "stale"
+                freshness["reason"] = "selected_save_content_changed"
+            elif watcher.get("status") in {
+                "detected", "stabilizing", "queued", "analyzing",
+                "failed", "unavailable",
+            }:
+                freshness["status"] = watcher["status"]
+                if "reason" in watcher:
+                    freshness["reason"] = watcher["reason"]
+            result_status = {"available": True, "freshness": freshness}
+
+        return {
+            "followed_save": followed_save,
+            "result": result_status,
+            "analysis_health": analysis_health,
+            "active_job": active_job,
+        }
 
     def _validate_host(self, headers: Mapping[str, str]) -> None:
         authority = self.origin.split("//", 1)[1]
