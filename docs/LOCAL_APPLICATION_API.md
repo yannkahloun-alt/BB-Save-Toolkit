@@ -94,9 +94,13 @@ intent mutation becomes visible immediately; if that intent differs from the
 publication used for Company intended coverage, the response marks
 `company.intent_fresh=false` until refreshed analysis publishes. The endpoint
 also exposes the AssignedBuild revision and exact campaign/entity mutation
-address only when authoritative identity evidence exists. It does not expose
-FutureRolls, source/configuration fingerprints, filesystem paths, or diagnostic
-samples.
+address only when authoritative identity evidence exists. The UI read model
+keeps BuildIdentity and display/status semantics but deliberately strips
+BuildDefinitionHash / ArtifactSignature metadata and AssignedBuild definition
+hashes, because those validity fingerprints are internal analytical provenance
+and are not required by the Company/Brother frontend. It also does not expose
+FutureRolls, source/configuration/artifact fingerprints, filesystem paths,
+diagnostic samples, save bytes, or generic durable state.
 
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a
