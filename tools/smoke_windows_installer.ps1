@@ -13,12 +13,81 @@ if (-not $IsWindows) {
 
 $installer = (Resolve-Path $InstallerPath).Path
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$fixture = (Resolve-Path (Join-Path $repoRoot "tests\fixtures\full_preview\reference-save.sav")).Path
+$fixtureRoot = Join-Path $env:TEMP "BB-Save-Toolkit-smoke"
+$fixture = Join-Path $fixtureRoot "synthetic-smoke.sav"
 $installRoot = Join-Path $env:LOCALAPPDATA "Programs\BB-Save-Toolkit"
 $userStateRoot = Join-Path $env:LOCALAPPDATA "BB-Save-Toolkit"
 $runtimeFile = Join-Path $env:TEMP "BB-Save-Toolkit\runtime.json"
 $startupShortcut = Join-Path ([Environment]::GetFolderPath("Startup")) "BB Save Toolkit.lnk"
 $exe = Join-Path $installRoot "BB-Save-Toolkit.exe"
+
+function New-SyntheticSmokeSave {
+    New-Item -ItemType Directory -Force -Path $fixtureRoot | Out-Null
+    $env:BBST_SMOKE_FIXTURE = $fixture
+    @'
+import os
+import struct
+from pathlib import Path
+from bbtool.save_parser import BROTHER_SIGNATURE
+
+
+def lp(value: str) -> bytes:
+    raw = value.encode("utf-8")
+    return struct.pack("<H", len(raw)) + raw
+
+
+def identity_blob(name="Synthetic Smoke Brother", level=2, points=1):
+    head = lp(name) + lp("")
+    q = len(head)
+    data = bytearray(head + b"\0" * 80)
+    struct.pack_into("<f", data, q, 0.0)
+    struct.pack_into("<I", data, q + 4, 100)
+    data[q + 14] = level
+    data[q + 15] = 1
+    data[q + 16] = 0
+    data[q + 17] = points
+    return bytes(data), q + 18
+
+
+def star_and_roll_tail():
+    stats = ("HP", "Resolve", "Fatigue", "Initiative", "MAtk", "RAtk", "MDef", "RDef")
+    data = bytearray()
+    data += struct.pack("<f", 0.0)
+    data += bytes([0])
+    data += b"\0" * 8
+    data += bytes((0, 1, 2, 3, 0, 1, 2, 3))
+    for _ in stats:
+        data += bytes([2, 2, 3])
+    return bytes(data)
+
+
+def build_record():
+    signature_offset = 100
+    human_offset = 160
+    data = bytearray(b"\0" * 1200)
+    data[signature_offset:signature_offset + len(BROTHER_SIGNATURE)] = BROTHER_SIGNATURE
+    data[signature_offset - 19] = 1
+    data[human_offset:human_offset + 5] = b"human"
+    ap_offset = human_offset + 10
+    data[ap_offset] = 9
+    values = (60, 40, 100, 60, 40, 5, 5, 100)
+    for index, value in enumerate(values):
+        struct.pack_into("<h", data, ap_offset + 1 + 2 * index, value)
+    identity_start = ap_offset + 17 + 20
+    identity, meta_relative = identity_blob()
+    data[identity_start:identity_start + len(identity)] = identity
+    meta_end = identity_start + meta_relative
+    tail = star_and_roll_tail()
+    data[meta_end:meta_end + len(tail)] = tail
+    return bytes(data)
+
+
+Path(os.environ["BBST_SMOKE_FIXTURE"]).write_bytes(build_record())
+'@ | python -
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $fixture)) {
+        throw "Failed to create deterministic synthetic smoke save."
+    }
+}
 
 function Invoke-Installer {
     $process = Start-Process -FilePath $installer -ArgumentList @(
@@ -133,6 +202,7 @@ function Assert-PersistedState {
 if (Test-Path $userStateRoot) {
     throw "Smoke validation requires a clean user-state root: $userStateRoot"
 }
+New-SyntheticSmokeSave
 
 Invoke-Installer
 $first = Start-App
@@ -147,10 +217,10 @@ if ([int]$duplicate.Runtime.pid -ne $firstPid) {
 
 $token = Get-Session -Origin $firstOrigin
 
-# Keep the installed-runtime smoke deterministic and bounded while still using
-# the approved real .sav and the production worker/analysis path. Create one
-# durable custom build, then disable all shipped builds so the analysis performs
-# a single real role projection instead of the full expensive preview matrix.
+# Persist one custom build and reduce the effective catalog to it. Combined with
+# the deterministic one-brother/zero-recruit synthetic save, this exercises the
+# real installed parser -> worker -> analysis service -> publication path while
+# keeping installer CI bounded and independent of the expensive full preview.
 $catalog = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/archetypes" -TimeoutSec 5).data
 if (@($catalog.roles).Count -lt 1) {
     throw "Installed archetype catalog is empty."
@@ -196,7 +266,7 @@ $preferencesRevision = [int]$selected.revision
 $jobResponse = Request-AnalysisWhenStable -Origin $firstOrigin -Token $token `
     -PreferencesRevision $preferencesRevision
 $jobId = [int]$jobResponse.data.id
-$deadline = [DateTime]::UtcNow.AddMinutes(10)
+$deadline = [DateTime]::UtcNow.AddMinutes(5)
 $jobStatus = ""
 $reportedStatus = ""
 while ([DateTime]::UtcNow -lt $deadline) {
@@ -215,7 +285,11 @@ while ([DateTime]::UtcNow -lt $deadline) {
     Start-Sleep -Seconds 1
 }
 if ($jobStatus -ne "succeeded") {
-    throw "Installed analysis job did not complete within 10 minutes (last status: $jobStatus)."
+    throw "Installed analysis job did not complete within 5 minutes (last status: $jobStatus)."
+}
+$result = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/analysis/result" -TimeoutSec 10).data
+if (-not $result.available) {
+    throw "Installed analysis completed without a published result."
 }
 
 Stop-App
@@ -256,4 +330,5 @@ if (Test-Path $userStateRoot) {
     throw "Explicit /DELETEUSERDATA uninstall did not remove user-owned state."
 }
 
+Remove-Item -Recurse -Force $fixtureRoot -ErrorAction SilentlyContinue
 Write-Output "Windows installer smoke validation passed."
