@@ -29,11 +29,14 @@ The Windows package uses:
    `%LOCALAPPDATA%\BB-Save-Toolkit\`, which remains outside the installation
    directory and is preserved across repair/update by design.
 
-The reference caches are generated from the repository-pinned immutable source
-revisions during packaging and bundled into the application. They remain
-untracked/reproducible build inputs; they are not committed to the repository.
-An installed normal analysis therefore starts with validated references already
-present instead of requiring a first-run reference download.
+Before packaging, the build removes the generated runtime-cache paths and
+regenerates every required cache from the repository-pinned immutable source
+revisions. It therefore does not trust or package a pre-existing developer,
+worktree, bootstrap, or legacy tracked generated cache merely because its schema
+looks valid. PyInstaller then bundles the newly generated caches into the
+application. An installed normal analysis therefore starts with complete,
+validated references already present instead of requiring a first-run reference
+download.
 
 The installed executable is built as a **windowed** executable. Start Menu and
 startup shortcuts therefore do not create a terminal window.
@@ -94,7 +97,7 @@ python -m pip install -r packaging\windows\requirements.txt
 .\tools\build_windows_installer.ps1 -Version 3.89.0
 ```
 
-The build script validates/generates all required reference caches, invokes the
+The build script cleanly regenerates all required reference caches, invokes the
 PyInstaller spec, locates `ISCC.exe`, and writes:
 
 ```text
