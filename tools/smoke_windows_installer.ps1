@@ -209,6 +209,52 @@ function Assert-PersistedState {
     }
 }
 
+function Assert-InstalledDisplayedReport {
+    param([string]$Origin)
+
+    $browserCandidates = @(
+        (Join-Path ${env:ProgramFiles(x86)} "Microsoft\Edge\Application\msedge.exe"),
+        (Join-Path $env:ProgramFiles "Google\Chrome\Application\chrome.exe"),
+        (Join-Path ${env:ProgramFiles(x86)} "Google\Chrome\Application\chrome.exe")
+    )
+    $browser = $browserCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $browser) {
+        throw "Installed display smoke requires the GitHub Actions Chromium browser."
+    }
+
+    $profile = Join-Path $env:TEMP "BB-Save-Toolkit-smoke-browser-$PID"
+    Remove-Item -Recurse -Force $profile -ErrorAction SilentlyContinue
+    try {
+        $dom = & $browser `
+            "--headless=new" `
+            "--disable-gpu" `
+            "--disable-background-networking" `
+            "--disable-component-update" `
+            "--disable-default-apps" `
+            "--disable-sync" `
+            "--metrics-recording-only" `
+            "--no-first-run" `
+            "--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1" `
+            "--user-data-dir=$profile" `
+            "--virtual-time-budget=5000" `
+            "--dump-dom" `
+            "$Origin/#company" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Headless browser failed while rendering the installed application."
+        }
+        $html = $dom -join "`n"
+        if ($html -notmatch [regex]::Escape("Synthetic Smoke Brother")) {
+            throw "Installed application result did not reach the displayed Company report."
+        }
+        if ($html -notmatch [regex]::Escape("Packaging Smoke Build")) {
+            throw "Displayed Company report did not contain the installed analysis archetype."
+        }
+    }
+    finally {
+        Remove-Item -Recurse -Force $profile -ErrorAction SilentlyContinue
+    }
+}
+
 if (Test-Path $userStateRoot) {
     throw "Smoke validation requires a clean user-state root: $userStateRoot"
 }
@@ -301,6 +347,7 @@ $result = (Invoke-RestMethod -Uri "$firstOrigin/api/v1/analysis/result" -Timeout
 if (-not $result.available) {
     throw "Installed analysis completed without a published result."
 }
+Assert-InstalledDisplayedReport -Origin $firstOrigin
 
 Stop-App
 $restarted = Start-App
