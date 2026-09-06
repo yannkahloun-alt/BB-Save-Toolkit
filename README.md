@@ -16,7 +16,8 @@ Start with:
 - `docs/TESTING.md` — required quality gates;
 - `docs/target-ui/README.md` — validated Target UI product contract and
   repository-local implementation references;
-- `docs/specs/REMAINING_WORK_v3.84.md` — current open roadmap.
+- `docs/CURRENT_WORK.md` — compact orientation snapshot; live GitHub remains authoritative;
+- `docs/specs/REMAINING_WORK_v3.84.md` — historical v3.84 remaining-work baseline, not the current backlog.
 
 ## Run the analyzer
 
@@ -102,10 +103,12 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 .\run_ruff.ps1 -Tests
 ```
 
-Pull requests targeting `main` run those three gates in GitHub Actions.
-Branch protection should require the checks `tests`, `ruff`, and `pyflakes`;
-see `docs/GITHUB_BRANCH_PROTECTION.md`. Coverage remains available as an
-explicit local validation and pre-release gate while its runtime is optimized.
+Pull requests targeting `main` run those three gates in GitHub Actions. They
+are operational merge guards verified against the exact current PR head;
+GitHub-hosted branch protection/rulesets are intentionally not configured for
+this repository. See `docs/GITHUB_BRANCH_PROTECTION.md`. Coverage remains
+available as an explicit local validation and pre-release gate while its
+runtime is optimized.
 
 Pre-release validation additionally runs the complete suite (including
 `coverage_slow`) and targeted mutation testing:

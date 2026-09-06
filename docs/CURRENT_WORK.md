@@ -11,39 +11,40 @@ BB-Save-Toolkit currently pins the shared `codex-agent-workflow` release:
 - tag: `v1.1.3`
 - commit: `ff0647d3dc205a47734d569ae5247ee4ba9109e9`
 
-For orientation only, the current shared lifecycle means routine CI-equivalent automated validation is CI-owned, one named ticket owns one implementation PR, fixes and review generations reuse that PR, fresh read-only subagent review is required when available, and a changed implementation head requires fresh exact-head CI and review evidence.
+For orientation only, the pinned shared lifecycle means routine CI-equivalent automated validation is CI-owned, one named ticket owns one implementation PR, fixes and review generations reuse that PR, fresh read-only subagent review is required when available, and a changed implementation head requires fresh exact-head CI and review evidence.
 
 The pinned `.agent-workflow` plus repository policy remain authoritative for the full workflow contract.
 
-## Recently completed critical-path work
+## Completed product milestone
 
-The Target presentation-data foundation is complete:
-
-- #174 completed through PR #177, squash-merged as `4942715c3d9601af283d6d95701be3224b5431ff`;
-- umbrella #106 is closed;
-- the backend Target presentation contract carries resolved AssignedBuild state, intrinsic and intent-aware Company planning, the evolved Level-Up Advisor payload, Relevant Roster Need, and result-local validity/provenance needed by the Target UI.
-
-Workflow adoption #178 is also complete through PR #179, squash-merged as `f9bb99df33a1dae2e4810595e08bca9577f10567`. `main` pins shared workflow v1.1.3.
-
-The local-first Target UI and delivery critical path is now complete:
+The local-first Target UI and delivery critical path is complete:
 
 - #114, #115, #116, and #117 completed the shared shell plus Company/Brother, Level Up, and Recruitment workspaces;
 - UI umbrella #100 is closed;
 - Windows delivery #101 is closed;
-- integrated correctness, freshness, recovery, and privacy gates #102 are closed through PR #191, whose squash merge is `06d21641335af4bd8639581c215db34d982bf2b6`;
-- umbrella #93 is the completed local-first web-application milestone and closes with this transition.
+- integrated correctness, freshness, recovery, and privacy gates #102 are closed through PR #191, squash-merged as `06d21641335af4bd8639581c215db34d982bf2b6`;
+- umbrella #93 is closed through PR #193, squash-merged as `cb94fdaafded4f743f9aa6856d9bc8dd54077473`.
 
-## Current product critical path
+There is no remaining implementation sequence under #93 and this file does not claim or reserve a next implementation ticket.
 
-There is no remaining implementation sequence under #93. The local-first web application, validated Target UI, Windows delivery, and integrated quality gate have reached their planned milestone boundary.
+## Intentionally remaining backlog
 
-Open research or future-capability issues must be selected from live GitHub state only after checking their prerequisites and required evidence. In particular, recruit/history work (#71, #80, #84, #78, #113), the in-game Advisor track (#69, #124), and usable-fatigue follow-up #90 are not a continuation of the completed Target UI critical path merely because they remain open.
+The open backlog after the milestone is intentionally not empty. These items are studies, conditional work, or future capability tracks and must be selected only after live prerequisite/evidence reconciliation:
 
-This file does not claim or reserve the next ticket.
+- #69 — future in-game Level Advisor feasibility/integration track. Source/UI hook feasibility is established, while the production transport choice still depends on the actual in-game loopback evidence in #124.
+- #124 — technical spike requiring the real Battle Brothers embedded browser plus Modern Hooks; repository-only work cannot substitute for the required runtime/CORS evidence.
+- #71 — recruit freshness feasibility study. Source evidence identifies exact settlement-pool `LastRosterUpdate` semantics, but parser/offset and controlled real-save validation remain study evidence before shipping behavior.
+- #84 — conditional recruit/recruit-pool cross-save identity study; needed only if #71 ultimately requires historical identity stronger than the exact single-save pool freshness signal.
+- #80 — save lineage study. Campaign identity (#79) is resolved, but controlled linear and rollback/fork real-save evidence is still required; ancestry must remain unknown when not proven.
+- #78 — historical change-summary study. Campaign/brother identity prerequisites are resolved, but safe `previous` semantics still depend on #80 lineage evidence.
+- #113 — conditional recruitment observation/freshness implementation; do not start until #71/#84 establish the supported semantics and prerequisites.
+- #90 — intentionally future, non-blocking fatigue-viability investigation only.
+
+These open issues are not unfinished work in the completed #93 Target UI milestone merely because they remain open.
 
 ## Release direction
 
-The next meaningful release direction remains v3.89 with the actual local Target UI rather than an infrastructure-only release. The implementation baseline for that direction now exists, but release preparation, validation, tagging, and publication remain a separately authorized release lifecycle.
+The next meaningful release direction remains v3.89 with the actual local Target UI rather than an infrastructure-only release. The implementation baseline for that direction exists, but release preparation, validation, tagging, and publication remain a separately authorized release lifecycle.
 
 The validated analytical navigation is:
 
