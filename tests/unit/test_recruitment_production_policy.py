@@ -1,7 +1,9 @@
 from types import SimpleNamespace
+import threading
 
 import bbtool.app.analysis_service as service
 import bbtool.app.target_presentation as target_presentation
+from bbtool.app import recruitment_view
 from bbtool.app.analysis import AnalysisResult
 from bbtool.app.recruitment_policy import RECRUITMENT_PRIOR_DISABLED_REASON
 
@@ -104,4 +106,86 @@ def test_production_analysis_does_not_run_background_archetype_prior(monkeypatch
     assert recruitment_event.details == {
         "recruits": 86,
         "analytical_potential": "disabled_pending_validation",
+    }
+
+
+def test_disabled_potential_keeps_player_facing_relevant_need_unavailable(monkeypatch):
+    presentation = {
+        "builds": [{
+            "build_identity": "bf_tank",
+            "display_name": "BF Tank",
+            "build_definition_hash": "sha256:build",
+        }],
+        "recruitment": [{
+            "recruit_index": 0,
+            "background_save_hash": "DEADBEEF",
+            "analyses": [{
+                "build_identity": "bf_tank",
+                "state": "unavailable",
+                "reason": RECRUITMENT_PRIOR_DISABLED_REASON,
+                "result": None,
+            }],
+        }],
+        "relevant_roster_need": [{
+            "recruit_index": 0,
+            "state": "available",
+            "result": {
+                "relevant_need": None,
+                "relevant_need_matches": [],
+                "other_company_gaps": [{
+                    "build_identity": "bf_tank",
+                    "need_bases": ["assigned_but_no_viable_holder"],
+                    "assigned_viable_count": 0,
+                    "free_viable_backup_count": 0,
+                    "contested_viable_backup_count": 0,
+                    "candidate_plausible": False,
+                }],
+            },
+        }],
+    }
+    monkeypatch.setattr(
+        recruitment_view, "build_target_presentation", lambda **_kwargs: presentation
+    )
+    result = SimpleNamespace(
+        roster=[],
+        recruits=[{}],
+        roles=[],
+        campaign_identity=None,
+        brother_identities={},
+        source_fingerprint="sha256:source",
+        configuration_fingerprints={},
+        recruitment_analysis=[],
+        assigned_builds={},
+        diagnostics={},
+        incremental_cache=SimpleNamespace(publication_signatures=lambda: {}),
+        analysis=SimpleNamespace(
+            company_intrinsic_coverage=[], company_intended_coverage=[], summaries=[]
+        ),
+        public_data={"recruits": [{
+            "Name": "Candidate",
+            "Title": "",
+            "Background": "Farmhand",
+            "Level": 1,
+            "Settlement": "Town",
+            "HireCost": 300,
+            "DailyWage": 6,
+            "TryoutDone": False,
+        }]},
+    )
+    application = SimpleNamespace(
+        _command_lock=threading.RLock(),
+        coordinator=SimpleNamespace(
+            last_success=SimpleNamespace(generation=1, job_id=2, result=result)
+        ),
+    )
+
+    payload = recruitment_view.build_recruitment_view(application)
+    candidate = payload["settlements"][0]["candidates"][0]
+
+    assert candidate["top_potential"] is None
+    assert candidate["relevant_need"] == {
+        "state": "unavailable",
+        "relevant": None,
+        "matches": [],
+        "other_company_gaps": [],
     }
