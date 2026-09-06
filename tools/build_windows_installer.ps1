@@ -23,7 +23,7 @@ if ($normalizedVersion -notmatch '^\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$') 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $specPath = Join-Path $repoRoot "packaging\windows\BB-Save-Toolkit.spec"
 $issPath = Join-Path $repoRoot "packaging\windows\BB-Save-Toolkit.iss"
-$requiredReferences = @(
+$generatedReferenceCaches = @(
     "dictionary.json",
     "backgrounds.json",
     "perk_effects.json",
@@ -34,11 +34,20 @@ $requiredReferences = @(
 
 Push-Location $repoRoot
 try {
+    # Packaging must not inherit a developer/worktree runtime cache. In particular,
+    # a schema-valid but partial/stale generated cache would otherwise cause
+    # ensure_references() to skip regeneration and PyInstaller would ship it.
+    # Remove only the documented generated caches, then rebuild all of them from
+    # the repository-pinned immutable sources before collecting package data.
+    foreach ($name in $generatedReferenceCaches) {
+        Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $repoRoot "references\$name")
+    }
+
     python -c "from references.update_references import ensure_references; ensure_references(verbose=False)"
     if ($LASTEXITCODE -ne 0) {
         throw "Reference bundle generation failed."
     }
-    foreach ($name in $requiredReferences) {
+    foreach ($name in $generatedReferenceCaches) {
         if (-not (Test-Path (Join-Path $repoRoot "references\$name"))) {
             throw "Required generated reference is missing: $name"
         }
