@@ -187,12 +187,12 @@ def build_recruitment_view(application) -> dict[str, Any]:
                 if isinstance(item, Mapping)
             ]
             candidates.append({
-        "recruit_index": index,
-        "facts": facts,
-        "top_potential": _top_potential(potentials),
-        "potential": potentials,
-        "relevant_need": _relevant_need(need_by_index.get(index), builds),
-    })
+                "recruit_index": index,
+                "facts": facts,
+                "top_potential": _top_potential(potentials),
+                "potential": potentials,
+                "relevant_need": _relevant_need(need_by_index.get(index), builds),
+            })
 
         groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
         order = []

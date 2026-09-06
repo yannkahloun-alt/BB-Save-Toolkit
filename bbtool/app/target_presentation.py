@@ -422,22 +422,22 @@ def validate_target_presentation(
     if not isinstance(relevant, list) or [row.get("recruit_index") for row in relevant] != list(range(len(payload["recruitment"]))):
         raise ValueError("target presentation relevant need joins mismatch")
     for item, recruitment in zip(relevant, payload["recruitment"], strict=True):
-    if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
-        raise ValueError("target presentation relevant need is malformed")
-    candidate_available = _candidate_potential_available(recruitment["analyses"])
-    should_be_available = company["intent_available"] and candidate_available
-    if item["state"] == "available":
-        if not should_be_available:
+        if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
+            raise ValueError("target presentation relevant need is malformed")
+        candidate_available = _candidate_potential_available(recruitment["analyses"])
+        should_be_available = company["intent_available"] and candidate_available
+        if item["state"] == "available":
+            if not should_be_available:
+                raise ValueError("target presentation relevant need availability mismatch")
+            expected = build_relevant_roster_need(
+                recruitment["analyses"], company["intended_coverage"], viable_fit=.5,
+                company_intrinsic_coverage=company["intrinsic_coverage"],
+            )
+            if item["result"] != expected:
+                raise ValueError("target presentation relevant need generation mismatch")
+        elif item["state"] != "unavailable" or item["result"] is not None \
+                or should_be_available:
             raise ValueError("target presentation relevant need availability mismatch")
-        expected = build_relevant_roster_need(
-            recruitment["analyses"], company["intended_coverage"], viable_fit=.5,
-            company_intrinsic_coverage=company["intrinsic_coverage"],
-        )
-        if item["result"] != expected:
-            raise ValueError("target presentation relevant need generation mismatch")
-    elif item["state"] != "unavailable" or item["result"] is not None \
-            or should_be_available:
-        raise ValueError("target presentation relevant need availability mismatch")
 
 
 def _validate_identity(value: Any, *, brother: bool) -> int | None:
