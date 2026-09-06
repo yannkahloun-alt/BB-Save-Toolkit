@@ -5,6 +5,26 @@ for the persisted selected save. The loopback application starts it at process
 startup, so an existing selection is restored without changing its durable
 revision. Missing, locked, and unreadable files never clear the selected path.
 
+On Windows, the supported user-facing launchers initialize a first-run profile
+whose `preferences.json` does not yet exist to:
+
+```text
+<Windows Documents>\Battle Brothers\savegames\quicksave.sav
+```
+
+`Documents` is resolved through the current user's Windows known-folder setting,
+so configured redirection such as OneDrive-backed Documents is respected. The
+initial path is persisted even when `quicksave.sav` is not yet present; the
+normal `unavailable` state then reports that condition and the watcher can
+observe the same path if it appears later. No directory scan, newest-save guess,
+or alternative-save fallback is performed.
+
+A present preferences payload is always authoritative, including a persisted
+explicit selection and a persisted `selected_save_path = null` after a user
+forgets/resets the selection. The first-run default therefore never overwrites
+user state and never becomes save, campaign, brother, cache, or continuity
+identity.
+
 ## Detection and identity
 
 The watcher polls both the selected path and its parent directory. It reopens
