@@ -28,7 +28,7 @@ def test_run_metadata_records_reproducible_environment_and_hashes(tmp_path):
         telemetry.stop_resource_monitoring(started)
 
     assert metadata["format"] == "bbtool.run_metadata.v1"
-    assert metadata["toolkit_version"] == "3.89"
+    assert metadata["toolkit_version"] == "3.89.1"
     assert metadata["schemas"]["incremental_cache"] == "bb-incremental-v2"
     assert metadata["engines"] == {
         "role_projection": 7,
@@ -86,7 +86,7 @@ def test_run_header_and_resource_summary_are_compact(tmp_path, capsys):
 
     output = capsys.readouterr().out
     assert "Run metadata:" in output
-    assert "toolkit v3.89" in output
+    assert "toolkit v3.89.1" in output
     assert "single-process" in output
     assert "SHA-256" in output
     assert "engines role_projection=7 · advisor=6 · summary=7" in output
