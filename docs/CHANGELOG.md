@@ -588,9 +588,7 @@
 - Refactors full and fast role projection wrappers onto one shared payload builder; projection semantics and output values are unchanged.
 - Removes obsolete compatibility `**_ignored` parameters from active role-projection call paths.
 - Cleans the projection package public API so `project_fit_trajectory` is exported explicitly with the other trajectory entry points.
-- Renames the obsolete `exports.py` helper module to `formatting.py`.
-- Adds separate full/fast projection counters to profiling.
-- Preserves the existing full and fast projection behavior; no scoring-policy change is intended in this release.
+- Removes a malformed dead historical CSS selector and stale version-layer comments without changing active report styles.
 - Updates architecture/TODO housekeeping and adds a regression proving fast projection is an exact subset of full projection.
 
 # v3.23
@@ -937,8 +935,7 @@
 - Adds generated `references/perk_audit.json`, which reconciles every perk script
   found in the downloaded vanilla source against the model and reports any
   additional/unreviewed source perks.
-- Updates PERK_MODEL/TODO/reference docs to make the audit state and next action
-  unambiguous.
+- Updates PERK_MODEL/TODO/reference docs to make the audit state and next action unambiguous.
 
 ## v2.45 — BestRole perk exclusion ledger
 - Expands `docs/PERK_MODEL.md` with the perks reviewed during the manual audit.
