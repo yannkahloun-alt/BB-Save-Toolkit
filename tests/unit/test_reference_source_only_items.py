@@ -2,6 +2,7 @@ import io
 import json
 import zipfile
 
+from bbtool.save_parser import _fatigue_penalty
 from references import update_references as refs
 
 
@@ -29,7 +30,11 @@ function create(this)
 }
 """
     output = tmp_path / "dictionary.json"
-    stats = refs.build_reference_dictionary(output, bbedit_dictionary={}, scripts_archive=_archive({"scripts/items/weapons/exesword.nut": script}))
+    stats = refs.build_reference_dictionary(
+        output,
+        bbedit_dictionary={},
+        scripts_archive=_archive({"scripts/items/weapons/exesword.nut": script}),
+    )
     payload = json.loads(output.read_text(encoding="utf-8"))
     item = payload["entries"]["35A5074F"]
     assert stats["source_only_added"] == 1
@@ -41,6 +46,7 @@ function create(this)
     assert item["Value"] == 2900
     assert item["durability"] == 72
     assert item["fatigue"] == -12
+    assert _fatigue_penalty(item["fatigue"]) == 12
     assert item["ReferenceSource"] == "vanilla-script-source-only"
 
 
@@ -60,7 +66,11 @@ function create(this)
 """
     save_hash = refs.battle_brothers_save_hash("scripts/items/tools/test_bomb_item")
     output = tmp_path / "dictionary.json"
-    stats = refs.build_reference_dictionary(output, bbedit_dictionary={}, scripts_archive=_archive({"scripts/items/tools/test_bomb_item.nut": script}))
+    stats = refs.build_reference_dictionary(
+        output,
+        bbedit_dictionary={},
+        scripts_archive=_archive({"scripts/items/tools/test_bomb_item.nut": script}),
+    )
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert stats["source_only_added"] == 0
     assert save_hash not in payload["entries"]
@@ -80,7 +90,11 @@ function create(this)
 """
     save_hash = refs.battle_brothers_save_hash("scripts/items/weapons/incomplete")
     output = tmp_path / "dictionary.json"
-    stats = refs.build_reference_dictionary(output, bbedit_dictionary={}, scripts_archive=_archive({"scripts/items/weapons/incomplete.nut": script}))
+    stats = refs.build_reference_dictionary(
+        output,
+        bbedit_dictionary={},
+        scripts_archive=_archive({"scripts/items/weapons/incomplete.nut": script}),
+    )
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert stats["source_only_added"] == 0
     assert save_hash not in payload["entries"]
