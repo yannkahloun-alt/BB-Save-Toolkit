@@ -11,7 +11,7 @@ BB-Save-Toolkit currently pins the shared `codex-agent-workflow` release:
 - tag: `v1.1.3`
 - commit: `ff0647d3dc205a47734d569ae5247ee4ba9109e9`
 
-For orientation only, the pinned shared lifecycle means routine CI-equivalent automated validation is CI-owned, one named ticket owns one implementation PR, fixes and review generations reuse that PR, and a changed implementation head requires fresh exact-head CI and review evidence.
+For orientation only, the pinned shared lifecycle means routine CI-equivalent automated validation is CI-owned, one named ticket owns one implementation PR, fixes and review generations reuse that PR, fresh read-only subagent review is required when available, and a changed implementation head requires fresh exact-head CI and review evidence.
 
 The pinned `.agent-workflow` plus repository policy remain authoritative for the full workflow contract.
 
