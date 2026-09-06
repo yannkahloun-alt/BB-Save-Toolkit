@@ -161,6 +161,16 @@ or use a filesystem path as save identity. CLI and future HTTP/worker entry
 points are adapters around this boundary. Generated reports consume the returned
 analysis directly; they do not recompute projections.
 
+The local application also exposes a generation-bound debug export for real-save
+triage. It packages the existing public analysis/report evidence together with
+the exact Company, Level Up, Recruitment, shell, followed-save, analysis-result,
+and effective-archetype read models consumed by the UI. A manifest binds every
+member to the represented publication generation/source/configuration, while a
+versioned diagnostic inventory records explicit `unknown`, `unavailable`,
+degraded, warning, and reason states by JSON path. The export never includes
+save bytes and redacts the absolute followed-save path; it is observability only
+and does not infer missing game facts.
+
 Service failures carry stable `code`, `stage`, and `message` fields. Cache
 context remains disposable optimization state. This boundary intentionally does
 not define durable user-state storage or new invalidation semantics while the

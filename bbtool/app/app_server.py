@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -17,6 +17,7 @@ from .archetype_catalog import (
 )
 from .company_brother_view import build_company_brother_view
 from .config import load_config
+from .debug_export import build_debug_export
 from .health import build_public_analysis_health
 from .level_up_view import build_level_up_view
 from .local_application import ApplicationOperationError, LocalApplication
@@ -41,6 +42,7 @@ class HttpResponse:
     status: int
     body: bytes
     content_type: str = "application/json; charset=utf-8"
+    headers: Mapping[str, str] = field(default_factory=dict)
 
 
 def _json_response(status: int, payload: dict[str, Any]) -> HttpResponse:
@@ -107,6 +109,26 @@ class LocalApplicationApi:
                 })
             if method == "GET" and path == "/api/v1/shell":
                 return self._ok(self._shell_state())
+            if method == "GET" and path == "/api/v1/debug-export":
+                with self.application._command_lock:
+                    if self.application.coordinator.last_success is None:
+                        raise ApplicationOperationError(
+                            "analysis_unavailable",
+                            "a completed published analysis is required for debug export",
+                        )
+                    archive, filename = build_debug_export(
+                        self.application, shell_builder=self._shell_state
+                    )
+                return HttpResponse(
+                    200,
+                    archive,
+                    "application/zip",
+                    {
+                        "Content-Disposition": (
+                            f'attachment; filename="{filename}"'
+                        )
+                    },
+                )
             if method == "GET" and path == "/api/v1/company-brother":
                 return self._ok(build_company_brother_view(self.application))
             if method == "GET" and path == "/api/v1/level-up":
@@ -177,6 +199,7 @@ class LocalApplicationApi:
                 "invalid_host": 403,
                 "unsupported_media_type": 415,
                 "request_too_large": 413,
+                "analysis_unavailable": 409,
             }.get(exc.code, 422)
             return self._error(status, exc.code, exc.message, details=exc.details)
         except StateConflictError as exc:
@@ -425,6 +448,8 @@ def _handler(api: LocalApplicationApi):
             self.send_response(response.status)
             self.send_header("Content-Type", response.content_type)
             self.send_header("Content-Length", str(len(response.body)))
+            for name, value in response.headers.items():
+                self.send_header(name, value)
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")

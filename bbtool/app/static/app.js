@@ -263,6 +263,12 @@ function renderShell() {
   renderFreshness();
   renderHealth();
   renderProgress();
+  const debugExportButton = document.getElementById('debug-export-button');
+  const exportAvailable = Boolean(state.result?.available);
+  debugExportButton.disabled = !exportAvailable;
+  debugExportButton.title = exportAvailable
+    ? 'Download the current analysis and UI/API debug evidence bundle'
+    : 'Available after a completed analysis';
   updateBrotherMutationAvailability();
 }
 
@@ -795,6 +801,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const open = healthButton.getAttribute('aria-expanded') === 'true';
     healthButton.setAttribute('aria-expanded', String(!open));
     healthPanel.hidden = open;
+  });
+
+  const debugExportButton = document.getElementById('debug-export-button');
+  debugExportButton.addEventListener('click', () => {
+    if (debugExportButton.disabled) return;
+    const link = document.createElement('a');
+    link.href = '/api/v1/debug-export';
+    document.body.append(link);
+    link.click();
+    link.remove();
   });
 
   document.querySelectorAll('[data-company-view]').forEach((button) => {
