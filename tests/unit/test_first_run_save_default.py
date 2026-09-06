@@ -89,6 +89,30 @@ def test_existing_persisted_selection_wins_over_first_run_default(tmp_path):
     assert preferences.selected_save_path == str(chosen)
 
 
+def test_concurrent_first_writer_during_documents_lookup_wins(tmp_path):
+    state_root = tmp_path / "state"
+    store = UserStateStore(state_root)
+    chosen = tmp_path / "chosen-by-concurrent-writer.sav"
+
+    def resolve_documents() -> Path:
+        store.save(
+            "preferences",
+            PreferencesState(selected_save_path=str(chosen)),
+            expected_revision=0,
+        )
+        return tmp_path / "Documents"
+
+    result = initialize_first_run_save_default(
+        state_root=state_root,
+        documents_resolver=resolve_documents,
+    )
+
+    preferences = store.load("preferences")
+    assert result == chosen
+    assert preferences.revision == 1
+    assert preferences.selected_save_path == str(chosen)
+
+
 def test_explicit_no_selection_is_not_replaced_on_later_startup(tmp_path):
     state_root = tmp_path / "state"
     store = UserStateStore(state_root)
