@@ -79,9 +79,9 @@ begin
     end
     else if ResultCode <> 0 then
     begin
-      ErrorMessage := Format(
-        'BB Save Toolkit could not stop the running application (exit code %d). Close it and retry.',
-        [ResultCode]);
+      ErrorMessage :=
+        'BB Save Toolkit could not stop the running application (exit code ' +
+        IntToStr(ResultCode) + '). Close it and retry.';
       Result := False;
     end;
   end;
