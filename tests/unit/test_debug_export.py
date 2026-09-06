@@ -267,6 +267,7 @@ def test_debug_export_is_generation_bound_cli_equivalent_and_path_redacted(monke
             "analysis/analysis-health.json",
             "analysis/target-presentation.json",
             "analysis/projection-validation.json",
+            "analysis/runtime-diagnostics.json",
             "api/shell.json",
             "api/followed-save.json",
             "api/analysis-result.json",
@@ -330,7 +331,14 @@ def test_debug_export_endpoint_is_zip_download_and_requires_publication(monkeypa
             self._command_lock = threading.RLock()
 
     empty = LocalApplicationApi(App(None), origin=ORIGIN, token="capability")
-    unavailable = empty.handle("GET", "/api/v1/debug-export", {"Host": HOST})
+    unauthorized = empty.handle("GET", "/api/v1/debug-export", {"Host": HOST})
+    assert unauthorized.status == 403
+    assert json.loads(unauthorized.body)["error"]["code"] == "invalid_session"
+    unavailable = empty.handle(
+        "GET",
+        "/api/v1/debug-export",
+        {"Host": HOST, "X-BBST-Session": "capability"},
+    )
     assert unavailable.status == 409
     assert json.loads(unavailable.body)["error"]["code"] == "analysis_unavailable"
 
@@ -343,7 +351,11 @@ def test_debug_export_endpoint_is_zip_download_and_requires_publication(monkeypa
     )
     monkeypatch.setattr(api, "_shell_state", lambda: {"result": {"available": True}})
 
-    response = api.handle("GET", "/api/v1/debug-export", {"Host": HOST})
+    response = api.handle(
+        "GET",
+        "/api/v1/debug-export",
+        {"Host": HOST, "X-BBST-Session": "capability"},
+    )
     assert response.status == 200
     assert response.body == b"PKdebug"
     assert response.content_type == "application/zip"
@@ -369,3 +381,6 @@ def test_local_app_static_shell_exposes_disabled_then_downloadable_debug_control
     assert "'/api/v1/debug-export'" in script
     assert "debug-export-button" in script
     assert "state.result?.available" in script
+    assert "'X-BBST-Session': state.sessionToken" in script
+    assert "response.blob()" in script
+    assert "URL.createObjectURL(blob)" in script
