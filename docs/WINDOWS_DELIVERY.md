@@ -97,7 +97,9 @@ is not under `{app}` and therefore survives the replacement. State schema
 migration remains owned by `bbtool.app.user_state`; packaging must never edit
 feature files directly.
 
-Interactive uninstall asks whether to keep user-owned state and defaults to
+Uninstall runs the same verified stop guard before removing application files;
+it aborts if a healthy toolkit instance cannot be safely identified and stopped.
+Interactive uninstall then asks whether to keep user-owned state and defaults to
 **keep**. Silent uninstall also keeps it. Automated/explicit removal may pass
 `/DELETEUSERDATA` to the uninstaller to remove
 `%LOCALAPPDATA%\BB-Save-Toolkit\` after application files are removed. This
