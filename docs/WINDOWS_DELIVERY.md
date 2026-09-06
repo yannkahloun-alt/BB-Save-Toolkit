@@ -13,6 +13,10 @@ repository-authoritative Authenticode certificate is available. The build
 script accepts an optional signing command so signing can be added later without
 changing the installation/state contract.
 
+Starting with v3.89, the installer is the primary player-facing release asset.
+The verified tracked-file ZIP may still be published as a secondary source/archive
+asset, but it is not the recommended Windows installation path.
+
 Updates are explicit and user-initiated: download and run a newer installer.
 There is no silent updater and normal application startup performs no mandatory
 network version check.
@@ -135,7 +139,7 @@ Install the packaging dependency and Inno Setup 6, then run:
 
 ```powershell
 python -m pip install -r packaging\windows\requirements.txt
-.\tools\build_windows_installer.ps1 -Version 3.89.0
+.\tools\build_windows_installer.ps1 -Version 3.89
 ```
 
 The build script cleanly regenerates all required reference caches, invokes the
@@ -143,6 +147,12 @@ PyInstaller spec, locates `ISCC.exe`, and writes:
 
 ```text
 dist\windows\BB-Save-Toolkit-<version>-setup.exe
+```
+
+For the v3.89 release candidate the expected filename is:
+
+```text
+dist\windows\BB-Save-Toolkit-3.89-setup.exe
 ```
 
 For a future signed release, supply the repository-approved Inno Setup signing
@@ -180,3 +190,8 @@ The installer smoke proves:
 The repository's normal `tests`, `ruff`, and `pyflakes` checks remain the stable
 merge guards. The Windows-installer job is additional ticket-specific evidence;
 it does not redefine those stable identities.
+
+For a public release, installer validation and the repository's separate release
+validation must both be bound to the exact release candidate before publication.
+The validated installer executable is attached to the GitHub Release as the
+primary Windows asset; downloading a workflow artifact alone is not publication.
