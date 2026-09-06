@@ -935,7 +935,8 @@
 - Adds generated `references/perk_audit.json`, which reconciles every perk script
   found in the downloaded vanilla source against the model and reports any
   additional/unreviewed source perks.
-- Updates PERK_MODEL/TODO/reference docs to make the audit state and next action unambiguous.
+- Updates PERK_MODEL/TODO/reference docs to make the audit state and next action
+  unambiguous.
 
 ## v2.45 — BestRole perk exclusion ledger
 - Expands `docs/PERK_MODEL.md` with the perks reviewed during the manual audit.
