@@ -174,3 +174,39 @@ def test_debug_export_endpoint_returns_zip_only_with_session_capability(monkeypa
     assert allowed.status == 200
     assert allowed.content_type == "application/zip"
     assert called == [app]
+
+
+def test_path_redaction_survives_unreadable_followed_save_state():
+    private_root = r"C:\Users\Private\AppData\Local\BB-Save-Toolkit"
+
+    class Application:
+        store = SimpleNamespace(root=private_root)
+
+        @staticmethod
+        def followed_save():
+            raise RuntimeError("preferences unreadable")
+
+    app = Application()
+    snapshot = {
+        "warning": {
+            "code": "last_success_persistence_failed",
+            "message": f"timed out acquiring state lock {private_root}\\.last-success.json.lock",
+        }
+    }
+    redacted = debug_export._redact_known_local_paths(app, snapshot)
+
+    assert redacted["warning"]["code"] == "last_success_persistence_failed"
+    assert private_root not in json.dumps(redacted)
+    assert "<user-state>" in redacted["warning"]["message"]
+
+    result = SimpleNamespace(
+        diagnostics={"run_health": {"result_affecting_warnings": 0}},
+        timings={"total": 1.25},
+        warnings=[snapshot["warning"]],
+    )
+    runtime = debug_export._runtime_diagnostics(app, result)
+    serialized_runtime = json.dumps(runtime)
+
+    assert runtime["timings"]["total"] == 1.25
+    assert private_root not in serialized_runtime
+    assert "<user-state>" in serialized_runtime
