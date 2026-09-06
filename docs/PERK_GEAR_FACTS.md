@@ -29,18 +29,28 @@ The formulas below come from the repository-pinned vanilla scripts commit in
 - **Shield Expert:** `active` for a resolved equipped shield, `inactive` for an
   empty offhand, and `unknown` for unresolved offhand data. This reports only
   activation, not tactical value.
+- **Weapon masteries:** the generated vanilla reference follows exact
+  `scripts/...` dependencies from each weapon into item/active-skill code and
+  records the supported `IsSpecializedIn*` properties those scripts consume.
+  These are exposed as `WeaponMasteryFamilies`, which is intentionally a list:
+  vanilla has hybrid weapons whose available skills consume more than one
+  mastery. An owned mastery is `active` when its family is in that list,
+  `inactive` for an empty main hand or a proven different family set, and
+  `unknown` when authoritative family metadata is unavailable. The one pinned
+  vanilla Weapon record without supported mastery evidence is the barbarian
+  drum; it remains unknown rather than being guessed.
 
 ## Intentionally unavailable mechanics
 
-- Weapon masteries require authoritative weapon-family metadata.
 - Reach Advantage requires authoritative melee and two-handed flags.
 - Duelist requires authoritative weapon handedness/class plus offhand rules.
 - Dodge depends on live combat Initiative after accumulated Fatigue and other
   transient effects.
 
-The current normalized item contract does not provide those weapon flags or
-families, and parsed saves do not provide the required live combat state.
-Accordingly, an owned perk in these groups emits `State: "unknown"` with a
-machine-readable basis. Display names and archetype names are never used as
-substitutes. Empty armor slots are known zero values; unresolved equipped armor
-is not.
+The normalized item contract now provides source-derived mastery-family
+applicability only; it still does not claim general melee/two-handed/handedness
+facts, and parsed saves do not provide the required live combat state.
+Accordingly, Reach Advantage, Duelist, and Dodge remain `unknown` where their
+separate evidence is unavailable. Display names and archetype names are never
+used as substitutes. Empty armor slots are known zero values; unresolved
+equipped armor or weapon-family evidence is not.

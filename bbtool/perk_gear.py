@@ -4,20 +4,23 @@ from __future__ import annotations
 
 import math
 
-_WEAPON_DEPENDENT = {
-    "Axe Mastery",
-    "Bow Mastery",
-    "Cleaver Mastery",
-    "Crossbow Mastery",
-    "Dagger Mastery",
-    "Flail Mastery",
-    "Hammer Mastery",
-    "Mace Mastery",
-    "Polearm Mastery",
-    "Spear Mastery",
-    "Sword Mastery",
-    "Throwing Mastery",
+_WEAPON_MASTERY_FAMILY = {
+    "Axe Mastery": "Axe",
+    "Bow Mastery": "Bow",
+    "Cleaver Mastery": "Cleaver",
+    "Crossbow Mastery": "Crossbow",
+    "Dagger Mastery": "Dagger",
+    "Flail Mastery": "Flail",
+    "Hammer Mastery": "Hammer",
+    "Mace Mastery": "Mace",
+    "Polearm Mastery": "Polearm",
+    "Spear Mastery": "Spear",
+    "Sword Mastery": "Sword",
+    "Throwing Mastery": "Throwing",
 }
+_WEAPON_DEPENDENT = frozenset(_WEAPON_MASTERY_FAMILY)
+_WEAPON_MASTERY_FAMILIES = frozenset(_WEAPON_MASTERY_FAMILY.values())
+_WEAPON_MASTERY_SOURCE = "vanilla-specialization-flag-closure"
 
 
 def _fact(perk: str, state: str, basis: str, **values) -> dict:
@@ -130,7 +133,45 @@ def perk_gear_facts(bro) -> list[dict]:
             else:
                 facts.append(_fact(perk, "unknown", "offhand_type_unresolved"))
         elif perk in _WEAPON_DEPENDENT:
-            facts.append(_fact(perk, "unknown", "weapon_mastery_metadata_unavailable"))
+            mastery_family = _WEAPON_MASTERY_FAMILY[perk]
+            mainhand = equipment.get("MainHand")
+            if mainhand is None:
+                facts.append(_fact(
+                    perk, "inactive", "mainhand_empty",
+                    MasteryFamily=mastery_family,
+                ))
+                continue
+            if mainhand.get("Type") != "weapon":
+                facts.append(_fact(
+                    perk, "inactive", "mainhand_not_weapon",
+                    MasteryFamily=mastery_family,
+                ))
+                continue
+            families = mainhand.get("WeaponMasteryFamilies")
+            source = mainhand.get("WeaponMasterySource")
+            valid_families = (
+                isinstance(families, list)
+                and bool(families)
+                and all(
+                    isinstance(family, str) and family in _WEAPON_MASTERY_FAMILIES
+                    for family in families
+                )
+            )
+            if source != _WEAPON_MASTERY_SOURCE or not valid_families:
+                facts.append(_fact(
+                    perk, "unknown", "weapon_mastery_metadata_unavailable",
+                    MasteryFamily=mastery_family,
+                ))
+                continue
+            normalized = sorted(set(families))
+            matches = mastery_family in normalized
+            facts.append(_fact(
+                perk,
+                "active" if matches else "inactive",
+                "mainhand_mastery_family_match" if matches else "mainhand_mastery_family_mismatch",
+                MasteryFamily=mastery_family,
+                WeaponMasteryFamilies=normalized,
+            ))
         elif perk in {"Duelist", "Reach Advantage"}:
             facts.append(
                 _fact(perk, "unknown", "weapon_handedness_and_class_unavailable")

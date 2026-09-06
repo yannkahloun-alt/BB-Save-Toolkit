@@ -42,6 +42,8 @@ def test_parses_equipped_slots_bag_order_conditions_and_fatigue():
             "slot": "weapon",
             "durability": 64,
             "fatigue": -8,
+            "WeaponMasteryFamilies": ["Sword"],
+            "WeaponMasterySource": "vanilla-specialization-flag-closure",
         },
         "11121314": {
             "name": "Kite Shield",
@@ -91,6 +93,8 @@ def test_parses_equipped_slots_bag_order_conditions_and_fatigue():
         "Quantity": 0,
         "Fatigue": 8,
         "ConditionMax": 64,
+        "WeaponMasteryFamilies": ["Sword"],
+        "WeaponMasterySource": "vanilla-specialization-flag-closure",
     }
     assert equipment["OffHand"]["Name"] == "Kite Shield"
     assert equipment["Body"]["Armor"] == 175
