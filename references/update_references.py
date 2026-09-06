@@ -113,6 +113,23 @@ CREATE_ITEM_PARENT_RE = re.compile(
     r'\bthis\.([a-z0-9_]+)\.create\s*\(\s*\)\s*;',
     re.MULTILINE,
 )
+WEAPON_MASTERY_FAMILY_BY_FLAG = {
+    "Axes": "Axe",
+    "Bows": "Bow",
+    "Cleavers": "Cleaver",
+    "Crossbows": "Crossbow",
+    "Daggers": "Dagger",
+    "Flails": "Flail",
+    "Hammers": "Hammer",
+    "Maces": "Mace",
+    "Polearms": "Polearm",
+    "Spears": "Spear",
+    "Swords": "Sword",
+    "Throwing": "Throwing",
+}
+WEAPON_MASTERY_SOURCE = "vanilla-specialization-flag-closure"
+SPECIALIZATION_FLAG_RE = re.compile(r"\bIsSpecializedIn([A-Za-z]+)\b")
+SCRIPT_REFERENCE_RE = re.compile(r'"(scripts/[A-Za-z0-9_./-]+)"')
 BACKGROUND_ID_RE = re.compile(
     r'(?:this\.)?m\.ID\s*=\s*"(background\.[^"]+)"',
     re.MULTILINE,
@@ -417,6 +434,57 @@ def _unescape_squirrel_string(value: str) -> str:
     return value.replace(r'\"', '"').replace("\\\\", "\\")
 
 
+def _weapon_mastery_families_by_script(archive_bytes: bytes) -> dict[str, list[str]]:
+    """Derive mastery applicability from vanilla technical specialization flags.
+
+    Mastery perks set ``IsSpecializedIn*`` properties and item/skill scripts
+    consume those same properties.  Following only exact ``scripts/...`` string
+    references preserves hybrid weapons without using display names, categories,
+    filenames, or inferred one-family taxonomy.
+    """
+    texts: dict[str, str] = {}
+    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        for info in archive.infolist():
+            archive_path = info.filename.replace("\\", "/")
+            if not archive_path.endswith(".nut"):
+                continue
+            try:
+                text = archive.read(info).decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            rel = archive_path.split("/", 1)[-1].removesuffix(".nut")
+            texts[rel] = text
+
+    supported_flags = set(WEAPON_MASTERY_FAMILY_BY_FLAG)
+    local_flags: dict[str, set[str]] = {}
+    edges: dict[str, tuple[str, ...]] = {}
+    for script_path, text in texts.items():
+        local_flags[script_path] = set(SPECIALIZATION_FLAG_RE.findall(text)) & supported_flags
+        targets = {
+            target.removesuffix(".nut")
+            for target in SCRIPT_REFERENCE_RE.findall(text)
+            if target.removesuffix(".nut") in texts
+        }
+        edges[script_path] = tuple(sorted(targets))
+
+    output: dict[str, list[str]] = {}
+    for script_path in sorted(texts):
+        seen: set[str] = set()
+        pending = [script_path]
+        flags: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current in seen:
+                continue
+            seen.add(current)
+            flags.update(local_flags.get(current, ()))
+            pending.extend(reversed(edges.get(current, ())))
+        families = sorted(WEAPON_MASTERY_FAMILY_BY_FLAG[flag] for flag in flags)
+        if families:
+            output[script_path] = families
+    return output
+
+
 def _extract_script_item_values(
     archive_bytes: bytes,
 ) -> dict:
@@ -429,6 +497,7 @@ def _extract_script_item_values(
     punctuation differs (e.g. Morningstar <-> morning_star).
     """
     scripts = {}
+    weapon_mastery_families = _weapon_mastery_families_by_script(archive_bytes)
 
     with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
         for info in archive.infolist():
@@ -555,6 +624,10 @@ def _extract_script_item_values(
             "ItemTypeExpression": rec["ItemTypeExpression"],
             "SlotTypeExpression": rec["SlotTypeExpression"],
             "CreateParent": rec["CreateParent"],
+            "WeaponMasteryFamilies": weapon_mastery_families.get(path, []),
+            "WeaponMasterySource": (
+                WEAPON_MASTERY_SOURCE if weapon_mastery_families.get(path) else None
+            ),
         }
 
         by_stem.setdefault(rec["Stem"], []).append(enriched)
@@ -621,7 +694,7 @@ def _source_only_generic_weapon_entry(
         else "offhand" if "Const.ItemSlot.Offhand" in slot_expression
         else None
     )
-    return {
+    entry = {
         "name": source["Name"].strip(),
         "type": "genericWeapon",
         "slot": slot,
@@ -638,6 +711,11 @@ def _source_only_generic_weapon_entry(
         "ReferenceSource": "vanilla-script-source-only",
         "SaveHash": ref_id,
     }
+    families = source.get("WeaponMasteryFamilies")
+    if families and source.get("WeaponMasterySource") == WEAPON_MASTERY_SOURCE:
+        entry["WeaponMasteryFamilies"] = list(families)
+        entry["WeaponMasterySource"] = WEAPON_MASTERY_SOURCE
+    return entry
 
 
 def build_reference_dictionary(
@@ -704,6 +782,13 @@ def build_reference_dictionary(
 
             candidates = by_save_hash.get(ref_id, [])
             chosen = _unique_value(candidates)
+
+            if len(candidates) == 1:
+                source = candidates[0]
+                families = source.get("WeaponMasteryFamilies")
+                if families and source.get("WeaponMasterySource") == WEAPON_MASTERY_SOURCE:
+                    entry["WeaponMasteryFamilies"] = list(families)
+                    entry["WeaponMasterySource"] = WEAPON_MASTERY_SOURCE
 
             if candidates:
                 exact_hash_matches += 1

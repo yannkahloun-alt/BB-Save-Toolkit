@@ -1,0 +1,1216 @@
+{
+  "schema": "bbtool.issue233_weapon_family_investigation.v1",
+  "vanilla_scripts_revision": "162f498ac7c49b4c317bbf54718a595ecef6a65a",
+  "bbedit_revision": "bdab5a8216090506a33e8263b8fb112ebf12b361",
+  "authority": "technical IsSpecializedIn* flags set by mastery perks and consumed by reachable vanilla item/skill scripts",
+  "mastery_flags": {
+    "perk_mastery_axe": [
+      "Axes"
+    ],
+    "perk_mastery_bow": [
+      "Bows"
+    ],
+    "perk_mastery_cleaver": [
+      "Cleavers"
+    ],
+    "perk_mastery_crossbow": [
+      "Crossbows"
+    ],
+    "perk_mastery_dagger": [
+      "Daggers"
+    ],
+    "perk_mastery_flail": [
+      "Flails"
+    ],
+    "perk_mastery_hammer": [
+      "Hammers"
+    ],
+    "perk_mastery_mace": [
+      "Maces"
+    ],
+    "perk_mastery_polearm": [
+      "Polearms"
+    ],
+    "perk_mastery_spear": [
+      "Spears"
+    ],
+    "perk_mastery_sword": [
+      "Swords"
+    ],
+    "perk_mastery_throwing": [
+      "Throwing"
+    ]
+  },
+  "supported_flag_to_family": {
+    "Axes": "Axe",
+    "Bows": "Bow",
+    "Cleavers": "Cleaver",
+    "Crossbows": "Crossbow",
+    "Daggers": "Dagger",
+    "Flails": "Flail",
+    "Hammers": "Hammer",
+    "Maces": "Mace",
+    "Polearms": "Polearm",
+    "Spears": "Spear",
+    "Swords": "Sword",
+    "Throwing": "Throwing"
+  },
+  "weapon_records_considered": 174,
+  "classified_count": 173,
+  "unclassified_count": 1,
+  "multi_family_count": 48,
+  "classified_by_family": {
+    "Axe": 48,
+    "Bow": 10,
+    "Cleaver": 23,
+    "Crossbow": 8,
+    "Dagger": 10,
+    "Flail": 11,
+    "Hammer": 14,
+    "Mace": 21,
+    "Polearm": 21,
+    "Spear": 12,
+    "Sword": 43,
+    "Throwing": 10
+  },
+  "multi_family_records": [
+    {
+      "save_hash": "0368E41B",
+      "technical_id": "weapon.scramasax",
+      "source": "scripts/items/weapons/scramasax.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "092AA98C",
+      "technical_id": "weapon.orc_cleaver",
+      "source": "scripts/items/weapons/greenskins/orc_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "0A14D856",
+      "technical_id": "weapon.named_two_handed_hammer",
+      "source": "scripts/items/weapons/named/named_two_handed_hammer.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/shatter_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "0D479170",
+      "technical_id": "weapon.butchers_cleaver",
+      "source": "scripts/items/weapons/butchers_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "10DF4EBA",
+      "technical_id": "weapon.axehammer",
+      "source": "scripts/items/weapons/barbarians/axehammer.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/hammer",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "116D93E0",
+      "technical_id": "weapon.two_handed_wooden_hammer",
+      "source": "scripts/items/weapons/two_handed_wooden_hammer.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/shatter_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "1938B2CD",
+      "technical_id": "weapon.two_handed_scimitar",
+      "source": "scripts/items/weapons/oriental/two_handed_scimitar.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "1E62DD59",
+      "technical_id": "weapon.two_handed_mace",
+      "source": "scripts/items/weapons/two_handed_mace.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Maces"
+      ],
+      "families": [
+        "Axe",
+        "Mace"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cudgel_skill",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_down_skill"
+      ]
+    },
+    {
+      "save_hash": "28F70D26",
+      "technical_id": "weapon.billhook",
+      "source": "scripts/items/weapons/billhook.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/hook",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "2AD6C1E1",
+      "technical_id": "weapon.named_cleaver",
+      "source": "scripts/items/weapons/named/named_cleaver.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "35A5074F",
+      "technical_id": "weapon.exesword",
+      "source": "scripts/items/weapons/exesword.nut",
+      "bbedit_type": null,
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/skills/actives/execute_skill",
+        "scripts/skills/actives/exesword_decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "3886F7D9",
+      "technical_id": "weapon.named_billhook",
+      "source": "scripts/items/weapons/named/named_billhook.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/hook",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "3A7EBFD3",
+      "technical_id": "weapon.blunt_cleaver",
+      "source": "scripts/items/weapons/barbarians/blunt_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "41806D40",
+      "technical_id": "weapon.named_two_handed_spiked_mace",
+      "source": "scripts/items/weapons/named/named_two_handed_spiked_mace.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Maces"
+      ],
+      "families": [
+        "Axe",
+        "Mace"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cudgel_skill",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_down_skill"
+      ]
+    },
+    {
+      "save_hash": "4534F102",
+      "technical_id": "weapon.named_exesword",
+      "source": "scripts/items/weapons/named/named_exesword.nut",
+      "bbedit_type": null,
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/skills/actives/execute_skill",
+        "scripts/skills/actives/exesword_decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "4C960354",
+      "technical_id": "weapon.military_cleaver",
+      "source": "scripts/items/weapons/military_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "4CFA7D7B",
+      "technical_id": "weapon.skull_hammer",
+      "source": "scripts/items/weapons/barbarians/skull_hammer.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/shatter_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "4E6907B3",
+      "technical_id": "weapon.named_poleaxe",
+      "source": "scripts/items/weapons/named/named_poleaxe.nut",
+      "bbedit_type": null,
+      "flags": [
+        "Axes",
+        "Hammers",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Hammer",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/skills/actives/assault_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "4EE39971",
+      "technical_id": "weapon.named_warscythe",
+      "source": "scripts/items/weapons/named/named_warscythe.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/reap_skill",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "55510B91",
+      "technical_id": "weapon.hooked_blade",
+      "source": "scripts/items/weapons/hooked_blade.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/hook",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "56EA5919",
+      "technical_id": "weapon.greatsword",
+      "source": "scripts/items/weapons/greatsword.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/overhead_strike",
+        "scripts/skills/actives/split",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/swing"
+      ]
+    },
+    {
+      "save_hash": "5FEC8442",
+      "technical_id": "weapon.khopesh",
+      "source": "scripts/items/weapons/ancient/khopesh.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "7920A2A5",
+      "technical_id": "weapon.two_handed_spiked_mace",
+      "source": "scripts/items/weapons/barbarians/two_handed_spiked_mace.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Maces"
+      ],
+      "families": [
+        "Axe",
+        "Mace"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cudgel_skill",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_down_skill"
+      ]
+    },
+    {
+      "save_hash": "7E0B5BF3",
+      "technical_id": "weapon.poleaxe",
+      "source": "scripts/items/weapons/poleaxe.nut",
+      "bbedit_type": null,
+      "flags": [
+        "Axes",
+        "Hammers",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Hammer",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/skills/actives/assault_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "80FDC89D",
+      "technical_id": "weapon.two_handed_saif",
+      "source": "scripts/items/weapons/oriental/two_handed_saif.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "8EA9D199",
+      "technical_id": "weapon.named_khopesh",
+      "source": "scripts/items/weapons/named/named_khopesh.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "8F8C8D0D",
+      "technical_id": "weapon.named_crypt_cleaver",
+      "source": "scripts/items/weapons/named/named_crypt_cleaver.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "A8E24050",
+      "technical_id": "weapon.crypt_cleaver",
+      "source": "scripts/items/weapons/ancient/crypt_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "AA4AFF46",
+      "technical_id": "weapon.goblin_notched_blade",
+      "source": "scripts/items/weapons/greenskins/goblin_notched_blade.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Daggers",
+        "Swords"
+      ],
+      "families": [
+        "Dagger",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/puncture",
+        "scripts/skills/actives/slash"
+      ]
+    },
+    {
+      "save_hash": "B3EAA613",
+      "technical_id": "weapon.antler_cleaver",
+      "source": "scripts/items/weapons/barbarians/antler_cleaver.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "B68ED279",
+      "technical_id": "weapon.two_handed_flanged_mace",
+      "source": "scripts/items/weapons/two_handed_flanged_mace.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Maces"
+      ],
+      "families": [
+        "Axe",
+        "Mace"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cudgel_skill",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_down_skill"
+      ]
+    },
+    {
+      "save_hash": "BA203F7C",
+      "technical_id": "weapon.two_handed_hammer",
+      "source": "scripts/items/weapons/two_handed_hammer.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/shatter_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "C4E0D061",
+      "technical_id": "weapon.named_rusty_warblade",
+      "source": "scripts/items/weapons/named/named_rusty_warblade.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "C63CD8DE",
+      "technical_id": "weapon.goedendag",
+      "source": "scripts/items/weapons/goedendag.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Maces",
+        "Spears"
+      ],
+      "families": [
+        "Mace",
+        "Spear"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/knock_out",
+        "scripts/skills/actives/thrust"
+      ]
+    },
+    {
+      "save_hash": "C6A38A4F",
+      "technical_id": "weapon.named_longaxe",
+      "source": "scripts/items/weapons/named/named_longaxe.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "D040B3C1",
+      "technical_id": "weapon.falx",
+      "source": "scripts/items/weapons/ancient/falx.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "E1A952E3",
+      "technical_id": "weapon.named_skullhammer",
+      "source": "scripts/items/weapons/named/named_skullhammer.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Hammers"
+      ],
+      "families": [
+        "Axe",
+        "Hammer"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/shatter_skill",
+        "scripts/skills/actives/smite_skill",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "E40F0AAD",
+      "technical_id": "weapon.named_two_handed_scimitar",
+      "source": "scripts/items/weapons/named/named_two_handed_scimitar.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    },
+    {
+      "save_hash": "E6F65735",
+      "technical_id": "weapon.named_greatsword",
+      "source": "scripts/items/weapons/named/named_greatsword.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/overhead_strike",
+        "scripts/skills/actives/split",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/swing"
+      ]
+    },
+    {
+      "save_hash": "EB9CC0EA",
+      "technical_id": "weapon.swordlance",
+      "source": "scripts/items/weapons/oriental/swordlance.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/reap_skill",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "EE75A45C",
+      "technical_id": "weapon.named_two_handed_mace",
+      "source": "scripts/items/weapons/named/named_two_handed_mace.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Maces"
+      ],
+      "families": [
+        "Axe",
+        "Mace"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cudgel_skill",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_down_skill"
+      ]
+    },
+    {
+      "save_hash": "EEECDDE5",
+      "technical_id": "weapon.firelance",
+      "source": "scripts/items/weapons/oriental/firelance.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Crossbows",
+        "Spears"
+      ],
+      "families": [
+        "Crossbow",
+        "Spear"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/ignite_firelance_skill",
+        "scripts/skills/actives/thrust"
+      ]
+    },
+    {
+      "save_hash": "F1121DF5",
+      "technical_id": "weapon.named_orc_cleaver",
+      "source": "scripts/items/weapons/named/named_orc_cleaver.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate"
+      ]
+    },
+    {
+      "save_hash": "F361A65D",
+      "technical_id": "weapon.longsword",
+      "source": "scripts/items/weapons/longsword.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/overhead_strike",
+        "scripts/skills/actives/split",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/swing"
+      ]
+    },
+    {
+      "save_hash": "F645DE8F",
+      "technical_id": "weapon.longaxe",
+      "source": "scripts/items/weapons/longaxe.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/split_shield",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "F7323A98",
+      "technical_id": "weapon.warscythe",
+      "source": "scripts/items/weapons/ancient/warscythe.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/reap_skill",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "FAFE6F1A",
+      "technical_id": "weapon.named_swordlance",
+      "source": "scripts/items/weapons/named/named_swordlance.nut",
+      "bbedit_type": "namedWeapon",
+      "flags": [
+        "Axes",
+        "Polearms"
+      ],
+      "families": [
+        "Axe",
+        "Polearm"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/named/named_weapon",
+        "scripts/skills/actives/reap_skill",
+        "scripts/skills/actives/strike_skill"
+      ]
+    },
+    {
+      "save_hash": "FC3FD8AD",
+      "technical_id": "weapon.rusty_warblade",
+      "source": "scripts/items/weapons/barbarians/rusty_warblade.nut",
+      "bbedit_type": "genericWeapon",
+      "flags": [
+        "Axes",
+        "Cleavers",
+        "Swords"
+      ],
+      "families": [
+        "Axe",
+        "Cleaver",
+        "Sword"
+      ],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/cleave",
+        "scripts/skills/actives/decapitate",
+        "scripts/skills/actives/split_shield"
+      ]
+    }
+  ],
+  "unclassified_records": [
+    {
+      "save_hash": "3298972F",
+      "technical_id": "weapon.barbarian_drum",
+      "source": "scripts/items/weapons/barbarians/drum_item.nut",
+      "bbedit_type": null,
+      "flags": [],
+      "families": [],
+      "direct_flags": [],
+      "direct_refs": [
+        "scripts/items/weapons/weapon",
+        "scripts/skills/actives/drums_of_war_skill"
+      ]
+    }
+  ],
+  "representative": {
+    "bow": [
+      {
+        "save_hash": "07490C1C",
+        "technical_id": "weapon.short_bow",
+        "source": "scripts/items/weapons/short_bow.nut",
+        "bbedit_type": "genericWeapon",
+        "flags": [
+          "Bows"
+        ],
+        "families": [
+          "Bow"
+        ],
+        "direct_flags": [
+          "Bows"
+        ],
+        "direct_refs": [
+          "scripts/items/weapons/weapon",
+          "scripts/skills/actives/aimed_shot",
+          "scripts/skills/actives/quick_shot"
+        ]
+      },
+      {
+        "save_hash": "3E918595",
+        "technical_id": "weapon.goblin_heavy_bow",
+        "source": "scripts/items/weapons/greenskins/goblin_heavy_bow.nut",
+        "bbedit_type": "genericWeapon",
+        "flags": [
+          "Bows"
+        ],
+        "families": [
+          "Bow"
+        ],
+        "direct_flags": [
+          "Bows"
+        ],
+        "direct_refs": [
+          "scripts/items/weapons/weapon",
+          "scripts/skills/actives/aimed_shot",
+          "scripts/skills/actives/quick_shot"
+        ]
+      },
+      {
+        "save_hash": "426CA1FD",
+        "technical_id": "weapon.named_warbow",
+        "source": "scripts/items/weapons/named/named_warbow.nut",
+        "bbedit_type": "namedWeapon",
+        "flags": [
+          "Bows"
+        ],
+        "families": [
+          "Bow"
+        ],
+        "direct_flags": [],
+        "direct_refs": [
+          "scripts/items/weapons/named/named_weapon",
+          "scripts/skills/actives/aimed_shot",
+          "scripts/skills/actives/quick_shot"
+        ]
+      }
+    ],
+    "polearm": [
+      {
+        "save_hash": "11FA61DC",
+        "technical_id": "weapon.faction_banner",
+        "source": "scripts/items/tools/faction_banner.nut",
+        "bbedit_type": null,
+        "flags": [
+          "Polearms"
+        ],
+        "families": [
+          "Polearm"
+        ],
+        "direct_flags": [],
+        "direct_refs": [
+          "scripts/items/weapons/weapon",
+          "scripts/skills/actives/impale"
+        ]
+      },
+      {
+        "save_hash": "28F70D26",
+        "technical_id": "weapon.billhook",
+        "source": "scripts/items/weapons/billhook.nut",
+        "bbedit_type": "genericWeapon",
+        "flags": [
+          "Axes",
+          "Polearms"
+        ],
+        "families": [
+          "Axe",
+          "Polearm"
+        ],
+        "direct_flags": [],
+        "direct_refs": [
+          "scripts/items/weapons/weapon",
+          "scripts/skills/actives/hook",
+          "scripts/skills/actives/strike_skill"
+        ]
+      },
+      {
+        "save_hash": "3886F7D9",
+        "technical_id": "weapon.named_billhook",
+        "source": "scripts/items/weapons/named/named_billhook.nut",
+        "bbedit_type": "namedWeapon",
+        "flags": [
+          "Axes",
+          "Polearms"
+        ],
+        "families": [
+          "Axe",
+          "Polearm"
+        ],
+        "direct_flags": [],
+        "direct_refs": [
+          "scripts/items/weapons/named/named_weapon",
+          "scripts/skills/actives/hook",
+          "scripts/skills/actives/strike_skill"
+        ]
+      }
+    ]
+  }
+}

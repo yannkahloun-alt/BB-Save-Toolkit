@@ -587,6 +587,16 @@ def _parse_equipped_item(
         "ItemID": item_id,
         "Type": _public_item_type(record, slot),
     }
+    families = record.get("WeaponMasteryFamilies")
+    if (
+        item["Type"] == "weapon"
+        and record.get("WeaponMasterySource") == "vanilla-specialization-flag-closure"
+        and isinstance(families, list)
+        and bool(families)
+        and all(isinstance(family, str) and family for family in families)
+    ):
+        item["WeaponMasteryFamilies"] = sorted(set(families))
+        item["WeaponMasterySource"] = "vanilla-specialization-flag-closure"
     serialized_fatigue = None
 
     if typ == "namedWeapon":

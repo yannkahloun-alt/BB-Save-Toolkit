@@ -140,17 +140,55 @@ def test_unresolved_and_empty_armor_are_distinct(bro_factory):
     )
 
 
-def test_missing_weapon_and_live_combat_metadata_degrade_to_unknown(bro_factory):
+def test_empty_mainhand_is_known_inactive_but_live_combat_metadata_stays_unknown(bro_factory):
     bro = bro_factory(Perks=["Sword Mastery", "Bow Mastery", "Duelist", "Reach Advantage", "Dodge"])
 
     facts = {fact["Perk"]: fact for fact in perk_gear_facts(bro)}
 
-    assert facts["Sword Mastery"]["Basis"] == "weapon_mastery_metadata_unavailable"
-    assert facts["Bow Mastery"]["Basis"] == "weapon_mastery_metadata_unavailable"
+    assert facts["Sword Mastery"] == {
+        "Perk": "Sword Mastery", "State": "inactive", "Basis": "mainhand_empty",
+        "MasteryFamily": "Sword",
+    }
+    assert facts["Bow Mastery"] == {
+        "Perk": "Bow Mastery", "State": "inactive", "Basis": "mainhand_empty",
+        "MasteryFamily": "Bow",
+    }
     assert facts["Duelist"]["Basis"] == "weapon_handedness_and_class_unavailable"
     assert facts["Reach Advantage"]["Basis"] == "weapon_handedness_and_class_unavailable"
     assert facts["Dodge"]["Basis"] == "live_initiative_unavailable"
-    assert {fact["State"] for fact in facts.values()} == {"unknown"}
+    assert {facts[name]["State"] for name in ("Duelist", "Reach Advantage", "Dodge")} == {"unknown"}
+
+
+def test_weapon_mastery_uses_source_derived_multi_family_metadata(bro_factory):
+    weapon = _item(
+        "weapon",
+        WeaponMasteryFamilies=["Axe", "Polearm"],
+        WeaponMasterySource="vanilla-specialization-flag-closure",
+    )
+    bro = bro_factory(
+        Perks=["Axe Mastery", "Polearm Mastery", "Sword Mastery"],
+        Equipment=_equipment(MainHand=weapon),
+    )
+    facts = {fact["Perk"]: fact for fact in perk_gear_facts(bro)}
+
+    assert facts["Axe Mastery"]["State"] == "active"
+    assert facts["Polearm Mastery"]["State"] == "active"
+    assert facts["Sword Mastery"]["State"] == "inactive"
+    assert facts["Axe Mastery"]["WeaponMasteryFamilies"] == ["Axe", "Polearm"]
+    assert facts["Sword Mastery"]["Basis"] == "mainhand_mastery_family_mismatch"
+
+
+def test_unresolved_weapon_mastery_metadata_remains_unknown(bro_factory):
+    weapon = _item("weapon")
+    fact = perk_gear_facts(
+        bro_factory(Perks=["Bow Mastery"], Equipment=_equipment(MainHand=weapon))
+    )[0]
+    assert fact == {
+        "Perk": "Bow Mastery",
+        "State": "unknown",
+        "Basis": "weapon_mastery_metadata_unavailable",
+        "MasteryFamily": "Bow",
+    }
 
 
 def test_public_roster_exposes_facts_without_future_rolls(bro_factory):
@@ -180,3 +218,15 @@ def test_gear_facts_do_not_change_projection_or_summary_fingerprints(bro_factory
 
     assert perk_gear_facts(base) != perk_gear_facts(equipped)
     assert brother_projection_fingerprint(base) == brother_projection_fingerprint(equipped)
+
+    family_equipped = replace(
+        base,
+        Equipment=_equipment(
+            MainHand=_item(
+                "weapon",
+                WeaponMasteryFamilies=["Sword"],
+                WeaponMasterySource="vanilla-specialization-flag-closure",
+            )
+        ),
+    )
+    assert brother_projection_fingerprint(base) == brother_projection_fingerprint(family_equipped)

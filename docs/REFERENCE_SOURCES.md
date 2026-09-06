@@ -24,6 +24,13 @@ by the save parser. This bounded exception closes source-key coverage gaps such 
 `35A5074F` (`weapon.exesword`) without promoting ambiguous base, tool, modded, or
 incomplete scripts through path/name heuristics.
 
+For resolved vanilla weapons, the same pinned source also contributes optional
+`WeaponMasteryFamilies` metadata. Generation follows only exact technical
+`scripts/...` references and records the supported `IsSpecializedIn*` properties
+consumed by reachable item/skill code. The field is a list because vanilla has
+hybrid mastery applicability; display names, categories, and filenames are not
+used to invent a family. Missing family evidence remains absent/fail-closed.
+
 ## Intentional upgrade workflow
 
 Reference-source upgrades are reviewed repository changes:
