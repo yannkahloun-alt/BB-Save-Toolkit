@@ -33,6 +33,24 @@ CI evidence must be green for the exact current head before independent review
 and merge. A changed implementation head receives new evidence on the same PR;
 it never creates another implementation PR for the named ticket.
 
+## Explicit validation exclusions
+
+Until an explicit later project decision changes this policy, **tests marked
+`coverage_slow` and mutation testing are excluded from every required validation,
+merge, pre-release, release, and publication gate**.
+
+- Do not run `coverage_slow` as a required gate.
+- Do not run mutation testing as a required gate.
+- Their absence, failure, or stale historical result must not block a ticket,
+  release candidate, tag, or publication.
+- They may remain available only as optional diagnostic tools when explicitly
+  requested for investigation; optional results do not become merge/release
+  requirements unless project policy is explicitly changed again.
+
+This exclusion does **not** remove ordinary branch-coverage validation where a
+release workflow currently requires `run_coverage.ps1`; it applies specifically
+to the `coverage_slow` pytest marker and mutation testing.
+
 ## Manual, reference, and local-only validation
 
 These commands remain useful for explicit user-directed diagnosis, local
@@ -53,23 +71,23 @@ The independent review required by the shared workflow verifies the stable
 checks on the exact current PR head. It does not replace deterministic GitHub
 checks. Generic review execution, exact-head invalidation, and fallback
 isolation are defined only by the shared workflow. The reviewer also confirms
-that normal PR CI excludes branch coverage, coverage_slow, mutation testing,
+that normal PR CI excludes branch coverage, `coverage_slow`, mutation testing,
 real-save smoke tests, and release ZIP generation.
 
 ## Pre-release / pre-production
 
-Before a release or production handoff, additionally run:
+Required pre-release validation must use the gates defined in `docs/RELEASE.md`
+and must continue to exclude `coverage_slow` and mutation testing until an
+explicit later project decision re-enables either one.
 
-    .\run_tests.ps1
-    .\run_mutation.ps1 -Target <changed-or-high-risk-module>
+The tracked-file ZIP remains independently verifiable with:
+
     python tools\verify_release_zip.py <release.zip>
 
-run_tests.ps1 includes coverage_slow. The manually dispatched Release validation
-workflow runs reproducible tests excluding that marker, coverage, lint, Ruff,
-and verified release-ZIP packaging. Neither coverage_slow nor mutation testing
-is invoked automatically by that workflow; both remain separate, explicitly
-requested pre-release work. Real-save smoke tests remain local because private
-game data and game files are unavailable in CI.
+The manually dispatched Release validation workflow runs reproducible tests
+excluding `coverage_slow`, branch coverage, Pyflakes, Ruff, and verified
+release-ZIP packaging. Real-save smoke tests remain local because private game
+data and game files are unavailable in CI.
 
 ## Incremental cache verification
 
@@ -90,6 +108,6 @@ A normal ticket is ready to merge when:
 4. the shared-workflow independent review approves that exact head under the project-specific review guard; and
 5. docs/specs are updated if the contract changed.
 
-coverage_slow, branch coverage, targeted mutation testing, and release ZIP
-validation are explicit local or pre-release/pre-production work, not routine
-ticket CI or local completion requirements.
+`coverage_slow` and mutation testing are not completion requirements under the
+current policy. Branch coverage and release ZIP validation remain governed by
+the explicit release workflow when applicable.
