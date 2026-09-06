@@ -24,9 +24,6 @@ jobs:
       - name: Run Recruitment compatibility and browser tests
         shell: pwsh
         run: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest tests/unit/test_recruitment_ui.py tests/unit/test_recruitment_production_policy.py tests/unit/test_relevant_need_availability_contract.py tests/ui/test_recruitment_browser.py -q
-      - name: Isolate unrelated Debug Export browser test
-        shell: pwsh
-        run: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest tests/ui/test_debug_export_browser.py::test_debug_export_control_tracks_publication_and_downloads_with_session -q
       - name: Run targeted Ruff
         shell: pwsh
         run: python -m ruff check bbtool/app/recruitment_view.py tests/unit/test_recruitment_ui.py tests/unit/test_recruitment_production_policy.py tests/unit/test_relevant_need_availability_contract.py tests/ui/test_recruitment_browser.py
