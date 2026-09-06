@@ -3,7 +3,6 @@ from __future__ import annotations
 from contextlib import contextmanager
 import ctypes
 import json
-from pathlib import Path
 
 import pytest
 
@@ -218,9 +217,8 @@ def test_single_instance_mutex_non_windows_create_failure_duplicate_and_release(
     kernel.CloseHandle = FakeCall(lambda handle: events.append(("close", handle)) or 1)
     monkeypatch.setattr(launcher, "_kernel32", lambda: kernel)
     monkeypatch.setattr(launcher.ctypes, "get_last_error", lambda: 5)
-    with pytest.raises(OSError, match="unable to create application mutex"):
-        with launcher._single_instance_mutex():
-            pass
+    with pytest.raises(OSError, match="unable to create application mutex"), launcher._single_instance_mutex():
+        pass
 
     kernel.CreateMutexW = FakeCall(lambda *_args: 11)
     monkeypatch.setattr(launcher.ctypes, "get_last_error", lambda: 183)
