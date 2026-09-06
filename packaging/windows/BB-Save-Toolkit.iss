@@ -74,7 +74,16 @@ begin
   ExistingExe := ExpandConstant('{app}\{#MyAppExeName}');
   if FileExists(ExistingExe) then
   begin
-    Exec(ExistingExe, 'stop', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if not Exec(ExistingExe, 'stop', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    begin
+      Result := 'Unable to stop the currently installed BB Save Toolkit process. Close it and retry.';
+    end
+    else if ResultCode <> 0 then
+    begin
+      Result := Format(
+        'BB Save Toolkit could not stop the running application (exit code %d). Close it and retry.',
+        [ResultCode]);
+    end;
   end;
 end;
 
