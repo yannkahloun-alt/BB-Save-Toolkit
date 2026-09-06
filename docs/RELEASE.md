@@ -25,7 +25,11 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 
 It then creates a ZIP from the validated commit's tracked files, runs `tools/verify_release_zip.py`, and uploads the verified ZIP as a downloadable workflow artifact retained for 30 days. The run summary records the requested version, ref, full commit SHA, and every stage outcome, providing the audit trail for the release candidate.
 
-`coverage_slow` and mutation testing are deliberately not part of this workflow and are not required for it to pass. Run either gate separately only when an explicit pre-release decision calls for it.
+### Validation exclusions
+
+Until an explicit later project decision changes this policy, **`coverage_slow` tests and mutation testing are excluded from every required validation, merge, pre-release, release, and publication gate**. They may remain available as optional diagnostic tools, but they must not be required to approve, merge, tag, or publish a release and their absence or failure must not block v3.89.
+
+The normal deterministic suite continues to exclude `coverage_slow`. Branch coverage through `run_coverage.ps1` remains part of `release-quality`; this exclusion applies specifically to tests marked `coverage_slow`, not to the branch-coverage gate itself.
 
 ### Windows installer validation
 
@@ -84,4 +88,4 @@ git tag -a vX.Y.Z -m "Battle Brothers Save Toolkit vX.Y.Z"
 
 Then create the GitHub Release targeting that tag, use the version-specific release notes as the release body, and attach the already-validated public assets. Re-fetch the release, tag, target commit, and asset metadata after publication before declaring the lifecycle complete.
 
-Do not move an existing release tag or silently substitute a newer commit after validation. If the candidate changes for any reason, rerun every exact-candidate release gate on the new SHA before tagging or publishing.
+Do not move an existing release tag or silently substitute a newer commit after validation. If the candidate changes for any reason, rerun every required exact-candidate release gate on the new SHA before tagging or publishing. `coverage_slow` and mutation testing remain excluded unless explicitly re-enabled by a later project decision.
