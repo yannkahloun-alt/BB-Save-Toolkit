@@ -66,6 +66,30 @@ status      exit success only when a toolkit loopback instance is healthy
 
 At sign-in, the per-user Startup shortcut invokes `background`.
 
+### First-run save selection
+
+When the installed application starts with no existing `preferences.json`, it
+initializes the selected save to:
+
+```text
+<Windows Documents>\Battle Brothers\savegames\quicksave.sav
+```
+
+The application resolves the current user's Windows **Documents known folder**,
+so normal Windows folder redirection is respected. If Documents is redirected
+to OneDrive, the default naturally follows that redirected location; no username
+or OneDrive root is hard-coded into the package.
+
+The default is only first-run convenience. A persisted selected save always
+wins, and an explicit user selection remains authoritative across restarts. An
+explicitly persisted no-selection state is also respected and is not silently
+replaced on a later launch. If the default quicksave is missing or unreadable,
+the application keeps that path and reports the normal unavailable state; it
+does not scan for another save or choose a newest save implicitly.
+
+The selected path remains preference/provenance only. It is not CampaignIdentity,
+BrotherIdentity, snapshot identity, or an incremental-cache identity input.
+
 The launcher owns a Windows per-session mutex and a small bounded port range on
 `127.0.0.1`. It prefers the first available port and records only volatile
 runtime metadata (`pid`, port, executable path) below the user's temporary
