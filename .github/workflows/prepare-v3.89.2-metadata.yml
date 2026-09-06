@@ -1,0 +1,99 @@
+name: Prepare v3.89.2 metadata
+
+on:
+  push:
+    branches:
+      - codex/issue-216-release-v3.89.2
+    paths:
+      - .github/workflows/prepare-v3.89.2-metadata.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-216-release-v3.89.2
+          fetch-depth: 0
+      - name: Verify clean release-prep base
+        shell: bash
+        env:
+          EXPECTED_BASE: 62c5a8ceffe8df006f70d31ec24843ecb25af997
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_BASE"
+          changed="$(git diff --name-only HEAD^ HEAD)"
+          test "$changed" = ".github/workflows/prepare-v3.89.2-metadata.yml"
+      - name: Prepare release metadata
+        shell: python
+        run: |
+          from pathlib import Path
+
+          telemetry = Path("bbtool/app/telemetry.py")
+          text = telemetry.read_text(encoding="utf-8")
+          old = 'TOOLKIT_VERSION = "3.89.1"'
+          assert text.count(old) == 1
+          telemetry.write_text(text.replace(old, 'TOOLKIT_VERSION = "3.89.2"'), encoding="utf-8")
+
+          changelog = Path("docs/CHANGELOG.md")
+          existing = changelog.read_text(encoding="utf-8")
+          assert existing.startswith("## v3.89.1 — Recruitment potential safety hotfix")
+          entry = '''## v3.89.2 — Installer repair and debug evidence export hotfix
+
+- Makes Windows repair/update resilient when a previous installed launcher exists
+  but cannot initialize, while preserving verified safe-stop behavior when the
+  BB Save Toolkit application is genuinely running.
+- Adds **Export debug JSON** to the local app after a completed analysis, producing
+  one generation-bound ZIP with CLI-equivalent algorithm evidence and the exact
+  Company, Level Up, Recruitment, shell/freshness, analysis-result, followed-save,
+  and effective-archetype read models consumed by the UI.
+- Adds a machine-readable diagnostic inventory for explicit `Unknown`,
+  `Unavailable`, degraded/failure/warning states, backend reasons, and associated
+  null evidence using stable source-file JSON paths for real-campaign triage.
+- Binds exported evidence to publication generation/job, source/configuration
+  fingerprints, artifact signatures, toolkit version, and per-member SHA-256
+  metadata; rejects mixed-generation capture if analysis changes mid-export.
+- Protects debug export with the existing loopback Host/rebinding boundary plus
+  the local session capability, includes safe runtime timings/diagnostics, never
+  includes save bytes, and redacts selected-save and toolkit user-state paths.
+- Leaves level-11 Fit, classification, Level-Up Advisor, AssignedBuild, Company
+  planning, parser identity, cache, and the v3.89.1 Recruitment-prior safety
+  rollback unchanged.
+
+'''
+          changelog.write_text(entry + existing, encoding="utf-8")
+
+          notes = Path("docs/RELEASE_NOTES_v3.89.2.md")
+          assert not notes.exists()
+          notes.write_text('''# BB Save Toolkit v3.89.2
+
+v3.89.2 is a focused Windows/local-app hotfix built on v3.89.1.
+
+## What changed
+
+- **Repair/update no longer depends on a bootable previous launcher when the app is not running.** The installer now checks the BB Save Toolkit application mutex before invoking the previous `stop` lifecycle command. A genuinely running instance still follows the verified safe-stop path.
+- **The Windows app can export one coherent debug evidence ZIP after analysis.** `Export debug JSON` includes CLI-equivalent roster/Fit/classification/Target/validation evidence together with the exact backend read models consumed by Company, Level Up, Recruitment, shell/freshness, followed-save, analysis-result, and archetype UI surfaces.
+- **Unavailable/unknown UI states are triageable.** `diagnostic-inventory.json` records explicit Unknown/Unavailable/degraded/warning/reason evidence with stable JSON paths so real-campaign gaps can be turned into focused follow-up tickets.
+- **Debug sharing is deliberately bounded.** The export is generation-bound and session-protected, never includes save bytes, redacts the selected-save path and toolkit user-state root, and refuses to return a mixed-generation archive if a newer analysis publishes during capture.
+
+## Analytical behavior
+
+The core level-11 natural-stat Fit model, classification, Level-Up Advisor, AssignedBuild, Company planning, identity/cache semantics, and the v3.89.1 production disablement of the unvalidated Recruitment Background × Archetype prior are unchanged by this hotfix.
+
+## Player workflow
+
+Install `BB-Save-Toolkit-3.89.2-setup.exe`, run an analysis, then use **Export debug JSON**. The resulting ZIP can be shared for algorithm/UI triage without sharing the `.sav` itself.
+''', encoding="utf-8")
+      - name: Commit metadata and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/prepare-v3.89.2-metadata.yml
+          git config user.name "BB Save Toolkit Automation"
+          git config user.email "bb-toolkit@local.invalid"
+          git add bbtool/app/telemetry.py docs/CHANGELOG.md docs/RELEASE_NOTES_v3.89.2.md .github/workflows/prepare-v3.89.2-metadata.yml
+          git commit -m "Prepare v3.89.2 release metadata"
+          git push origin HEAD:codex/issue-216-release-v3.89.2
