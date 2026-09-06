@@ -43,6 +43,17 @@ startup shortcuts therefore do not create a terminal window.
 
 ## Runtime and duplicate-instance behavior
 
+On a clean start the documented local URL is:
+
+```text
+http://127.0.0.1:41571/
+```
+
+The launcher prefers port `41571`. If another process already owns that port it
+tries `41572` through `41579` in order; the Open shortcut discovers and opens
+the actual healthy toolkit origin, so users do not need to discover a fallback
+port manually.
+
 `BB-Save-Toolkit.exe` supports these lifecycle commands:
 
 ```text
