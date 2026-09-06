@@ -11,6 +11,7 @@ from .target_presentation import BOUND_ARTIFACTS, build_target_presentation
 _RECRUIT_FACT_FIELDS = (
     "Name", "Title", "Background", "Level", "Settlement", "HireCost", "DailyWage", "TryoutDone",
 )
+_AVAILABLE_POTENTIAL_STATES = frozenset({"prior_only", "known_evidence_estimate"})
 
 
 def _mean_fit(value: Any) -> float | None:
@@ -91,12 +92,21 @@ def _need_row(value: Any, build_names: Mapping[str, str]) -> dict[str, Any] | No
     }
 
 
+def _unavailable_need() -> dict[str, Any]:
+    return {
+        "state": "unavailable",
+        "relevant": None,
+        "matches": [],
+        "other_company_gaps": [],
+    }
+
+
 def _relevant_need(value: Any, build_names: Mapping[str, str]) -> dict[str, Any]:
     if not isinstance(value, Mapping) or value.get("state") != "available":
-        return {"state": "unavailable", "relevant": None, "matches": [], "other_company_gaps": []}
+        return _unavailable_need()
     result = value.get("result")
     if not isinstance(result, Mapping):
-        return {"state": "unavailable", "relevant": None, "matches": [], "other_company_gaps": []}
+        return _unavailable_need()
     matches = [
         row
         for row in (
@@ -177,12 +187,24 @@ def build_recruitment_view(application) -> dict[str, Any]:
                 for item in analytical.get("analyses", [])
                 if isinstance(item, Mapping)
             ]
+            potential_available = any(
+                row.get("state") in _AVAILABLE_POTENTIAL_STATES
+                and (
+                    row.get("background_prior_pct") is not None
+                    or row.get("candidate_estimate_pct") is not None
+                )
+                for row in potentials
+            )
             candidates.append({
                 "recruit_index": index,
                 "facts": facts,
                 "top_potential": _top_potential(potentials),
                 "potential": potentials,
-                "relevant_need": _relevant_need(need_by_index.get(index), builds),
+                "relevant_need": (
+                    _relevant_need(need_by_index.get(index), builds)
+                    if potential_available
+                    else _unavailable_need()
+                ),
             })
 
         groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
