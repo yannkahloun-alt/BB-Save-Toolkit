@@ -1,0 +1,64 @@
+name: Issue 230 pinned-source investigation once
+
+on:
+  push:
+    branches:
+      - codex/issue-230-equipped-item-hash
+    paths:
+      - .github/workflows/issue-230-investigate-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-230-equipped-item-hash
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Investigate exact pinned sources
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from references import update_references as refs
+
+          target = '35A5074F'
+          bbedit = refs.download_reference_dictionary()
+          archive = refs._download_bytes(refs.BB_SCRIPTS_ZIP_URL, timeout=45)
+          model = refs._extract_script_item_values(archive)
+          by_hash = model.get('by_save_hash') or {}
+          source_match = by_hash.get(target)
+          payload = {
+              'schema': 'bbtool.issue230_item_hash_investigation.v1',
+              'target_save_hash': target,
+              'bbedit': {
+                  'revision': refs.BBEDIT_DICTIONARY_REVISION,
+                  'contains_target': target in bbedit,
+              },
+              'vanilla_scripts': {
+                  'revision': refs.BB_SCRIPTS_REVISION,
+                  'contains_target': source_match is not None,
+                  'match': source_match,
+                  'indexed_save_hashes': len(by_hash),
+              },
+              'method': 'references.update_references._extract_script_item_values at repository-pinned immutable inputs',
+          }
+          out = Path('docs/sources/issue-230-item-hash-investigation.json')
+          out.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print(json.dumps(payload, indent=2, ensure_ascii=False))
+          PY
+      - name: Commit investigation evidence
+        shell: bash
+        run: |
+          rm .github/workflows/issue-230-investigate-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/sources/issue-230-item-hash-investigation.json .github/workflows/issue-230-investigate-once.yml
+          git commit -m "Record pinned-source investigation for item 35A5074F"
+          git push origin HEAD:codex/issue-230-equipped-item-hash
