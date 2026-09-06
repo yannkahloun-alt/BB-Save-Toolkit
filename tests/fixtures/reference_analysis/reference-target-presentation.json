@@ -1004,7 +1004,7 @@
     ]
   },
   "publication": {
-    "coherence_signature": "sha256:cdd211dd19d161a430696b5780ddc9b1f40896f1b129ff7919f0d0630b74c3d2",
+    "coherence_signature": "sha256:f188c4b69ca96927074b432ac24517997b5e5a14394d74d1ae8314f937a1ba70",
     "provenance": {
       "artifact_hashes": {
         "analysis_health": "350bfda54f35117c980dce688a9bc28d5ee79109c8d9a153ebc25349e9c744c2",
@@ -1026,7 +1026,7 @@
         "campaign_identity": "sha256:305085d74134d5fbfae8c4f41a9c9c90eb8c601298f4c3c97d0432f403a12588",
         "company": "sha256:2bb320bcc2aa179b1b392f97f03f7bd4eb0df249ca4e5fe895f7fce71f816a22",
         "recruitment": "sha256:af98a408ce2861e320cb8abe79423fb1833010981c361996b54bf3595c1341b2",
-        "relevant_roster_need": "sha256:fc5b96efcc9065040501ca573c1fe27646aa1b7d39f3bb6fa753b6f476d3e2e8",
+        "relevant_roster_need": "sha256:2f751c7a4ccc6c73bc8d4d5a2e23e2f9777bab13ea23ad0b4a98ebcb2f74aa65",
         "run_health": "sha256:78a9bd8413f61db8fabe47ad6bfa4e771f9500371e63c131bf97f64bbb81bf4e",
         "validity": "sha256:e7790a952b559a3f3acbdf2c9655c6ff80784718494df1c722d6da4a2c745b85"
       },
@@ -1182,29 +1182,13 @@
   "relevant_roster_need": [
     {
       "recruit_index": 0,
-      "result": {
-        "artifact_signature": "sha256:98ca1a034c70ab82bff4eb09ac776ac8aaa70d562abb6c31647940da5aba0468",
-        "candidate_plausible_roles": [],
-        "no_match": true,
-        "other_company_gaps": [],
-        "relevant_need": null,
-        "relevant_need_matches": [],
-        "schema": "bbtool.relevant_roster_need.v1"
-      },
-      "state": "available"
+      "result": null,
+      "state": "unavailable"
     },
     {
       "recruit_index": 1,
-      "result": {
-        "artifact_signature": "sha256:98ca1a034c70ab82bff4eb09ac776ac8aaa70d562abb6c31647940da5aba0468",
-        "candidate_plausible_roles": [],
-        "no_match": true,
-        "other_company_gaps": [],
-        "relevant_need": null,
-        "relevant_need_matches": [],
-        "schema": "bbtool.relevant_roster_need.v1"
-      },
-      "state": "available"
+      "result": null,
+      "state": "unavailable"
     }
   ],
   "run_health": {
