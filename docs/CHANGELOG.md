@@ -1,3 +1,19 @@
+## v3.89.1 — Recruitment potential safety hotfix
+
+- Disables the unvalidated Recruitment Background × Archetype prior and
+  candidate-estimate models from normal application and CLI analysis after a
+  real v3.89 campaign exposed severe post-analysis runtime in that path.
+- Preserves recruit parsing and public settlement/economics facts while
+  reporting recruitment analytical potential explicitly unavailable pending
+  a separate validation/product decision.
+- Keeps Relevant Roster Need unavailable when candidate-potential evidence is
+  unavailable, avoiding false negative recruiting conclusions.
+- Leaves core Brother × Archetype Fit, classification, Level-Up Advisor,
+  AssignedBuild, Company planning, save watching, identity, and projection
+  semantics unchanged.
+- Adds an 86-recruit × 11-build regression that fails if normal production
+  analysis re-enters the disabled estimator.
+
 ## v3.89 — Local-first Target UI and Windows application
 
 - Ships the validated local-first Target UI with Company, Level Up, and
