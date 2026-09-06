@@ -1,0 +1,56 @@
+name: Issue 211 test update helper
+
+on:
+  push:
+    branches:
+      - codex/issue-211-debug-export
+    paths:
+      - .github/workflows/issue-211-test-update.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-211-debug-export
+          fetch-depth: 0
+      - name: Update existing debug-export expectations
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('tests/unit/test_debug_export.py')
+          text = path.read_text(encoding='utf-8')
+
+          marker = '''            "analysis/projection-validation.json",\n            "api/shell.json",\n'''
+          replacement = '''            "analysis/projection-validation.json",\n            "analysis/runtime-diagnostics.json",\n            "api/shell.json",\n'''
+          assert marker in text
+          text = text.replace(marker, replacement, 1)
+
+          marker = '''    empty = LocalApplicationApi(App(None), origin=ORIGIN, token="capability")\n    unavailable = empty.handle("GET", "/api/v1/debug-export", {"Host": HOST})\n    assert unavailable.status == 409\n    assert json.loads(unavailable.body)["error"]["code"] == "analysis_unavailable"\n\n    publication = SimpleNamespace(generation=5)\n'''
+          replacement = '''    empty = LocalApplicationApi(App(None), origin=ORIGIN, token="capability")\n    unauthorized = empty.handle("GET", "/api/v1/debug-export", {"Host": HOST})\n    assert unauthorized.status == 403\n    assert json.loads(unauthorized.body)["error"]["code"] == "invalid_session"\n    unavailable = empty.handle(\n        "GET",\n        "/api/v1/debug-export",\n        {"Host": HOST, "X-BBST-Session": "capability"},\n    )\n    assert unavailable.status == 409\n    assert json.loads(unavailable.body)["error"]["code"] == "analysis_unavailable"\n\n    publication = SimpleNamespace(generation=5)\n'''
+          assert marker in text
+          text = text.replace(marker, replacement, 1)
+
+          marker = '''    response = api.handle("GET", "/api/v1/debug-export", {"Host": HOST})\n    assert response.status == 200\n'''
+          replacement = '''    response = api.handle(\n        "GET",\n        "/api/v1/debug-export",\n        {"Host": HOST, "X-BBST-Session": "capability"},\n    )\n    assert response.status == 200\n'''
+          assert marker in text
+          text = text.replace(marker, replacement, 1)
+
+          marker = '''    assert "'/api/v1/debug-export'" in script\n    assert "debug-export-button" in script\n    assert "state.result?.available" in script\n'''
+          replacement = '''    assert "'/api/v1/debug-export'" in script\n    assert "debug-export-button" in script\n    assert "state.result?.available" in script\n    assert "'X-BBST-Session': state.sessionToken" in script\n    assert "response.blob()" in script\n    assert "URL.createObjectURL(blob)" in script\n'''
+          assert marker in text
+          text = text.replace(marker, replacement, 1)
+          path.write_text(text, encoding='utf-8')
+      - name: Commit updates and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/issue-211-test-update.yml
+          git config user.name "BB Save Toolkit Automation"
+          git config user.email "bb-toolkit@local.invalid"
+          git add tests/unit/test_debug_export.py .github/workflows/issue-211-test-update.yml
+          git commit -m "Update debug export security expectations"
+          git push origin HEAD:codex/issue-211-debug-export
