@@ -101,6 +101,8 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "/DELETEUSERDATA" in iss
     assert "{localappdata}\\BB-Save-Toolkit" in iss
     assert "ResultCode <> 0" in iss
+    assert "StopExistingApplication" in iss
+    assert "InitializeUninstall" in iss
     assert "Unable to stop the currently installed BB Save Toolkit process" in iss
     assert "console=False" in spec
     assert "ensure_references" in build
