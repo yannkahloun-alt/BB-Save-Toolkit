@@ -804,13 +804,40 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const debugExportButton = document.getElementById('debug-export-button');
-  debugExportButton.addEventListener('click', () => {
+  debugExportButton.addEventListener('click', async () => {
     if (debugExportButton.disabled) return;
-    const link = document.createElement('a');
-    link.href = '/api/v1/debug-export';
-    document.body.append(link);
-    link.click();
-    link.remove();
+    debugExportButton.disabled = true;
+    try {
+      if (!state.sessionToken) {
+        state.sessionToken = (await fetchData('/api/v1/session')).token;
+      }
+      const response = await fetch('/api/v1/debug-export', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {'X-BBST-Session': state.sessionToken},
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error?.message || `Export failed (${response.status})`);
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const filename = /filename="([^"]+)"/.exec(disposition)?.[1]
+        || 'BB-Save-Toolkit-debug-json.zip';
+      const href = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = href;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(href);
+      debugExportButton.title = 'Debug JSON downloaded';
+    } catch (error) {
+      debugExportButton.title = error?.message || 'Debug export failed';
+    } finally {
+      debugExportButton.disabled = !state.result?.available;
+    }
   });
 
   document.querySelectorAll('[data-company-view]').forEach((button) => {

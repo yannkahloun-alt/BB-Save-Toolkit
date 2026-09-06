@@ -17,7 +17,7 @@ from .archetype_catalog import (
 )
 from .company_brother_view import build_company_brother_view
 from .config import load_config
-from .debug_export import build_debug_export
+from .debug_export import DebugExportGenerationChanged, build_debug_export
 from .health import build_public_analysis_health
 from .level_up_view import build_level_up_view
 from .local_application import ApplicationOperationError, LocalApplication
@@ -110,15 +110,28 @@ class LocalApplicationApi:
             if method == "GET" and path == "/api/v1/shell":
                 return self._ok(self._shell_state())
             if method == "GET" and path == "/api/v1/debug-export":
+                if not secrets.compare_digest(
+                    headers.get("x-bbst-session", ""), self.token
+                ):
+                    raise ApplicationOperationError(
+                        "invalid_session",
+                        "debug export session capability is invalid",
+                    )
                 with self.application._command_lock:
                     if self.application.coordinator.last_success is None:
                         raise ApplicationOperationError(
                             "analysis_unavailable",
                             "a completed published analysis is required for debug export",
                         )
-                    archive, filename = build_debug_export(
-                        self.application, shell_builder=self._shell_state
-                    )
+                    try:
+                        archive, filename = build_debug_export(
+                            self.application, shell_builder=self._shell_state
+                        )
+                    except DebugExportGenerationChanged as exc:
+                        raise ApplicationOperationError(
+                            "debug_export_generation_changed",
+                            "analysis changed while debug export was built; retry the export",
+                        ) from exc
                 return HttpResponse(
                     200,
                     archive,
@@ -200,6 +213,7 @@ class LocalApplicationApi:
                 "unsupported_media_type": 415,
                 "request_too_large": 413,
                 "analysis_unavailable": 409,
+                "debug_export_generation_changed": 409,
             }.get(exc.code, 422)
             return self._error(status, exc.code, exc.message, details=exc.details)
         except StateConflictError as exc:

@@ -26,6 +26,11 @@ _SIMPLE_KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _INCOMPLETE_STATES = frozenset({"unknown", "unavailable", "degraded", "failed", "failure", "error"})
 
 
+class DebugExportGenerationChanged(RuntimeError):
+    """The published analysis changed while an export was being assembled."""
+
+
+
 def _json_bytes(value: Any) -> bytes:
     return (
         json.dumps(
@@ -208,6 +213,38 @@ def _capture(builder: Callable[[], Any]) -> Any:
         }
 
 
+def _runtime_diagnostics(application, result) -> dict[str, Any]:
+    """Expose safe algorithm diagnostics while excluding path-heavy reference internals."""
+    diagnostics = deepcopy(getattr(result, "diagnostics", {}) or {})
+    safe = {
+        key: diagnostics.get(key)
+        for key in (
+            "parse",
+            "run_health",
+            "projection_profile",
+            "validation_projection",
+            "cache_miss_reasons",
+        )
+        if key in diagnostics
+    }
+    safe["timings"] = dict(getattr(result, "timings", {}) or {})
+    safe["warnings"] = deepcopy(getattr(result, "warnings", []) or [])
+    safe["excluded"] = {
+        "references": (
+            "reference-runtime diagnostics are excluded because they may contain "
+            "machine-local cache paths; unresolved reference evidence remains in run_health"
+        ),
+        "progress_events": (
+            "worker progress is excluded because reference-stage details may contain "
+            "machine-local paths; completed stage timings are exported above"
+        ),
+    }
+    followed = application.followed_save()
+    selected = followed.get("selected_path")
+    selected_path = selected if isinstance(selected, str) else None
+    return _redact_selected_save(safe, selected_path)
+
+
 def _analysis_payloads(result) -> dict[str, Any]:
     public = result.public_data
     fits = deepcopy(public.get("fits", []))
@@ -280,6 +317,8 @@ def build_debug_export(
         files["analysis/projection-validation.json"] = _json_bytes(
             result.projection_validation
         )
+        runtime_diagnostics = _runtime_diagnostics(application, result)
+        files["analysis/runtime-diagnostics.json"] = _json_bytes(runtime_diagnostics)
 
         api_snapshots = {
             "api/shell.json": _capture(shell_builder),
@@ -311,6 +350,7 @@ def build_debug_export(
             "analysis_health"
         ]
         inventory_inputs["analysis/target-presentation.json"] = presentation
+        inventory_inputs["analysis/runtime-diagnostics.json"] = runtime_diagnostics
         inventory = build_diagnostic_inventory(inventory_inputs)
         files["diagnostic-inventory.json"] = _json_bytes(inventory)
 
@@ -364,6 +404,15 @@ def build_debug_export(
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o644 << 16
                 target.writestr(info, data)
+        current_publication = application.coordinator.last_success
+        if (
+            current_publication is not publication
+            or current_publication.generation != publication.generation
+            or current_publication.job_id != publication.job_id
+        ):
+            raise DebugExportGenerationChanged(
+                "published analysis changed while debug export was being assembled"
+            )
         filename = f"{_DOWNLOAD_PREFIX}-generation-{publication.generation}.zip"
         return archive.getvalue(), filename
 
@@ -371,6 +420,7 @@ def build_debug_export(
 __all__ = [
     "DEBUG_EXPORT_SCHEMA",
     "DIAGNOSTIC_INVENTORY_SCHEMA",
+    "DebugExportGenerationChanged",
     "build_debug_export",
     "build_diagnostic_inventory",
 ]

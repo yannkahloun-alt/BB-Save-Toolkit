@@ -393,3 +393,5 @@ If artifact compatibility cannot be proven, recompute. Cache contents are derive
 The active roadmap is `docs/specs/REMAINING_WORK_v3.84.md`. Exact campaign-local
 brother identity is established; progression-aware artifact dependencies and
 reuse remain the next incremental architecture work.
+
+- Debug export downloads require the local session capability, are assembled from one published generation, and abort with a retryable conflict if a newer generation publishes during capture. Sanitized runtime diagnostics include parse/run-health/cache/projection/timing evidence while deliberately excluding path-bearing reference-runtime internals.
