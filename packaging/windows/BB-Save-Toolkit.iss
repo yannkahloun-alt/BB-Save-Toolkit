@@ -69,21 +69,33 @@ var
 begin
   Result := True;
   ErrorMessage := '';
-  ExistingExe := ExpandConstant('{app}\{#MyAppExeName}');
-  if FileExists(ExistingExe) then
+
+  { Keep this name exactly aligned with bbtool.app.windows_launcher.MUTEX_NAME. }
+  if not CheckForMutexes('Local\BBSaveToolkit.Application') then
   begin
-    if not Exec(ExistingExe, 'stop', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-    begin
-      ErrorMessage := 'Unable to stop the currently installed BB Save Toolkit process. Close it and retry.';
-      Result := False;
-    end
-    else if ResultCode <> 0 then
-    begin
-      ErrorMessage :=
-        'BB Save Toolkit could not stop the running application (exit code ' +
-        IntToStr(ResultCode) + '). Close it and retry.';
-      Result := False;
-    end;
+    Exit;
+  end;
+
+  ExistingExe := ExpandConstant('{app}\{#MyAppExeName}');
+  if not FileExists(ExistingExe) then
+  begin
+    ErrorMessage :=
+      'BB Save Toolkit is running, but its installed launcher is missing. Close it and retry.';
+    Result := False;
+    Exit;
+  end;
+
+  if not Exec(ExistingExe, 'stop', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    ErrorMessage := 'Unable to stop the currently installed BB Save Toolkit process. Close it and retry.';
+    Result := False;
+  end
+  else if ResultCode <> 0 then
+  begin
+    ErrorMessage :=
+      'BB Save Toolkit could not stop the running application (exit code ' +
+      IntToStr(ResultCode) + '). Close it and retry.';
+    Result := False;
   end;
 end;
 
