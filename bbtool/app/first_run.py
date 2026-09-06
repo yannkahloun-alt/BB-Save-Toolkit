@@ -19,7 +19,7 @@ def resolve_windows_documents() -> Path | None:
     """Resolve the current user's Windows Documents known folder.
 
     The shell known-folder API follows configured redirection, including a
-    OneDrive-backed Documents folder.  Other platforms have no Windows default.
+    OneDrive-backed Documents folder. Other platforms have no Windows default.
     """
     if sys.platform != "win32":
         return None
@@ -50,6 +50,8 @@ def resolve_windows_documents() -> Path | None:
         ctypes.byref(path_pointer),
     )
     if result != 0 or not path_pointer.value:
+        if path_pointer.value:
+            ole32.CoTaskMemFree(path_pointer)
         return None
 
     try:
@@ -63,6 +65,10 @@ def default_battle_brothers_quicksave(documents: Path) -> Path:
     return Path(documents) / _BATTLE_BROTHERS_QUICKSAVE
 
 
+def _selected_path(value: PreferencesState) -> Path | None:
+    return Path(value.selected_save_path) if value.selected_save_path is not None else None
+
+
 def initialize_first_run_save_default(
     *,
     state_root: Path | None = None,
@@ -71,7 +77,7 @@ def initialize_first_run_save_default(
     """Persist the Windows quicksave default only for truly unconfigured state.
 
     A present preferences payload is authoritative even when its selected path
-    is ``None`` (for example after an explicit forget/reset).  Missing or
+    is ``None`` (for example after an explicit forget/reset). Missing or
     unavailable quicksave files are still persisted as the first-run target so
     the existing followed-save unavailable state can report them without
     guessing another save.
@@ -79,12 +85,7 @@ def initialize_first_run_save_default(
     store = UserStateStore(state_root)
     preferences_path = store.path_for("preferences")
     if preferences_path.exists():
-        current = store.load("preferences")
-        return (
-            Path(current.selected_save_path)
-            if current.selected_save_path is not None
-            else None
-        )
+        return _selected_path(store.load("preferences"))
 
     documents = documents_resolver()
     if documents is None:
@@ -93,8 +94,13 @@ def initialize_first_run_save_default(
 
     # Loading before the first write deliberately preserves the durable-state
     # corruption/high-watermark checks; missing JSON is not silently treated as
-    # first-run when revision evidence says otherwise.
+    # first-run when revision evidence says otherwise. Re-check after the load:
+    # a concurrent writer may have created authoritative preferences while the
+    # Documents known-folder lookup was in progress.
     current = store.load("preferences")
+    if preferences_path.exists() or current.revision != 0:
+        return _selected_path(current)
+
     try:
         saved = store.save(
             "preferences",
@@ -105,11 +111,10 @@ def initialize_first_run_save_default(
             expected_revision=current.revision,
         )
     except StateConflictError:
-        # A concurrent first writer wins.  Never overwrite a selection that
-        # became authoritative between the existence check and this write.
+        # A writer that wins after the post-load check remains authoritative.
         saved = store.load("preferences")
 
-    return Path(saved.selected_save_path) if saved.selected_save_path is not None else None
+    return _selected_path(saved)
 
 
 __all__ = [
