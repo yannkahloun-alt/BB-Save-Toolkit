@@ -1,3 +1,6 @@
 # Public fixture hashes cover exact bytes; keep them identical on every runner.
 tests/fixtures/reference_analysis/*.json text eol=lf
 docs/sources/issue-27-archetype-calibration.json text eol=lf
+
+# Save fixtures may be tracked for approved tests, but must never ship in release archives.
+*.sav export-ignore
