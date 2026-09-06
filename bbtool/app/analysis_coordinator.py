@@ -447,9 +447,6 @@ class AnalysisCoordinator:
             produced_signatures = result.incremental_cache.publication_signatures()
             if not isinstance(produced_signatures, Mapping):
                 raise TypeError("publication signatures must be a mapping")
-        except AttributeError:
-            # Lightweight coordinator tests may use a transport-shaped result stub.
-            produced_signatures = {}
         except Exception:
             # Missing/corrupt authoritative signature evidence cannot publish as current.
             job.status = JobStatus.SUPERSEDED

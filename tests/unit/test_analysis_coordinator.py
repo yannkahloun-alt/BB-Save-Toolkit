@@ -30,6 +30,7 @@ def result_for(item):
     return SimpleNamespace(
         source_fingerprint=item.source_fingerprint,
         configuration_fingerprints=item.configuration_fingerprints,
+        incremental_cache=SimpleNamespace(publication_signatures=lambda: {}),
     )
 
 
@@ -156,6 +157,23 @@ def test_publication_separates_dependency_and_produced_artifact_signatures():
     assert service.last_success.dependency_signatures == item.dependency_signatures
     assert service.last_success.artifact_signatures == produced
     assert service.last_success.artifact_signatures != item.dependency_signatures
+
+
+def test_missing_authoritative_result_signatures_fail_closed():
+    backend = Backend()
+    service = coordinator(backend)
+    item = desired("save")
+    job_id = service.submit(item)
+    result = SimpleNamespace(
+        source_fingerprint=item.source_fingerprint,
+        configuration_fingerprints=item.configuration_fingerprints,
+    )
+    backend.handle.send("result", job_id, result)
+
+    service.poll()
+
+    assert service.job(job_id).status == JobStatus.SUPERSEDED
+    assert service.last_success is None
 
 
 def test_dependency_validity_callback_prevents_publication_after_external_change():
