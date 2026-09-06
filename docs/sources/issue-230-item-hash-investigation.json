@@ -1,0 +1,27 @@
+{
+  "schema": "bbtool.issue230_item_hash_investigation.v1",
+  "target_save_hash": "35A5074F",
+  "bbedit": {
+    "revision": "bdab5a8216090506a33e8263b8fb112ebf12b361",
+    "contains_target": false
+  },
+  "vanilla_scripts": {
+    "revision": "162f498ac7c49b4c317bbf54718a595ecef6a65a",
+    "contains_target": true,
+    "match": [
+      {
+        "Name": "Executioner's Sword",
+        "Value": 2900,
+        "Source": "scripts/items/weapons/exesword.nut",
+        "ValueScript": "scripts/items/weapons/exesword.nut",
+        "Stem": "exesword",
+        "CompactStem": "exesword",
+        "ID": "weapon.exesword",
+        "Parent": null,
+        "InheritedValue": false
+      }
+    ],
+    "indexed_save_hashes": 743
+  },
+  "method": "references.update_references._extract_script_item_values at repository-pinned immutable inputs"
+}
