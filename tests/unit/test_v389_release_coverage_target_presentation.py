@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from bbtool.app import target_presentation as presentation
+from bbtool.models import BrotherIdentity
 
 
 SHA = "sha256:" + "a" * 64
@@ -473,7 +474,7 @@ def test_build_target_presentation_handles_assignment_availability_and_malformed
         "strategic_classification": [],
         "level_advisor": [],
     }
-    identity = SimpleNamespace(value="campaign:12/entity:34", basis="native_campaign_entity_token", confidence="exact", reason=None)
+    identity = BrotherIdentity(campaign_value=12, native_token=34, confidence="exact")
 
     unavailable = presentation.build_target_presentation(
         bros=[bro], recruits=[], roles=[role], analysis_health={},
