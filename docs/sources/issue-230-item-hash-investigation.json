@@ -23,5 +23,42 @@
     ],
     "indexed_save_hashes": 743
   },
-  "method": "references.update_references._extract_script_item_values at repository-pinned immutable inputs"
+  "method": "references.update_references._extract_script_item_values at repository-pinned immutable inputs",
+  "coverage_audit": {
+    "source_hash_count": 743,
+    "bbedit_hash_count": 976,
+    "source_only_hash_count": 118,
+    "source_only_record_families": {
+      "accessory": 1,
+      "ammo": 1,
+      "armor": 39,
+      "armor_upgrades": 6,
+      "helmets": 41,
+      "item.nut": 1,
+      "item_container.nut": 1,
+      "misc": 1,
+      "shields": 5,
+      "stash_container.nut": 1,
+      "supplies": 5,
+      "tools": 1,
+      "trade": 1,
+      "weapons": 14
+    },
+    "ambiguous_source_only_hashes": [],
+    "current_generator_contains_target": false,
+    "current_generator_target": null,
+    "target_records": [
+      {
+        "Name": "Executioner's Sword",
+        "Value": 2900,
+        "Source": "scripts/items/weapons/exesword.nut",
+        "ValueScript": "scripts/items/weapons/exesword.nut",
+        "Stem": "exesword",
+        "CompactStem": "exesword",
+        "ID": "weapon.exesword",
+        "Parent": null,
+        "InheritedValue": false
+      }
+    ]
+  }
 }
