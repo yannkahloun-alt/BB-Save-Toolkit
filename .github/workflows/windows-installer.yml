@@ -42,8 +42,8 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: packaging/windows/requirements.txt
-      - name: Install packaging dependencies
-        run: python -m pip install -r packaging/windows/requirements.txt
+      - name: Install packaging and smoke dependencies
+        run: python -m pip install -r packaging/windows/requirements.txt "selenium>=4.36,<5"
       - name: Ensure Inno Setup compiler is available
         shell: pwsh
         run: |
@@ -65,7 +65,7 @@ jobs:
           $installer = ./tools/build_windows_installer.ps1 -Version $version | Select-Object -Last 1
           if (-not (Test-Path $installer)) { throw "Installer was not produced: $installer" }
           "installer=$installer" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      - name: Smoke-test clean install, analysis, restart, update and uninstall
+      - name: Smoke-test clean install, analysis, display, restart, update and uninstall
         shell: pwsh
         env:
           INSTALLER_PATH: ${{ steps.build.outputs.installer }}
