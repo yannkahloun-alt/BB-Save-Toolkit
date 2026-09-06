@@ -109,12 +109,14 @@ def build_diagnostic_inventory(snapshots: Mapping[str, Any]) -> dict[str, Any]:
                 lower_key = key_text.lower()
                 if lower_key == "reason" and isinstance(item, str) and item.strip():
                     add(source, child_path, "reason", item, state=state)
-                if lower_key in {"warning", "warnings", "error", "errors"} and item not in (
-                    None,
-                    [],
-                    {},
-                    "",
-                ):
+                warning_or_error_key = (
+                    lower_key in {"warning", "warnings", "error", "errors"}
+                    or lower_key.startswith("warning_")
+                    or lower_key.endswith("_warnings")
+                    or lower_key.startswith("error_")
+                    or lower_key.endswith("_errors")
+                )
+                if warning_or_error_key and item not in (None, [], {}, ""):
                     add(source, child_path, "warning_or_error", item, state=state)
                 if (
                     lower_key == "code"
