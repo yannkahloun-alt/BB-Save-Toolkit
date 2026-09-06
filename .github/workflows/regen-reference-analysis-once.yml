@@ -1,0 +1,38 @@
+name: Regenerate reference analysis fixture once
+
+on:
+  push:
+    branches:
+      - codex/issue-231-relevant-need-availability
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-231-relevant-need-availability
+          submodules: recursive
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r tests/requirements.txt
+      - name: Regenerate reference analysis fixture
+        run: python tests/fixtures/reference_analysis/generate.py
+      - name: Commit generated fixture and remove one-shot workflow
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/regen-reference-analysis-once.yml
+          git add tests/fixtures/reference_analysis
+          git diff --cached --quiet; if ($LASTEXITCODE -eq 0) { throw "generator produced no tracked changes" }
+          git commit -m "Regenerate reference analysis fixture for Relevant Need availability"
+          git push origin HEAD:codex/issue-231-relevant-need-availability
