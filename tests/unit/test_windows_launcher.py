@@ -76,6 +76,17 @@ def test_stop_refuses_pid_whose_executable_does_not_match(monkeypatch, tmp_path)
     assert launcher._stop_running() == 4
 
 
+def test_stop_refuses_healthy_instance_without_verifiable_runtime_record(monkeypatch):
+    monkeypatch.setattr(launcher, "_load_runtime", lambda: None)
+    monkeypatch.setattr(
+        launcher,
+        "_running_origin",
+        lambda: f"http://127.0.0.1:{launcher.PORT_RANGE[0]}",
+    )
+
+    assert launcher._stop_running() == 9
+
+
 def test_installer_contract_is_per_user_state_preserving_and_windowless():
     iss = (ROOT / "packaging" / "windows" / "BB-Save-Toolkit.iss").read_text(encoding="utf-8")
     spec = (ROOT / "packaging" / "windows" / "BB-Save-Toolkit.spec").read_text(encoding="utf-8")
@@ -89,6 +100,8 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert 'Parameters: "background"' in iss
     assert "/DELETEUSERDATA" in iss
     assert "{localappdata}\\BB-Save-Toolkit" in iss
+    assert "ResultCode <> 0" in iss
+    assert "Unable to stop the currently installed BB Save Toolkit process" in iss
     assert "console=False" in spec
     assert "ensure_references" in build
     assert "$generatedReferenceCaches" in build
