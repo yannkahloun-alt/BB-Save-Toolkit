@@ -1,0 +1,93 @@
+name: Issue 230 weapon exception audit once
+
+on:
+  push:
+    branches:
+      - codex/issue-230-equipped-item-hash
+    paths:
+      - .github/workflows/issue-230-weapon-exception-audit-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-230-equipped-item-hash
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Audit weapon exceptions and source-only weapon records
+        shell: bash
+        run: |
+          python - <<'PY'
+          import io, json, re, zipfile
+          from pathlib import Path
+          from references import update_references as refs
+
+          evidence_path = Path('docs/sources/issue-230-item-hash-investigation.json')
+          payload = json.loads(evidence_path.read_text(encoding='utf-8'))
+          bbedit = refs.download_reference_dictionary()
+          archive_bytes = refs._download_bytes(refs.BB_SCRIPTS_ZIP_URL, timeout=45)
+          model = refs._extract_script_item_values(archive_bytes)
+          by_hash = model['by_save_hash']
+          create_re = re.compile(r'\bthis\.([a-z0-9_]+)\.create\s*\(\s*\)\s*;')
+          item_type_re = re.compile(r'\bm\.ItemType\s*=\s*(.*?);')
+          slot_re = re.compile(r'\bm\.SlotType\s*=\s*(.*?);')
+          with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+              texts = {}
+              for info in archive.infolist():
+                  p = info.filename.replace('\\', '/')
+                  marker = '/scripts/items/'
+                  if marker not in p or not p.endswith('.nut'):
+                      continue
+                  rel = 'scripts/items/' + p.split(marker, 1)[1]
+                  try:
+                      texts[rel] = archive.read(info).decode('utf-8-sig')
+                  except UnicodeDecodeError:
+                      continue
+
+          def enrich(save_hash, record, bb_type=None):
+              text = texts.get(record['Source'], '')
+              create = create_re.search(text)
+              item_type = item_type_re.search(text)
+              slot = slot_re.search(text)
+              return {
+                  'save_hash': save_hash,
+                  'bbedit_type': bb_type,
+                  'name': record.get('Name'),
+                  'id': record.get('ID'),
+                  'source': record.get('Source'),
+                  'create_parent': create.group(1) if create else None,
+                  'item_type_expression': item_type.group(1).strip() if item_type else None,
+                  'slot_expression': slot.group(1).strip() if slot else None,
+              }
+
+          shared_weapon_aux = []
+          source_only_weapon_like = []
+          for save_hash, records in sorted(by_hash.items()):
+              for record in records:
+                  row = enrich(save_hash, record, (bbedit.get(save_hash) or {}).get('type'))
+                  if row['create_parent'] == 'weapon' and row['bbedit_type'] == 'auxiliary':
+                      shared_weapon_aux.append(row)
+                  if save_hash not in bbedit and row['create_parent'] in {'weapon', 'named_weapon'}:
+                      source_only_weapon_like.append(row)
+          payload['weapon_type_exception_audit'] = {
+              'shared_weapon_parent_auxiliary': shared_weapon_aux,
+              'source_only_weapon_or_named_weapon': source_only_weapon_like,
+          }
+          evidence_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print(json.dumps(payload['weapon_type_exception_audit'], indent=2, ensure_ascii=False))
+          PY
+      - name: Commit weapon exception audit
+        shell: bash
+        run: |
+          rm .github/workflows/issue-230-weapon-exception-audit-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/sources/issue-230-item-hash-investigation.json .github/workflows/issue-230-weapon-exception-audit-once.yml
+          git commit -m "Audit source-only weapon type exceptions"
+          git push origin HEAD:codex/issue-230-equipped-item-hash
