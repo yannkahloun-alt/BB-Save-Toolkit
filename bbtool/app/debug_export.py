@@ -201,7 +201,10 @@ def _sanitized_followed_save(application) -> dict[str, Any]:
 
 def _redact_known_local_paths(application, value: Any) -> Any:
     """Redact known machine-local roots while preserving diagnostic structure."""
-    followed = application.followed_save()
+    try:
+        followed = application.followed_save()
+    except Exception:
+        followed = {}
     selected = followed.get("selected_path")
     replacements = []
     if isinstance(selected, str) and selected:
@@ -268,10 +271,15 @@ def _runtime_diagnostics(application, result) -> dict[str, Any]:
             "machine-local paths; completed stage timings are exported above"
         ),
     }
-    followed = application.followed_save()
+    try:
+        followed = application.followed_save()
+    except Exception:
+        followed = {}
     selected = followed.get("selected_path")
     selected_path = selected if isinstance(selected, str) else None
-    return _redact_selected_save(safe, selected_path)
+    return _redact_known_local_paths(
+        application, _redact_selected_save(safe, selected_path)
+    )
 
 
 def _analysis_payloads(result) -> dict[str, Any]:
