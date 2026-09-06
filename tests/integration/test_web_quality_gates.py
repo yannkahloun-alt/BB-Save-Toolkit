@@ -80,7 +80,7 @@ def test_manual_and_automatic_refresh_build_the_same_analysis_generation(tmp_pat
         automatic_desired.configuration_fingerprints
         == manual_desired.configuration_fingerprints
     )
-    assert automatic_desired.artifact_signatures == manual_desired.artifact_signatures
+    assert automatic_desired.dependency_signatures == manual_desired.dependency_signatures
     app.close()
 
 
