@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import bb_windows
+import bbtool.app.app_server as app_server
+import bbtool.app.first_run as first_run
+import bbtool.app.main as app_main
 from bbtool.app.archetype_catalog import ArchetypeCatalogStore
 from bbtool.app.config import load_config
 from bbtool.app.first_run import (
@@ -148,3 +152,37 @@ def test_missing_quicksave_does_not_select_an_unrelated_save(tmp_path):
     assert preferences.selected_save_path != str(unrelated)
     followed = make_application(state_root).followed_save()
     assert followed["available"] is False
+
+
+def test_cli_serve_app_initializes_default_before_starting_server(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        first_run,
+        "initialize_first_run_save_default",
+        lambda: calls.append("initialize"),
+    )
+    monkeypatch.setattr(
+        app_server,
+        "serve_local_application",
+        lambda **_kwargs: calls.append("serve"),
+    )
+
+    app_main.main(["--serve-app"])
+
+    assert calls == ["initialize", "serve"]
+
+
+def test_installed_launcher_initializes_only_commands_that_start_app(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        bb_windows,
+        "initialize_first_run_save_default",
+        lambda: calls.append("initialize"),
+    )
+
+    for command in ([], ["open"], ["background"], ["restart"]):
+        bb_windows._initialize_for_launch(command)
+    for command in (["stop"], ["status"], ["invalid"]):
+        bb_windows._initialize_for_launch(command)
+
+    assert calls == ["initialize", "initialize", "initialize", "initialize"]
