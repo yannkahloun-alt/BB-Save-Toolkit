@@ -30,6 +30,7 @@ def result_for(item):
     return SimpleNamespace(
         source_fingerprint=item.source_fingerprint,
         configuration_fingerprints=item.configuration_fingerprints,
+        incremental_cache=SimpleNamespace(publication_signatures=lambda: {}),
     )
 
 
@@ -133,6 +134,48 @@ def test_result_with_wrong_exact_fingerprint_is_rejected():
     assert service.job(job_id).status == JobStatus.SUPERSEDED
 
 
+def test_publication_separates_dependency_and_produced_artifact_signatures():
+    backend = Backend()
+    service = coordinator(backend)
+    item = desired("save")
+    job_id = service.submit(item)
+    produced = {
+        "role_projection": [{
+            "brother_id": "human:1",
+            "build_key": "role",
+            "dependency_signature": "sha256:role",
+        }]
+    }
+    result = result_for(item)
+    result.incremental_cache = SimpleNamespace(
+        publication_signatures=lambda: produced
+    )
+    backend.handle.send("result", job_id, result)
+
+    service.poll()
+
+    assert service.last_success.dependency_signatures == item.dependency_signatures
+    assert service.last_success.artifact_signatures == produced
+    assert service.last_success.artifact_signatures != item.dependency_signatures
+
+
+def test_missing_authoritative_result_signatures_fail_closed():
+    backend = Backend()
+    service = coordinator(backend)
+    item = desired("save")
+    job_id = service.submit(item)
+    result = SimpleNamespace(
+        source_fingerprint=item.source_fingerprint,
+        configuration_fingerprints=item.configuration_fingerprints,
+    )
+    backend.handle.send("result", job_id, result)
+
+    service.poll()
+
+    assert service.job(job_id).status == JobStatus.SUPERSEDED
+    assert service.last_success is None
+
+
 def test_dependency_validity_callback_prevents_publication_after_external_change():
     backend = Backend()
     current = {"intrinsic": "intrinsic:v1"}
@@ -174,7 +217,7 @@ def test_failure_preserves_last_success_and_only_retains_revalidated_artifacts()
     assert service.last_success.job_id == good_id
     assert service.job(failed_id).status == JobStatus.FAILED
     assert service.retained_artifacts == {"intrinsic": service.last_success.result}
-    assert retained_calls == [(good_id, failed.artifact_signatures)]
+    assert retained_calls == [(good_id, failed.dependency_signatures)]
 
 
 def test_worker_crash_restarts_newest_job_then_degrades_cleanly():
@@ -315,7 +358,7 @@ def test_scheduled_inputs_are_snapshotted_against_caller_mutation():
     manifest = {"brothers": {"one": {"roles": {}}}}
     item = DesiredAnalysis(
         replace_request(base.request, cache=CompatibleCacheContext(manifest=manifest)),
-        base.artifact_signatures,
+        base.dependency_signatures,
     )
     expected = item.identity
     job_id = service.submit(item)
@@ -342,7 +385,7 @@ def test_behavior_affecting_options_do_not_coalesce():
         replace_request(
             first.request, options=AnalysisServiceOptions(verify_cache=True)
         ),
-        first.artifact_signatures,
+        first.dependency_signatures,
     )
 
     first_id = service.submit(first)

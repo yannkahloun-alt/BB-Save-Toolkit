@@ -38,10 +38,10 @@ class JobStatus(StrEnum):
 
 @dataclass(frozen=True)
 class DesiredAnalysis:
-    """An exact analysis request plus artifact-scoped dependency signatures."""
+    """An exact analysis request plus scoped pre-analysis dependency signatures."""
 
     request: AnalysisServiceRequest
-    artifact_signatures: Mapping[str, str] = field(default_factory=dict)
+    dependency_signatures: Mapping[str, Any] = field(default_factory=dict)
 
     @property
     def source_fingerprint(self) -> str:
@@ -59,7 +59,7 @@ class DesiredAnalysis:
         return (
             self.source_fingerprint,
             tuple(sorted(self.configuration_fingerprints.items())),
-            tuple(sorted(self.artifact_signatures.items())),
+            stable_hash(self.dependency_signatures),
             self.request.options.verify_cache,
         )
 
@@ -80,7 +80,8 @@ class PublishedAnalysis:
     job_id: int
     source_fingerprint: str
     configuration_fingerprints: Mapping[str, str]
-    artifact_signatures: Mapping[str, str]
+    dependency_signatures: Mapping[str, Any]
+    artifact_signatures: Mapping[str, Any]
     result: AnalysisServiceResult
 
 
@@ -156,9 +157,9 @@ class AnalysisCoordinator:
         self,
         *,
         backend: WorkerBackend | None = None,
-        signatures_are_current: Callable[[Mapping[str, str]], bool] | None = None,
+        signatures_are_current: Callable[[Mapping[str, Any]], bool] | None = None,
         retain_valid_artifacts: Callable[
-            [PublishedAnalysis | None, Mapping[str, str]], Mapping[str, Any]
+            [PublishedAnalysis | None, Mapping[str, Any]], Mapping[str, Any]
         ] | None = None,
         max_crash_restarts: int = 1,
         monitor: bool = True,
@@ -166,6 +167,7 @@ class AnalysisCoordinator:
     ):
         self._backend = backend or ProcessWorkerBackend()
         self._signatures_are_current = signatures_are_current or (lambda _: True)
+        self._has_explicit_signature_validator = signatures_are_current is not None
         self._retain_valid_artifacts = retain_valid_artifacts or (lambda _old, _new: {})
         self._max_crash_restarts = max_crash_restarts
         self._poll_interval = poll_interval
@@ -185,6 +187,16 @@ class AnalysisCoordinator:
         if monitor:
             self._thread = threading.Thread(target=self._monitor, daemon=True)
             self._thread.start()
+
+    def configure_dependency_validation(
+        self, signatures_are_current: Callable[[Mapping[str, Any]], bool]
+    ) -> None:
+        """Bind caller-owned dependency currentness unless explicitly supplied already."""
+        with self._lock:
+            if self._has_explicit_signature_validator:
+                return
+            self._signatures_are_current = signatures_are_current
+            self._has_explicit_signature_validator = True
 
     @property
     def last_success(self) -> PublishedAnalysis | None:
@@ -229,7 +241,9 @@ class AnalysisCoordinator:
                 ),
                 on_progress=None,
             )
-            snapshot = DesiredAnalysis(request, dict(desired.artifact_signatures))
+            snapshot = DesiredAnalysis(
+                request, copy.deepcopy(desired.dependency_signatures)
+            )
             job = AnalysisJob(
                 self._next_id, snapshot,
                 JobStatus.STABILIZING if stabilizing else JobStatus.QUEUED,
@@ -422,19 +436,31 @@ class AnalysisCoordinator:
         )
         try:
             dependencies_current = self._signatures_are_current(
-                job.desired.artifact_signatures
+                job.desired.dependency_signatures
             )
         except Exception:
             dependencies_current = False
         if not (desired and exact and dependencies_current):
             job.status = JobStatus.SUPERSEDED
             return
+        try:
+            produced_signatures = result.incremental_cache.publication_signatures()
+            if not isinstance(produced_signatures, Mapping):
+                raise TypeError("publication signatures must be a mapping")
+        except Exception:
+            # Missing/corrupt authoritative signature evidence cannot publish as current.
+            job.status = JobStatus.SUPERSEDED
+            return
         self._generation += 1
         job.status = JobStatus.SUCCEEDED
         self._last_success = PublishedAnalysis(
-            self._generation, job.id, result.source_fingerprint,
-            dict(result.configuration_fingerprints),
-            dict(job.desired.artifact_signatures), result,
+            generation=self._generation,
+            job_id=job.id,
+            source_fingerprint=result.source_fingerprint,
+            configuration_fingerprints=dict(result.configuration_fingerprints),
+            dependency_signatures=copy.deepcopy(job.desired.dependency_signatures),
+            artifact_signatures=copy.deepcopy(dict(produced_signatures)),
+            result=result,
         )
         self._retained_artifacts = {}
 
@@ -447,7 +473,7 @@ class AnalysisCoordinator:
             # independently revalidated artifacts supplied by #122's boundary.
             try:
                 self._retained_artifacts = self._retain_valid_artifacts(
-                    self._last_success, job.desired.artifact_signatures
+                    self._last_success, job.desired.dependency_signatures
                 )
             except Exception:
                 # Dependency validation failure is conservative: expose no old

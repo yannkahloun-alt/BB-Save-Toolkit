@@ -149,7 +149,18 @@ def test_debug_export_is_generation_bound_cli_equivalent_and_path_redacted(monke
         job_id=17,
         source_fingerprint=result.source_fingerprint,
         configuration_fingerprints=result.configuration_fingerprints,
-        artifact_signatures={"role_projection": "sha256:signature"},
+        dependency_signatures={
+            "schema": "bbtool.analysis_dependency_signatures.v1",
+            "scope": {"campaign_identity": None},
+            "inputs": {"assigned_build": "sha256:input"},
+        },
+        artifact_signatures={
+            "role_projection": [{
+                "brother_id": "human:1",
+                "build_key": "nimble_dps",
+                "dependency_signature": "sha256:signature",
+            }]
+        },
         result=result,
     )
 
@@ -181,6 +192,8 @@ def test_debug_export_is_generation_bound_cli_equivalent_and_path_redacted(monke
                     "generation": 9,
                     "represented_source_fingerprint": result.source_fingerprint,
                     "represented_configuration_fingerprints": result.configuration_fingerprints,
+                    "dependency_signatures": publication.dependency_signatures,
+                    "artifact_signatures": publication.artifact_signatures,
                 },
                 "warnings": result.warnings,
                 "data": result.public_data,
@@ -308,6 +321,11 @@ def test_debug_export_is_generation_bound_cli_equivalent_and_path_redacted(monke
         assert manifest["publication"]["generation"] == 9
         assert manifest["publication"]["job_id"] == 17
         assert manifest["publication"]["source_fingerprint"] == result.source_fingerprint
+        assert manifest["publication"]["dependency_signatures"] == publication.dependency_signatures
+        assert manifest["publication"]["artifact_signatures"] == publication.artifact_signatures
+        api_result = _decode_json_member(archive, "api/analysis-result.json")
+        assert api_result["freshness"]["dependency_signatures"] == publication.dependency_signatures
+        assert api_result["freshness"]["artifact_signatures"] == publication.artifact_signatures
         assert manifest["privacy"]["save_bytes_included"] is False
         assert manifest["privacy"]["selected_save_path_included"] is False
         for member, metadata in manifest["files"].items():

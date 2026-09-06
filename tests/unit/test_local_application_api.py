@@ -278,6 +278,11 @@ def test_analysis_request_only_submits_to_background_coordinator(tmp_path):
     assert data["status"] == "running"
     assert data["source_fingerprint"].startswith("sha256:")
     assert set(data["configuration_fingerprints"]) == {"archetypes", "classification"}
+    assert data["dependency_signatures"]["schema"] == "bbtool.analysis_dependency_signatures.v1"
+    assert set(data["dependency_signatures"]["inputs"]) == {
+        "assigned_build", "build_definition", "classification_config"
+    }
+    assert data["artifact_signatures"] is None
     assert reads == [save.resolve()]
     assert len(backend.starts) == 1
     assert backend.starts[0][1].source.content == b"immutable save bytes"
@@ -336,7 +341,17 @@ def test_published_result_exposes_identity_and_persists_last_success(tmp_path):
         job_id=7,
         source_fingerprint="sha256:source",
         configuration_fingerprints={"archetypes": "sha256:a", "classification": "sha256:c"},
-        artifact_signatures={"advisor": "sha256:advisor"},
+        dependency_signatures={
+            "schema": "bbtool.analysis_dependency_signatures.v1",
+            "scope": {"campaign_identity": 25809},
+            "inputs": {"assigned_build": "sha256:assigned"},
+        },
+        artifact_signatures={
+            "level_advisor": [{
+                "brother_id": "human:1",
+                "dependency_signature": "sha256:advisor",
+            }]
+        },
         result=SimpleNamespace(warnings=[{"code": "warning"}], public_data={"fits": []}),
     )
 
@@ -360,7 +375,8 @@ def test_published_result_exposes_identity_and_persists_last_success(tmp_path):
     assert result["freshness"]["represented_configuration_fingerprints"] == {
         "archetypes": "sha256:a", "classification": "sha256:c"
     }
-    assert result["freshness"]["artifact_signatures"] == {"advisor": "sha256:advisor"}
+    assert result["freshness"]["dependency_signatures"] == publication.dependency_signatures
+    assert result["freshness"]["artifact_signatures"] == publication.artifact_signatures
     assert durable.source_fingerprint == "sha256:source"
     assert durable.config_fingerprint.startswith("sha256:")
     assert durable.completed_at is not None
