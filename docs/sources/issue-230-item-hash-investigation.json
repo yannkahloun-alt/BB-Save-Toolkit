@@ -60,5 +60,82 @@
         "InheritedValue": false
       }
     ]
+  },
+  "type_mapping_audit": {
+    "target_create_parent": "weapon",
+    "shared_hash_parent_to_bbedit_type_counts": {
+      "<none>": {
+        "auxiliary": 12
+      },
+      "accessory": {
+        "auxiliary": 20
+      },
+      "ammo": {
+        "auxiliary": 1
+      },
+      "anatomist_potion_item": {
+        "auxiliary": 34
+      },
+      "armor": {
+        "genericArmor": 83
+      },
+      "armor_upgrade": {
+        "attachment": 21
+      },
+      "food_item": {
+        "auxiliary": 20
+      },
+      "helmet": {
+        "genericHelmet": 92
+      },
+      "item": {
+        "auxiliary": 86
+      },
+      "named_armor": {
+        "namedArmor": 15
+      },
+      "named_helmet": {
+        "namedHelmet": 15
+      },
+      "named_shield": {
+        "namedShield": 13
+      },
+      "named_weapon": {
+        "namedWeapon": 47
+      },
+      "shield": {
+        "genericShield": 22
+      },
+      "trade_jug_01_item": {
+        "auxiliary": 1
+      },
+      "trading_good_item": {
+        "auxiliary": 12
+      },
+      "wardog_item": {
+        "auxiliary": 2
+      },
+      "warhound_item": {
+        "auxiliary": 2
+      },
+      "weapon": {
+        "auxiliary": 7,
+        "genericWeapon": 120
+      }
+    },
+    "source_only_create_parent_counts": {
+      "<none>": 8,
+      "armor": 37,
+      "armor_upgrade": 5,
+      "grand_diviner_headdress": 1,
+      "grand_diviner_robes": 1,
+      "helmet": 39,
+      "item": 9,
+      "miasma_flail": 1,
+      "named_shield": 1,
+      "named_weapon": 3,
+      "shield": 3,
+      "weapon": 10
+    }
   }
 }
