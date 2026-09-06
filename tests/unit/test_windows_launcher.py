@@ -132,7 +132,9 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "Second launch created a conflicting application instance" in smoke
     assert "Assert-PersistedState" in smoke
     assert "Assert-InstalledDisplayedReport" in smoke
-    assert "--dump-dom" in smoke
+    assert "selenium.webdriver" in smoke
+    assert "BBST_CHROMEDRIVER" in smoke
+    assert "host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1" in smoke
     assert "Packaging Smoke Build" in smoke
     assert "/api/v1/archetypes/set-disabled" in smoke
     assert "Synthetic Smoke Brother" in smoke
