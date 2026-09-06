@@ -16,6 +16,14 @@ reference schemas. When a source is downloaded, its entry in `download_sources`
 also records the downloaded byte count and SHA-256.
 Existing valid caches remain preferred and usable offline, so a cache-only run has no downloaded-content-digest to report for that run.
 
+`dictionary.json` normally preserves BB-Edit as its bootstrap key set, but the pinned
+vanilla source may also contribute a source-only **generic weapon** when the script
+itself proves `ItemType.Weapon` (not `ItemType.Tool`) and directly supplies the
+technical ID, display name, value, maximum condition, and stamina modifier needed
+by the save parser. This bounded exception closes source-key coverage gaps such as
+`35A5074F` (`weapon.exesword`) without promoting ambiguous base, tool, modded, or
+incomplete scripts through path/name heuristics.
+
 ## Intentional upgrade workflow
 
 Reference-source upgrades are reviewed repository changes:

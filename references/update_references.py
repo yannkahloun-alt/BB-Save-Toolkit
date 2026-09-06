@@ -93,6 +93,26 @@ VALUE_RE = re.compile(
     r'(?:this\.)?m\.Value\s*=\s*(-?\d+(?:\.\d+)?)',
     re.MULTILINE,
 )
+CONDITION_MAX_RE = re.compile(
+    r'(?:this\.)?m\.ConditionMax\s*=\s*(-?\d+(?:\.\d+)?)',
+    re.MULTILINE,
+)
+STAMINA_MODIFIER_RE = re.compile(
+    r'(?:this\.)?m\.StaminaModifier\s*=\s*(-?\d+(?:\.\d+)?)',
+    re.MULTILINE,
+)
+ITEM_TYPE_EXPRESSION_RE = re.compile(
+    r'(?:this\.)?m\.ItemType\s*=\s*(.*?);',
+    re.MULTILINE,
+)
+SLOT_TYPE_EXPRESSION_RE = re.compile(
+    r'(?:this\.)?m\.SlotType\s*=\s*(.*?);',
+    re.MULTILINE,
+)
+CREATE_ITEM_PARENT_RE = re.compile(
+    r'\bthis\.([a-z0-9_]+)\.create\s*\(\s*\)\s*;',
+    re.MULTILINE,
+)
 BACKGROUND_ID_RE = re.compile(
     r'(?:this\.)?m\.ID\s*=\s*"(background\.[^"]+)"',
     re.MULTILINE,
@@ -427,11 +447,21 @@ def _extract_script_item_values(
             id_match = ITEM_ID_RE.search(text)
             name_match = NAME_RE.search(text)
             value_match = VALUE_RE.search(text)
+            condition_max_match = CONDITION_MAX_RE.search(text)
+            stamina_modifier_match = STAMINA_MODIFIER_RE.search(text)
+            item_type_match = ITEM_TYPE_EXPRESSION_RE.search(text)
+            slot_type_match = SLOT_TYPE_EXPRESSION_RE.search(text)
+            create_parent_match = CREATE_ITEM_PARENT_RE.search(text)
 
-            local_value = None
-            if value_match:
-                numeric = float(value_match.group(1))
-                local_value = int(numeric) if numeric.is_integer() else numeric
+            def local_number(match):
+                if match is None:
+                    return None
+                numeric = float(match.group(1))
+                return int(numeric) if numeric.is_integer() else numeric
+
+            local_value = local_number(value_match)
+            local_condition_max = local_number(condition_max_match)
+            local_stamina_modifier = local_number(stamina_modifier_match)
 
             display_name = (
                 _unescape_squirrel_string(name_match.group(1)).strip()
@@ -448,6 +478,17 @@ def _extract_script_item_values(
                 "ID": id_match.group(1) if id_match else None,
                 "Name": display_name,
                 "LocalValue": local_value,
+                "LocalConditionMax": local_condition_max,
+                "LocalStaminaModifier": local_stamina_modifier,
+                "ItemTypeExpression": (
+                    item_type_match.group(1).strip() if item_type_match else None
+                ),
+                "SlotTypeExpression": (
+                    slot_type_match.group(1).strip() if slot_type_match else None
+                ),
+                "CreateParent": (
+                    create_parent_match.group(1) if create_parent_match else None
+                ),
             }
 
     memo = {}
@@ -509,6 +550,11 @@ def _extract_script_item_values(
             "ID": rec["ID"],
             "Parent": rec["Parent"],
             "InheritedValue": inherited_value,
+            "ConditionMax": rec["LocalConditionMax"],
+            "StaminaModifier": rec["LocalStaminaModifier"],
+            "ItemTypeExpression": rec["ItemTypeExpression"],
+            "SlotTypeExpression": rec["SlotTypeExpression"],
+            "CreateParent": rec["CreateParent"],
         }
 
         by_stem.setdefault(rec["Stem"], []).append(enriched)
@@ -544,6 +590,56 @@ def _unique_value(candidates: list[dict]) -> dict | None:
     return resolved[0]
 
 
+def _source_only_generic_weapon_entry(
+    ref_id: str, candidates: list[dict]
+) -> dict | None:
+    """Build a source-only generic weapon only when pinned semantics prove it."""
+    if len(candidates) != 1:
+        return None
+    source = candidates[0]
+    expression = source.get("ItemTypeExpression") or ""
+    if (
+        source.get("CreateParent") != "weapon"
+        or "this.Const.Items.ItemType.Weapon" not in expression
+        or "this.Const.Items.ItemType.Tool" in expression
+    ):
+        return None
+    if not isinstance(source.get("Name"), str) or not source["Name"].strip():
+        return None
+    if not isinstance(source.get("ID"), str) or not source["ID"].strip():
+        return None
+    if not isinstance(source.get("Value"), (int, float)):
+        return None
+    if not isinstance(source.get("ConditionMax"), (int, float)):
+        return None
+    if not isinstance(source.get("StaminaModifier"), (int, float)):
+        return None
+
+    slot_expression = source.get("SlotTypeExpression") or ""
+    slot = (
+        "mainhand" if "Const.ItemSlot.Mainhand" in slot_expression
+        else "offhand" if "Const.ItemSlot.Offhand" in slot_expression
+        else None
+    )
+    return {
+        "name": source["Name"].strip(),
+        "type": "genericWeapon",
+        "slot": slot,
+        "subType": None,
+        "durability": source["ConditionMax"],
+        "fatigue": source["StaminaModifier"],
+        "Value": source["Value"],
+        "SerializedLength": SERIALIZED_LENGTH_BY_TYPE["genericWeapon"],
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": source["Source"],
+        "ValueScript": source.get("ValueScript"),
+        "InheritedValue": bool(source.get("InheritedValue")),
+        "TechnicalID": source["ID"],
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": ref_id,
+    }
+
+
 def build_reference_dictionary(
     output_path: Path = DICTIONARY_OUT,
     bbedit_dictionary: dict | None = None,
@@ -574,6 +670,7 @@ def build_reference_dictionary(
     unresolved = 0
     unresolved_ids = []
     type_stats = {}
+    source_only_added = 0
 
     t = time.perf_counter()
     for ref_id, rec in bbedit_dictionary.items():
@@ -631,6 +728,25 @@ def build_reference_dictionary(
 
         entries[ref_id] = entry
 
+    # BB-Edit is not a complete vanilla key index. Admit only source-only generic
+    # weapons whose pinned script semantics prove their serialized type and all
+    # parser-required static metadata. Ambiguous/base/tool scripts stay excluded.
+    for ref_id in sorted(set(by_save_hash) - set(bbedit_dictionary)):
+        entry = _source_only_generic_weapon_entry(ref_id, by_save_hash[ref_id])
+        if entry is None:
+            continue
+        entries[ref_id] = entry
+        source_only_added += 1
+        equipment_like += 1
+        with_value += 1
+        exact_hash_matches += 1
+        exact_hash_with_value += 1
+        ts = type_stats.setdefault(
+            "genericWeapon", {"ids": 0, "with_value": 0, "unresolved": 0}
+        )
+        ts["ids"] += 1
+        ts["with_value"] += 1
+
     join_seconds = time.perf_counter() - t
     payload = {
         "_meta": {
@@ -657,6 +773,7 @@ def build_reference_dictionary(
         "exact_hash_matches": exact_hash_matches,
         "exact_hash_with_value": exact_hash_with_value,
         "inherited_value_matches": inherited_value_matches,
+        "source_only_added": source_only_added,
         "source_scripts": source_model["script_count"],
         "source_value_resolved": source_model["resolved_value_scripts"],
         "source_value_local": source_model["local_value_scripts"],
