@@ -2,7 +2,7 @@
 
 > **Session-continuity snapshot only. GitHub issues, pull requests, and Git are authoritative. Verify live state before acting on anything below.**
 
-Last updated: 2026-09-05
+Last updated: 2026-09-06
 
 ## Workflow state
 
@@ -15,6 +15,14 @@ For orientation only, the pinned shared lifecycle means routine CI-equivalent au
 
 The pinned `.agent-workflow` plus repository policy remain authoritative for the full workflow contract.
 
+## Active release lifecycle
+
+Issue #195 is the active v3.89 release lifecycle. Its release-preparation branch was cut only after #196 merged, from post-#196 `main` at `9d8dacb819ebebe31928470d16833f27be08ffda`.
+
+The release candidate is intended to consolidate the completed local-first application milestone into one supported release record. New product implementation should not be folded into #195 merely because it is open while the release lifecycle is active.
+
+The repository-defined #195 sequence is: release metadata PR, exact-head routine CI and independent review, merge, exact-candidate pre-release/release validation, artifact verification, and final publication checks. Live GitHub determines which phase has already completed; this snapshot does not claim any later gate has passed merely because the release-preparation metadata is present on `main`.
+
 ## Completed product milestone
 
 The local-first Target UI and delivery critical path is complete:
@@ -23,13 +31,20 @@ The local-first Target UI and delivery critical path is complete:
 - UI umbrella #100 is closed;
 - Windows delivery #101 is closed;
 - integrated correctness, freshness, recovery, and privacy gates #102 are closed through PR #191, squash-merged as `06d21641335af4bd8639581c215db34d982bf2b6`;
-- umbrella #93 is closed through PR #193, squash-merged as `cb94fdaafded4f743f9aa6856d9bc8dd54077473`.
+- umbrella #93 is closed through PR #193, squash-merged as `cb94fdaafded4f743f9aa6856d9bc8dd54077473`;
+- #196 added the first-run Windows Documents-based Battle Brothers quicksave default and merged through PR #197 as `9d8dacb819ebebe31928470d16833f27be08ffda`.
 
-There is no remaining implementation sequence under #93 and this file does not claim or reserve a next implementation ticket.
+The validated analytical navigation is:
+
+```text
+Company | Level Up | Recruitment
+```
+
+Brother remains a drill-down context rather than a fourth top-level workspace.
 
 ## Intentionally remaining backlog
 
-The open backlog after the milestone is intentionally not empty. These items are studies, conditional work, or future capability tracks and must be selected only after live prerequisite/evidence reconciliation:
+The open backlog after the milestone is intentionally not empty. These items are studies, conditional work, or future capability tracks and are not silently promoted into v3.89:
 
 - #69 — future in-game Level Advisor feasibility/integration track. Source/UI hook feasibility is established, while the production transport choice still depends on the actual in-game loopback evidence in #124.
 - #124 — technical spike requiring the real Battle Brothers embedded browser plus Modern Hooks; repository-only work cannot substitute for the required runtime/CORS evidence.
@@ -40,21 +55,7 @@ The open backlog after the milestone is intentionally not empty. These items are
 - #113 — conditional recruitment observation/freshness implementation; do not start until #71/#84 establish the supported semantics and prerequisites.
 - #90 — intentionally future, non-blocking fatigue-viability investigation only.
 
-These open issues are not unfinished work in the completed #93 Target UI milestone merely because they remain open.
-
-## Release direction
-
-The next meaningful release direction remains v3.89 with the actual local Target UI rather than an infrastructure-only release. The implementation baseline for that direction exists, but release preparation, validation, tagging, and publication remain a separately authorized release lifecycle.
-
-The validated analytical navigation is:
-
-```text
-Company | Level Up | Recruitment
-```
-
-Brother remains a drill-down context rather than a fourth top-level workspace.
-
-#113 recruit observation/freshness history and #80 save lineage are not currently treated as v3.89 blockers unless live issue state or an explicit product decision changes that.
+#113 recruit observation/freshness history and #80 save lineage are not v3.89 blockers unless live issue state or an explicit product decision changes that.
 
 ## Starting a new session
 
@@ -62,8 +63,8 @@ Brother remains a drill-down context rather than a fourth top-level workspace.
 2. Verify every active issue/PR referenced here against live GitHub state before acting.
 3. Apply the currently pinned `.agent-workflow` and BB-Save repository policy.
 4. Preserve one named ticket / one implementation PR.
-5. Never infer completion or current ownership from this snapshot.
-6. Select new work from the live backlog rather than assuming the completed #93 sequence still defines the next ticket.
+5. If #195 is still open, continue its existing release lifecycle before selecting unrelated implementation work.
+6. Never infer completion or current ownership from this snapshot.
 7. When preparing an autonomous-agent prompt, recommend an appropriate model for the task.
 
 ## Maintenance
