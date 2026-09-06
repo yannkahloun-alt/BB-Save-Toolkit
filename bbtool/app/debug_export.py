@@ -199,6 +199,35 @@ def _sanitized_followed_save(application) -> dict[str, Any]:
     return sanitized
 
 
+def _redact_known_local_paths(application, value: Any) -> Any:
+    """Redact known machine-local roots while preserving diagnostic structure."""
+    followed = application.followed_save()
+    selected = followed.get("selected_path")
+    replacements = []
+    if isinstance(selected, str) and selected:
+        replacements.append((selected, "<selected-save>"))
+    store = getattr(application, "store", None)
+    root = getattr(store, "root", None)
+    if root is not None:
+        root_text = str(root)
+        if root_text:
+            replacements.append((root_text, "<user-state>"))
+    replacements.sort(key=lambda item: len(item[0]), reverse=True)
+
+    def redact(item: Any) -> Any:
+        if isinstance(item, Mapping):
+            return {key: redact(child) for key, child in item.items()}
+        if isinstance(item, list):
+            return [redact(child) for child in item]
+        if isinstance(item, str):
+            for private, replacement_text in replacements:
+                item = item.replace(private, replacement_text)
+            return item
+        return item
+
+    return redact(value)
+
+
 def _capture(builder: Callable[[], Any]) -> Any:
     """Keep the bundle available even if one UI read model itself is broken."""
     try:
@@ -339,6 +368,10 @@ def build_debug_export(
                 application.effective_archetypes
             ),
         }
+        api_snapshots = {
+            path: _redact_known_local_paths(application, payload)
+            for path, payload in api_snapshots.items()
+        }
         for path, payload in api_snapshots.items():
             files[path] = _json_bytes(payload)
 
@@ -382,6 +415,7 @@ def build_debug_export(
                 "api_level_up": "published generation",
                 "api_recruitment": "published generation",
                 "api_effective_archetypes": "live command-boundary catalog; may be newer than publication",
+                "api_path_redaction": "known selected-save and user-state roots are replaced with placeholders",
             },
             "privacy": {
                 "save_bytes_included": False,
