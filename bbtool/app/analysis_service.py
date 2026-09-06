@@ -7,7 +7,7 @@ import hashlib
 import time
 from typing import Any
 
-from references.update_references import BACKGROUNDS_OUT, ensure_references
+from references.update_references import ensure_references
 
 from ..incremental import IncrementalCache, first_difference
 from ..incremental.fingerprint import stable_hash
@@ -22,7 +22,7 @@ from ..save_parser import (
 from .analysis import AnalysisResult, analyze_brothers
 from .health import build_run_health
 from .output import build_projection_validation, public_brother_data
-from .target_presentation import build_recruitment_presentation
+from .recruitment_policy import build_disabled_recruitment_analysis
 
 
 @dataclass(frozen=True)
@@ -312,11 +312,17 @@ def analyze_save(request: AnalysisServiceRequest) -> AnalysisServiceResult:
         warnings = _structured_warnings(health)
         stage = "recruitment_analysis"
         tick = time.perf_counter()
-        recruitment_analysis = build_recruitment_presentation(
-            recruits, request.roles, BACKGROUNDS_OUT,
+        recruitment_analysis = build_disabled_recruitment_analysis(
+            recruits, request.roles
         )
         timings[stage] = time.perf_counter() - tick
-        emit(stage, "completed", tick, recruits=len(recruits))
+        emit(
+            stage,
+            "completed",
+            tick,
+            recruits=len(recruits),
+            analytical_potential="disabled_pending_validation",
+        )
         timings["total"] = time.perf_counter() - started
         return AnalysisServiceResult(
             campaign_identity=campaign_identity,
