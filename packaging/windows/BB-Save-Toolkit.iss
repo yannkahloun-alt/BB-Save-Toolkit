@@ -43,9 +43,6 @@ Name: "{userstartup}\BB Save Toolkit"; Filename: "{app}\{#MyAppExeName}"; Parame
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Parameters: "open"; Description: "Open BB Save Toolkit"; Flags: nowait postinstall skipifsilent
 
-[UninstallRun]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "stop"; Flags: runhidden waituntilterminated skipifdoesntexist
-
 [Code]
 var
   DeleteUserData: Boolean;
@@ -65,25 +62,45 @@ begin
   end;
 end;
 
-function PrepareToInstall(var NeedsRestart: Boolean): String;
+function StopExistingApplication(var ErrorMessage: String): Boolean;
 var
   ResultCode: Integer;
   ExistingExe: String;
 begin
-  Result := '';
+  Result := True;
+  ErrorMessage := '';
   ExistingExe := ExpandConstant('{app}\{#MyAppExeName}');
   if FileExists(ExistingExe) then
   begin
     if not Exec(ExistingExe, 'stop', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     begin
-      Result := 'Unable to stop the currently installed BB Save Toolkit process. Close it and retry.';
+      ErrorMessage := 'Unable to stop the currently installed BB Save Toolkit process. Close it and retry.';
+      Result := False;
     end
     else if ResultCode <> 0 then
     begin
-      Result := Format(
+      ErrorMessage := Format(
         'BB Save Toolkit could not stop the running application (exit code %d). Close it and retry.',
         [ResultCode]);
+      Result := False;
     end;
+  end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  StopExistingApplication(Result);
+end;
+
+function InitializeUninstall: Boolean;
+var
+  ErrorMessage: String;
+begin
+  Result := StopExistingApplication(ErrorMessage);
+  if (not Result) and (not UninstallSilent) then
+  begin
+    SuppressibleMsgBox(ErrorMessage, mbError, MB_OK, IDOK);
   end;
 end;
 
