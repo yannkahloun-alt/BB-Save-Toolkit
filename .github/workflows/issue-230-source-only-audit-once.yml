@@ -1,0 +1,86 @@
+name: Issue 230 source-only audit once
+
+on:
+  push:
+    branches:
+      - codex/issue-230-equipped-item-hash
+    paths:
+      - .github/workflows/issue-230-source-only-audit-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-230-equipped-item-hash
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Audit source-only item coverage
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import tempfile
+          from collections import Counter
+          from pathlib import Path
+          from references import update_references as refs
+
+          target = '35A5074F'
+          evidence_path = Path('docs/sources/issue-230-item-hash-investigation.json')
+          payload = json.loads(evidence_path.read_text(encoding='utf-8'))
+          bbedit = refs.download_reference_dictionary()
+          archive = refs._download_bytes(refs.BB_SCRIPTS_ZIP_URL, timeout=45)
+          model = refs._extract_script_item_values(archive)
+          by_hash = model['by_save_hash']
+
+          source_only = {}
+          families = Counter()
+          ambiguous = []
+          for save_hash, records in sorted(by_hash.items()):
+              if save_hash in bbedit:
+                  continue
+              source_only[save_hash] = records
+              if len(records) != 1:
+                  ambiguous.append(save_hash)
+              for record in records:
+                  source = record.get('Source') or ''
+                  parts = source.split('/')
+                  family = parts[2] if len(parts) > 2 else '<other>'
+                  families[family] += 1
+
+          with tempfile.TemporaryDirectory() as tmp:
+              generated = refs.build_reference_dictionary(
+                  Path(tmp) / 'dictionary.json',
+                  bbedit_dictionary=bbedit,
+                  scripts_archive=archive,
+              )
+              generated_entries = generated.get('entries') or {}
+              generated_target = generated_entries.get(target)
+
+          payload['coverage_audit'] = {
+              'source_hash_count': len(by_hash),
+              'bbedit_hash_count': len(bbedit),
+              'source_only_hash_count': len(source_only),
+              'source_only_record_families': dict(sorted(families.items())),
+              'ambiguous_source_only_hashes': ambiguous,
+              'current_generator_contains_target': generated_target is not None,
+              'current_generator_target': generated_target,
+              'target_records': source_only.get(target),
+          }
+          evidence_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print(json.dumps(payload['coverage_audit'], indent=2, ensure_ascii=False))
+          PY
+      - name: Commit source-only audit
+        shell: bash
+        run: |
+          rm .github/workflows/issue-230-source-only-audit-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/sources/issue-230-item-hash-investigation.json .github/workflows/issue-230-source-only-audit-once.yml
+          git commit -m "Audit source-only item dictionary coverage"
+          git push origin HEAD:codex/issue-230-equipped-item-hash
