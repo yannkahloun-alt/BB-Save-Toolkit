@@ -104,9 +104,16 @@ diagnostic samples, save bytes, or generic durable state.
 
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a
-`DesiredAnalysis` to `AnalysisCoordinator`. Job and publication responses carry
-the represented source fingerprint, both configuration fingerprints, artifact
-signatures, generation, publication state, and structured failure. A failed
+`DesiredAnalysis` to `AnalysisCoordinator`. Job responses carry a scoped
+`dependency_signatures` snapshot of #122 input evidence used to reject a worker
+whose mutable semantic inputs changed while it ran. Before success,
+`artifact_signatures` is `null` because no produced result has been published.
+A successful publication then carries both that represented dependency snapshot
+and the distinct analysis-owned `artifact_signatures` returned by
+`IncrementalCache.publication_signatures()`. Result freshness and debug-export
+provenance copy those same publication fields; they do not reconstruct them in
+the HTTP/UI layer. Source and configuration fingerprints, generation,
+publication state, and structured failure remain separate metadata. A failed
 refresh leaves the service alive and preserves the last successful publication;
 that older result is marked stale when it no longer represents the newest job.
 Published fingerprints and timestamps are persisted through the #95

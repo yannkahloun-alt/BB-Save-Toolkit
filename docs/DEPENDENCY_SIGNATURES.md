@@ -31,6 +31,23 @@ holders. Unrelated assignment targets and role projections remain reusable.
 Stored definition-changed, deprecated, or missing assignments are not accepted
 as current intent evidence.
 
+## Local publication boundary
+
+Local-app scheduling separates two kinds of signature evidence.
+`DesiredAnalysis.dependency_signatures` is a pre-analysis, campaign-scoped
+snapshot of mutable #122 input categories. It hashes semantic build definitions
+(without BuildIdentity/display names), classification configuration, and resolved
+AssignedBuild intent for the represented campaign; storage revisions and other
+campaigns are excluded. The controlling process recomputes that snapshot at
+worker completion, and missing or changed evidence rejects stale publication.
+
+`PublishedAnalysis.artifact_signatures` is different evidence: it is copied only
+after success from the represented analysis result's authoritative
+`IncrementalCache.publication_signatures()`. API freshness and debug-export
+provenance expose both fields without overloading one map. This preserves the
+#122 rule that an AssignedBuild-only change does not alter intrinsic role
+projection signatures, while still preventing stale intent-aware publication.
+
 ## Adding an input or artifact
 
 1. Add a typed enum member; do not use a display label or storage revision.

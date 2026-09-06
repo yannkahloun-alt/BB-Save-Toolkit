@@ -25,6 +25,11 @@ def stable_hash(value: Any) -> str:
     return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
 
 
+def input_signature(kind: "InputKind", evidence: Any) -> str:
+    """Hash one normalized #122 input category without storage metadata."""
+    return stable_hash({"input_kind": kind.value, "evidence": evidence})
+
+
 class InputKind(StrEnum):
     BROTHER_STATE = "brother_state"
     BUILD_DEFINITION = "build_definition"

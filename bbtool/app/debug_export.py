@@ -412,7 +412,10 @@ def build_debug_export(
                 "configuration_fingerprints": dict(
                     publication.configuration_fingerprints
                 ),
-                "artifact_signatures": dict(publication.artifact_signatures),
+                "dependency_signatures": deepcopy(
+                    getattr(publication, "dependency_signatures", {})
+                ),
+                "artifact_signatures": deepcopy(publication.artifact_signatures),
             },
             "scope": {
                 "analysis": "exact published generation",

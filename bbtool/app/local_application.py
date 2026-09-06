@@ -6,6 +6,7 @@ not read saves, mutate user-state files, or invoke analysis directly.
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,6 +26,10 @@ from .archetype_catalog import (
     effective_catalog,
 )
 from .config import AnalyzerConfig
+from .publication_signatures import (
+    build_desired_dependency_signatures,
+    dependency_signatures_are_current,
+)
 from .user_state import ArchetypeState, LastSuccessState, PreferencesState, UserStateStore
 from .save_watcher import SaveWatcher, StableSave
 
@@ -66,10 +71,18 @@ class LocalApplication:
         self.store = store
         self.catalog = catalog
         self.classification = classification
+        self.assigned_builds = AssignedBuildStore(store, catalog)
         self.coordinator = coordinator or AnalysisCoordinator()
+        self.coordinator.configure_dependency_validation(
+            lambda signatures: dependency_signatures_are_current(
+                signatures,
+                catalog=self.catalog,
+                classification=self.classification,
+                assigned_builds=self.assigned_builds,
+            )
+        )
         self._read_save = read_save or Path.read_bytes
         self._clock = clock or (lambda: datetime.now(UTC))
-        self.assigned_builds = AssignedBuildStore(store, catalog)
         self._assigned_build_changed = assigned_build_changed
         self._persisted_generation = 0
         self._publication_warning: dict[str, Any] | None = None
@@ -500,7 +513,10 @@ class LocalApplication:
                 assigned_build_resolver=DurableAssignedBuildResolver(
                     self.store.root, tuple(self.catalog.base_roles)
                 ),
-            )
+            ),
+            dependency_signatures=build_desired_dependency_signatures(
+                content, config.roles, config.classification, self.assigned_builds
+            ),
         )
         job_id = self.coordinator.submit(desired)
         self._source_timestamps[job_id] = _utc_timestamp(modified_at)
@@ -523,18 +539,20 @@ class LocalApplication:
             and job.id == self.coordinator.desired_job_id
         ):
             self._save_watcher.set_job_state(job.status.value)
+        publication = self.coordinator.last_success
+        published = publication is not None and publication.job_id == job.id
         return {
             "id": job.id,
             "status": job.status.value,
             "source_fingerprint": job.desired.source_fingerprint,
             "configuration_fingerprints": dict(job.desired.configuration_fingerprints),
-            "artifact_signatures": dict(job.desired.artifact_signatures),
+            "dependency_signatures": deepcopy(job.desired.dependency_signatures),
+            "artifact_signatures": (
+                deepcopy(publication.artifact_signatures) if published else None
+            ),
             "progress": [asdict(event) for event in job.progress],
             "error": job.error,
-            "published": (
-                self.coordinator.last_success is not None
-                and self.coordinator.last_success.job_id == job.id
-            ),
+            "published": published,
         }
 
     def last_result(self) -> dict[str, Any]:
@@ -573,7 +591,10 @@ class LocalApplication:
             "generation": publication.generation,
             "represented_source_fingerprint": publication.source_fingerprint,
             "represented_configuration_fingerprints": dict(publication.configuration_fingerprints),
-            "artifact_signatures": dict(publication.artifact_signatures),
+            "dependency_signatures": deepcopy(
+                getattr(publication, "dependency_signatures", {})
+            ),
+            "artifact_signatures": deepcopy(publication.artifact_signatures),
         }
         if invalidated:
             freshness["reason"] = self._invalidation_reason
