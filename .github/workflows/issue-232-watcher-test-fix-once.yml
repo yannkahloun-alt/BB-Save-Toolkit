@@ -1,0 +1,51 @@
+name: Issue 232 watcher test fix once
+
+on:
+  push:
+    branches:
+      - codex/issue-232-publication-signatures
+    paths:
+      - .github/workflows/issue-232-watcher-test-fix-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-232-publication-signatures
+      - name: Update watcher result doubles
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path('tests/unit/test_save_watcher.py'),
+              Path('tests/unit/test_save_watcher_catalog_conflict.py'),
+          ]
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              needle = 'configuration_fingerprints=desired.configuration_fingerprints,\n'
+              replacement = (
+                  'configuration_fingerprints=desired.configuration_fingerprints,\n'
+                  '                        incremental_cache=SimpleNamespace(\n'
+                  '                            publication_signatures=lambda: {}\n'
+                  '                        ),\n'
+              )
+              if needle not in text:
+                  raise SystemExit(f'target not found in {path}')
+              path.write_text(text.replace(needle, replacement, 1), encoding='utf-8')
+          PY
+      - name: Commit watcher test fix
+        shell: bash
+        run: |
+          rm .github/workflows/issue-232-watcher-test-fix-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/test_save_watcher.py tests/unit/test_save_watcher_catalog_conflict.py .github/workflows/issue-232-watcher-test-fix-once.yml
+          git commit -m "Update watcher result signature stubs"
+          git push origin HEAD:codex/issue-232-publication-signatures
