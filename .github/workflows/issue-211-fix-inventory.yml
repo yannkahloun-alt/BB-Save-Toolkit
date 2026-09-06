@@ -1,0 +1,38 @@
+name: Fix issue 211 warning inventory
+
+on:
+  push:
+    branches:
+      - codex/issue-211-debug-export
+    paths:
+      - ".github/workflows/issue-211-fix-inventory.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Patch warning collection detection
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("bbtool/app/debug_export.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''                if lower_key in {"warning", "warnings", "error", "errors"} and item not in (\n                    None,\n                    [],\n                    {},\n                    "",\n                ):\n                    add(source, child_path, "warning_or_error", item, state=state)\n'''
+          new = '''                warning_or_error_key = (\n                    lower_key in {"warning", "warnings", "error", "errors"}\n                    or lower_key.startswith("warning_")\n                    or lower_key.endswith("_warnings")\n                    or lower_key.startswith("error_")\n                    or lower_key.endswith("_errors")\n                )\n                if warning_or_error_key and item not in (None, [], {}, ""):\n                    add(source, child_path, "warning_or_error", item, state=state)\n'''
+          if text.count(old) != 1:
+              raise SystemExit("warning inventory patch target mismatch")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+          rm .github/workflows/issue-211-fix-inventory.yml
+          git config user.name "BB Save Toolkit Automation"
+          git config user.email "bb-toolkit@local.invalid"
+          git add bbtool/app/debug_export.py .github/workflows/issue-211-fix-inventory.yml
+          git commit -m "Index structured warning collections in debug export"
+          git push origin HEAD:codex/issue-211-debug-export
