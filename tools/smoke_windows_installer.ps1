@@ -212,46 +212,63 @@ function Assert-PersistedState {
 function Assert-InstalledDisplayedReport {
     param([string]$Origin)
 
-    $browserCandidates = @(
-        (Join-Path ${env:ProgramFiles(x86)} "Microsoft\Edge\Application\msedge.exe"),
-        (Join-Path $env:ProgramFiles "Google\Chrome\Application\chrome.exe"),
-        (Join-Path ${env:ProgramFiles(x86)} "Google\Chrome\Application\chrome.exe")
-    )
-    $browser = $browserCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-    if (-not $browser) {
-        throw "Installed display smoke requires the GitHub Actions Chromium browser."
+    $driverPath = $env:CHROMEWEBDRIVER
+    if ($driverPath -and (Test-Path $driverPath -PathType Container)) {
+        $driverPath = Join-Path $driverPath "chromedriver.exe"
+    }
+    if (-not $driverPath -or -not (Test-Path $driverPath -PathType Leaf)) {
+        $driverCommand = Get-Command chromedriver.exe -ErrorAction SilentlyContinue
+        if (-not $driverCommand) {
+            $driverCommand = Get-Command chromedriver -ErrorAction SilentlyContinue
+        }
+        $driverPath = if ($driverCommand) { $driverCommand.Source } else { $null }
+    }
+    if (-not $driverPath -or -not (Test-Path $driverPath -PathType Leaf)) {
+        throw "Installed display smoke requires the preinstalled GitHub Actions ChromeDriver."
     }
 
-    $profile = Join-Path $env:TEMP "BB-Save-Toolkit-smoke-browser-$PID"
-    Remove-Item -Recurse -Force $profile -ErrorAction SilentlyContinue
-    try {
-        $dom = & $browser `
-            "--headless=new" `
-            "--disable-gpu" `
-            "--disable-background-networking" `
-            "--disable-component-update" `
-            "--disable-default-apps" `
-            "--disable-sync" `
-            "--metrics-recording-only" `
-            "--no-first-run" `
-            "--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1" `
-            "--user-data-dir=$profile" `
-            "--virtual-time-budget=5000" `
-            "--dump-dom" `
-            "$Origin/#company" 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Headless browser failed while rendering the installed application."
-        }
-        $html = $dom -join "`n"
-        if ($html -notmatch [regex]::Escape("Synthetic Smoke Brother")) {
-            throw "Installed application result did not reach the displayed Company report."
-        }
-        if ($html -notmatch [regex]::Escape("Packaging Smoke Build")) {
-            throw "Displayed Company report did not contain the installed analysis archetype."
-        }
-    }
-    finally {
-        Remove-Item -Recurse -Force $profile -ErrorAction SilentlyContinue
+    $env:BBST_DISPLAY_ORIGIN = $Origin
+    $env:BBST_CHROMEDRIVER = $driverPath
+    @'
+import os
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+
+origin = os.environ["BBST_DISPLAY_ORIGIN"]
+driver_path = os.environ["BBST_CHROMEDRIVER"]
+options = Options()
+for argument in (
+    "--headless=new",
+    "--disable-gpu",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-sync",
+    "--metrics-recording-only",
+    "--no-first-run",
+    "--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1",
+):
+    options.add_argument(argument)
+
+driver = webdriver.Chrome(service=Service(driver_path), options=options)
+try:
+    driver.get(f"{origin}/#company")
+    wait = WebDriverWait(driver, 15)
+    roster = wait.until(lambda current: current.find_element(By.ID, "company-roster"))
+    wait.until(lambda current: "Synthetic Smoke Brother" in roster.text)
+    if "Packaging Smoke Build" not in roster.text:
+        raise RuntimeError(
+            "Displayed Company report did not contain the installed analysis archetype."
+        )
+finally:
+    driver.quit()
+'@ | python -
+    if ($LASTEXITCODE -ne 0) {
+        throw "Installed application result did not reach the displayed Company report."
     }
 }
 
