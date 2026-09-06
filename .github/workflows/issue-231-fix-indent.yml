@@ -1,0 +1,87 @@
+name: Repair issue 231 generated indentation
+
+on:
+  push:
+    branches:
+      - codex/issue-231-relevant-need-availability
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out ticket branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: codex/issue-231-relevant-need-availability
+          fetch-depth: 0
+
+      - name: Repair generated indentation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          target_path = Path("bbtool/app/target_presentation.py")
+          target = target_path.read_text(encoding="utf-8")
+          start = target.index(
+              '    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):'
+          )
+          end = target.index("\n\n\ndef _validate_identity", start)
+          validator = (
+              '    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):\n'
+              '        if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:\n'
+              '            raise ValueError("target presentation relevant need is malformed")\n'
+              '        candidate_available = _candidate_potential_available(recruitment["analyses"])\n'
+              '        should_be_available = company["intent_available"] and candidate_available\n'
+              '        if item["state"] == "available":\n'
+              '            if not should_be_available:\n'
+              '                raise ValueError("target presentation relevant need availability mismatch")\n'
+              '            expected = build_relevant_roster_need(\n'
+              '                recruitment["analyses"], company["intended_coverage"], viable_fit=.5,\n'
+              '                company_intrinsic_coverage=company["intrinsic_coverage"],\n'
+              '            )\n'
+              '            if item["result"] != expected:\n'
+              '                raise ValueError("target presentation relevant need generation mismatch")\n'
+              '        elif item["state"] != "unavailable" or item["result"] is not None \\\n'
+              '                or should_be_available:\n'
+              '            raise ValueError("target presentation relevant need availability mismatch")'
+          )
+          target = target[:start] + validator + target[end:]
+          target = target.replace(
+              '        for item in analyses\n    )\n\n\n\ndef build_recruitment_presentation',
+              '        for item in analyses\n    )\n\n\ndef build_recruitment_presentation',
+          )
+          target_path.write_text(target, encoding="utf-8")
+
+          view_path = Path("bbtool/app/recruitment_view.py")
+          view = view_path.read_text(encoding="utf-8")
+          start = view.index("            candidates.append({")
+          end = view.index("\n\n        groups: dict", start)
+          candidate_block = (
+              '            candidates.append({\n'
+              '                "recruit_index": index,\n'
+              '                "facts": facts,\n'
+              '                "top_potential": _top_potential(potentials),\n'
+              '                "potential": potentials,\n'
+              '                "relevant_need": _relevant_need(need_by_index.get(index), builds),\n'
+              '            })'
+          )
+          view = view[:start] + candidate_block + view[end:]
+          view_path.write_text(view, encoding="utf-8")
+          PY
+
+          rm .github/workflows/issue-231-fix-indent.yml
+          python -m py_compile \
+            bbtool/app/target_presentation.py \
+            bbtool/app/recruitment_view.py \
+            tests/unit/test_relevant_need_availability_contract.py
+          git diff --check
+          git status --short
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Repair Relevant Need availability implementation"
+          git push origin HEAD:codex/issue-231-relevant-need-availability
