@@ -583,6 +583,10 @@ def test_partial_candidate_potential_keeps_per_build_rows_and_null_percent_unkno
     assert "Unavailable" in potential_text
     assert "0.0%" not in potential_text
     assert "—" in potential_text
+    evidence_text = browser.execute_script(
+        "return document.getElementById('recruit-evidence').textContent"
+    )
+    assert "Prior-only evidence · analysis partially unavailable" in evidence_text
     need_text = browser.execute_script(
         "return document.getElementById('recruit-needs').textContent"
     )

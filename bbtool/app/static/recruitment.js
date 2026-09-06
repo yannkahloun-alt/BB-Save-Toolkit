@@ -108,13 +108,22 @@
   }
 
   function evidenceLabel(candidate) {
-    if (candidate?.potential_availability?.state === 'unavailable') return 'Analysis unavailable';
+    const availability = candidate?.potential_availability?.state;
+    if (availability === 'unavailable') return 'Analysis unavailable';
+    const partial = availability === 'partial';
     const names = evidenceNames(candidate);
-    if (names.length) return names.join(', ');
+    if (names.length) {
+      const applied = names.join(', ');
+      return partial ? `${applied} · analysis partially unavailable` : applied;
+    }
     const potential = candidate?.potential || [];
-    if (potential.some((row) => row.state === 'known_evidence_estimate')) return 'Known evidence applied';
-    if (potential.some((row) => row.state === 'prior_only')) return 'Prior-only evidence';
-    if (candidate?.potential_availability?.state === 'partial') return 'Analysis partially unavailable';
+    if (potential.some((row) => row.state === 'known_evidence_estimate')) {
+      return partial ? 'Known evidence applied · analysis partially unavailable' : 'Known evidence applied';
+    }
+    if (potential.some((row) => row.state === 'prior_only')) {
+      return partial ? 'Prior-only evidence · analysis partially unavailable' : 'Prior-only evidence';
+    }
+    if (partial) return 'Analysis partially unavailable';
     return 'Analysis unavailable';
   }
 
