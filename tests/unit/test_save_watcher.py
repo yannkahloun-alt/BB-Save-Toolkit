@@ -52,6 +52,9 @@ class CompletingHandle(HoldingHandle):
         self.pending.append(("result", (job_id, SimpleNamespace(
             source_fingerprint=desired.source_fingerprint,
             configuration_fingerprints=desired.configuration_fingerprints,
+                        incremental_cache=SimpleNamespace(
+                            publication_signatures=lambda: {}
+                        ),
         ))))
 
 

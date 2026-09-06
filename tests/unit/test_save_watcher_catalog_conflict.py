@@ -50,6 +50,9 @@ class CompletingHandle(HoldingHandle):
                     SimpleNamespace(
                         source_fingerprint=desired.source_fingerprint,
                         configuration_fingerprints=desired.configuration_fingerprints,
+                        incremental_cache=SimpleNamespace(
+                            publication_signatures=lambda: {}
+                        ),
                     ),
                 ),
             )
