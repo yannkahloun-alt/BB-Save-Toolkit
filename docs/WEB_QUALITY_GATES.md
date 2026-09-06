@@ -8,7 +8,7 @@ The browser consumes typed read models produced from the authoritative
 ## Deterministic gate matrix
 
 The required lifecycle is intentionally covered by a small set of complementary
-gates rather than one fragile mega-test:
+gates plus one installed-runtime end-to-end fixture:
 
 | Risk | Authoritative automated coverage |
 | --- | --- |
@@ -23,17 +23,18 @@ gates rather than one fragile mega-test:
 | Mutation origin/capability/revision checks and bounded request shapes | `tests/unit/test_local_application_api.py` |
 | Least-privilege browser projections | Company/Brother, Level Up, Recruitment, shell/API tests; target read models strip cache/provenance hashes and the shell omits filesystem paths |
 | Production browser rendering with no external web dependency | `tests/ui/test_local_app_production_bundle_browser.py` and the static-shell local-only assertions |
-| Installed runtime, duplicate start, real worker analysis, restart/update/uninstall retention | `tools/smoke_windows_installer.ps1`, exercised by `.github/workflows/windows-installer.yml` |
+| Installed runtime through displayed Company report, duplicate start, real worker analysis, restart/update/uninstall retention | `tools/smoke_windows_installer.ps1`, exercised by `.github/workflows/windows-installer.yml` |
 
-The Windows installer smoke uses a generated deterministic synthetic `.sav` and
-runs the installed executable through loopback API publication.  The production
-browser suite separately exercises the shipped HTML/CSS/JavaScript bundle
-against the same public endpoint schemas through rendered UI interactions.  The
-two gates deliberately meet at the typed browser read-model boundary: installer
-validation proves parser -> worker -> analysis service -> publication/read-model,
-while browser validation proves read-model -> shipped bundle -> displayed UI.
-No browser test reimplements parser, projection, Fit, Advisor, or recruitment
-analysis.
+The Windows installer smoke uses a generated deterministic synthetic `.sav`,
+runs the installed executable through parser -> worker -> analysis service ->
+publication/read-model, and then launches a headless installed Chromium browser
+against the same loopback origin.  Its DOM assertion requires the synthetic
+brother and the sole effective smoke archetype to appear in the shipped Company
+surface before lifecycle testing continues.  This is the explicit installed
+runtime -> displayed report gate.  The production browser suite separately
+exercises richer HTML/CSS/JavaScript interactions against deterministic endpoint
+payloads.  Neither gate reimplements parser, projection, Fit, Advisor, or
+recruitment analysis in the browser.
 
 ## Freshness and diagnostics contract
 
@@ -68,7 +69,7 @@ that selection; presentation shell/read models remain least-privilege.
 
 Routine deterministic pytest, Ruff, and Pyflakes validation remains owned by the
 repository's required pull-request checks.  The Windows installer workflow owns
-its Windows-only packaging/lifecycle smoke.  Browser tests remain deterministic,
-local-only, and network-free; any environment-specific real-save smoke is
-optional manual evidence and is never a substitute for the required exact-head
-CI gates.
+its Windows-only packaging/lifecycle and installed-display smoke.  Browser tests
+remain deterministic, local-only, and network-free; any environment-specific
+real-save smoke is optional manual evidence and is never a substitute for the
+required exact-head CI gates.
