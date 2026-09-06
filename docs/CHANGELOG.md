@@ -1,14 +1,44 @@
-## Unreleased
+## v3.89 — Local-first Target UI and Windows application
 
-- Finalizes the campaign-global AssignedBuild contract for #107: exact
-  CampaignIdentity/BrotherIdentity keys, durable BuildIdentity plus acknowledged
-  definition hash, conservative lifecycle/migration behavior, and targeted
-  intent-only invalidation without changing intrinsic Fit or BestRole.
-- Establishes exact campaign-local `BrotherIdentity` from the native
-  `CampaignIdentity` plus the unique non-zero container entity token preceding
-  each `battleBrother` record. Missing, duplicate, malformed, or non-exact
-  evidence disables durable joins; public report-v1 and incremental reuse
-  semantics remain unchanged.
+- Ships the validated local-first Target UI with Company, Level Up, and
+  Recruitment as the top-level workspaces plus Brother drill-down, responsive
+  navigation, reload-safe state, and explicit analysis freshness/health.
+- Adds durable player intent through stable BuildIdentity/definition hashes,
+  exact native CampaignIdentity and BrotherIdentity, persistent AssignedBuild,
+  and versioned per-user state with locking, optimistic revisions, atomic
+  replacement, migration, recovery, backup/restore, and conservative reset.
+- Adds intrinsic and intent-aware Company planning, including role coverage,
+  assignment holders, free/contested availability, mismatch/fragility evidence,
+  and structured need bases without changing intrinsic Fit or BestRole.
+- Adds recruitment intelligence from the intrinsic Background × Archetype prior,
+  tryout-known candidate estimates, and Relevant Roster Need, keeping unknown
+  evidence explicit and roster preference separate from intrinsic candidate
+  quality.
+- Makes Level-Up Advisor assignment-aware while preserving the shared natural-stat
+  trajectory/Fit engine: Assigned Build can anchor advice, Best Fit remains
+  independently reported, and Primary/Runner-up consequences plus Conditional
+  Branch are backend-computed rather than inferred by presentation.
+- Exposes current equipment and supported perk/gear mechanical facts for display
+  without feeding owned or hypothetical perk stat modifiers into natural Fit.
+- Adds the bounded loopback local-application service, background analysis
+  coordinator, stable-save watcher, typed mutation API, capability/origin/host
+  protections, persistent effective archetype catalog, and result freshness.
+- Pins external reference inputs to immutable upstream commits and adds complete
+  performance diagnostics, artifact dependency signatures, Analysis Health,
+  and integrated local-web correctness/privacy quality gates.
+- Packages the application for Windows 10/11 x64 with PyInstaller + Inno Setup,
+  per-user installation, startup/lifecycle shortcuts, single-instance behavior,
+  bundled references, repair/update state retention, and conservative uninstall
+  data handling.
+- On a genuinely unconfigured Windows profile, resolves the current user's
+  Documents known folder and defaults the selected save to
+  `<Windows Documents>\Battle Brothers\savegames\quicksave.sav`; redirected
+  Documents such as OneDrive are respected, missing quicksaves remain safely
+  unavailable, and explicit selections are never overwritten.
+- Keeps filenames, save paths, brother names, HumanOffset, BestRole, and build
+  display names out of durable identity. The central analytical model remains
+  level-11 natural-stat Fit, and hidden serialized FutureRolls remain excluded
+  from normal projection and Advisor decisions.
 
 ## v3.88.2 — Performance and reliability hardening
 
@@ -558,7 +588,9 @@
 - Refactors full and fast role projection wrappers onto one shared payload builder; projection semantics and output values are unchanged.
 - Removes obsolete compatibility `**_ignored` parameters from active role-projection call paths.
 - Cleans the projection package public API so `project_fit_trajectory` is exported explicitly with the other trajectory entry points.
-- Removes a malformed dead historical CSS selector and stale version-layer comments without changing active report styles.
+- Renames the obsolete `exports.py` helper module to `formatting.py`.
+- Adds separate full/fast projection counters to profiling.
+- Preserves the existing full and fast projection behavior; no scoring-policy change is intended in this release.
 - Updates architecture/TODO housekeeping and adds a regression proving fast projection is an exact subset of full projection.
 
 # v3.23
