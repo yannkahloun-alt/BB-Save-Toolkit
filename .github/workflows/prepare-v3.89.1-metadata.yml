@@ -1,0 +1,106 @@
+name: Prepare v3.89.1 metadata
+
+on:
+  push:
+    branches:
+      - codex/issue-207-release-v3.89.1
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: ${{ github.event.head_commit.message == 'Add temporary v3.89.1 metadata preparer' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release branch
+        uses: actions/checkout@v7
+        with:
+          ref: codex/issue-207-release-v3.89.1
+          fetch-depth: 0
+      - name: Prepare exact hotfix metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          telemetry = Path('bbtool/app/telemetry.py')
+          text = telemetry.read_text(encoding='utf-8')
+          old = 'TOOLKIT_VERSION = "3.89"'
+          new = 'TOOLKIT_VERSION = "3.89.1"'
+          if text.count(old) != 1:
+              raise SystemExit('expected exactly one v3.89 toolkit version declaration')
+          telemetry.write_text(text.replace(old, new), encoding='utf-8')
+
+          changelog = Path('docs/CHANGELOG.md')
+          existing = changelog.read_text(encoding='utf-8')
+          if not existing.startswith('## v3.89 — Local-first Target UI and Windows application'):
+              raise SystemExit('unexpected changelog head; refusing release metadata rewrite')
+          hotfix = '''## v3.89.1 — Recruitment potential safety hotfix
+
+          - Disables the unvalidated Recruitment Background × Archetype prior and
+            candidate-estimate models from normal application and CLI analysis after a
+            real v3.89 campaign exposed severe post-analysis runtime in that path.
+          - Preserves recruit parsing and public settlement/economics facts while
+            reporting recruitment analytical potential explicitly unavailable pending
+            a separate validation/product decision.
+          - Keeps Relevant Roster Need unavailable when candidate-potential evidence is
+            unavailable, avoiding false negative recruiting conclusions.
+          - Leaves core Brother × Archetype Fit, classification, Level-Up Advisor,
+            AssignedBuild, Company planning, save watching, identity, and projection
+            semantics unchanged.
+          - Adds an 86-recruit × 11-build regression that fails if normal production
+            analysis re-enters the disabled estimator.
+
+          '''
+          hotfix = '\n'.join(line[10:] if line.startswith('          ') else line for line in hotfix.splitlines()) + '\n'
+          changelog.write_text(hotfix + existing, encoding='utf-8')
+
+          notes = Path('docs/RELEASE_NOTES_v3.89.1.md')
+          notes.write_text('''# Battle Brothers Save Toolkit v3.89.1
+
+          v3.89.1 is a focused hotfix for the v3.89 Windows/local application release.
+
+          ## Fixes
+
+          - Disables the unvalidated Recruitment Background × Archetype prior and recruit candidate-estimate models from normal application and CLI analysis.
+          - Prevents large recruit pools from entering the expensive combinatorial recruitment-potential path after core Brother × Archetype analysis has already completed.
+          - Keeps recruit parsing, settlement/economics display, core Brother Fit, classification, Level-Up Advisor, AssignedBuild, Company planning, save watching, and identity semantics unchanged.
+          - Recruitment potential now reports an explicit unavailable state while the retained model awaits a separate validation/product decision.
+          - Relevant Roster Need remains unavailable whenever candidate-potential evidence is unavailable, avoiding false negative recruiting conclusions.
+
+          ## Why this hotfix exists
+
+          The first real v3.89 installed-app analysis of a roughly day-60 campaign exposed the issue clearly: 13 brothers × 11 archetypes completed in about 5.34 seconds and projection validation in about 0.13 seconds, while the job then remained running in recruitment analysis over 86 parsed recruit records. The old path could enter 86 × 11 recruit/build potential evaluations after the core analysis was already complete.
+
+          The regression suite now includes an 86-recruit × 11-build workload that fails if normal production analysis re-enters the disabled estimator.
+
+          ## Compatibility
+
+          This hotfix does not change the core natural-stat level-11 Fit model, projection semantics, identity, persistence, or save parsing contracts. The Background × Archetype and candidate-estimate model code remains in the repository for explicit future research/validation; v3.89.1 removes it from normal production execution only.
+
+          ## Windows application
+
+          The recommended player download is:
+
+          ```text
+          BB-Save-Toolkit-3.89.1-setup.exe
+          ```
+
+          Normal repair/update preserves durable application state under `%LOCALAPPDATA%\\BB-Save-Toolkit\\`.
+          '''.replace('          ', ''), encoding='utf-8')
+
+          helper = Path('.github/workflows/prepare-v3.89.1-metadata.yml')
+          helper.unlink()
+          PY
+      - name: Commit release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "BB Save Toolkit Release"
+          git config user.email "bb-toolkit@local.invalid"
+          git add -A
+          git diff --cached --check
+          git commit -m "Prepare v3.89.1 hotfix release metadata"
+          git push origin HEAD:codex/issue-207-release-v3.89.1
