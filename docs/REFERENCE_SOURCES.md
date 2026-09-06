@@ -13,9 +13,8 @@ directly; it never resolves or falls back to an upstream branch head.
 The `bbtool.reference_status.v1` runtime payload exposes the configured source
 repository, immutable requested revision, requested URL, and relevant generated
 reference schemas. When a source is downloaded, its entry in `download_sources`
-also records the downloaded byte count and SHA-256. Existing valid caches remain
-preferred and usable offline, so a cache-only run has no downloaded-content
-digest to report for that run.
+also records the downloaded byte count and SHA-256.
+Existing valid caches remain preferred and usable offline, so a cache-only run has no downloaded-content-digest to report for that run.
 
 ## Intentional upgrade workflow
 
