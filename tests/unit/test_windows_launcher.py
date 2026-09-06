@@ -91,6 +91,9 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "{localappdata}\\BB-Save-Toolkit" in iss
     assert "console=False" in spec
     assert "ensure_references" in build
+    assert "$generatedReferenceCaches" in build
+    assert "Remove-Item -Force -ErrorAction SilentlyContinue" in build
+    assert "perk_effects.json" in build
     assert "PyInstaller" in build
     assert "Second launch created a conflicting application instance" in smoke
     assert "Assert-PersistedState" in smoke
