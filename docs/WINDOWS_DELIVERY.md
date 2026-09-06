@@ -72,7 +72,9 @@ runtime metadata (`pid`, port, executable path) below the user's temporary
 directory. A second launch probes the exact toolkit health contract and reuses
 the existing instance instead of binding another port. An unrelated process
 occupying one candidate port is skipped. If the recorded PID does not resolve
-to the same installed executable, `stop` refuses to terminate it.
+to the same installed executable, `stop` refuses to terminate it. If a healthy
+toolkit origin exists but the volatile runtime record is missing or unusable,
+`stop` also fails closed rather than guessing which process to terminate.
 
 The volatile launcher log contains only timestamps, lifecycle events, PID/port,
 and bounded error text. It never logs save bytes, selected-save content, or
@@ -88,8 +90,10 @@ creates:
 - a per-user Startup shortcut (selected by default) for automatic startup.
 
 Running the same or a newer installer is the **repair/update** operation. Before
-replacing binaries the installer asks the existing launcher to stop. Durable
-state is not under `{app}` and therefore survives the replacement. State schema
+replacing binaries the installer asks the existing launcher to stop. If the
+launcher cannot verify and stop a healthy existing instance, repair/update
+aborts instead of replacing files underneath a running process. Durable state
+is not under `{app}` and therefore survives the replacement. State schema
 migration remains owned by `bbtool.app.user_state`; packaging must never edit
 feature files directly.
 
