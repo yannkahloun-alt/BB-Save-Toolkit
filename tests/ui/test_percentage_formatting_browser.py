@@ -1,13 +1,9 @@
 import pytest
 from selenium.webdriver.common.by import By
 
-from tests.ui.test_local_app_production_bundle_browser import (
-    _company_payload,
-    _wait,
-    browser,
-    surface_server,
-)
+from tests.ui.test_local_app_production_bundle_browser import _company_payload, _wait
 
+pytest_plugins = ["tests.ui.test_local_app_production_bundle_browser"]
 pytestmark = pytest.mark.ui
 
 
