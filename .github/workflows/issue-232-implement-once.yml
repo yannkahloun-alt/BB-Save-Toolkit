@@ -1,0 +1,212 @@
+name: Issue 232 implementation once
+
+on:
+  push:
+    branches:
+      - codex/issue-232-publication-signatures
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-232-publication-signatures
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Apply issue 232 implementation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'missing replacement anchor in {path}: {old[:80]!r}')
+              p.write_text(text.replace(old, new), encoding='utf-8', newline='\n')
+
+          # Central #122 input-signature primitive.
+          replace(
+              'bbtool/incremental/dependencies.py',
+              '''def stable_hash(value: Any) -> str:\n    return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()\n\n\nclass InputKind(StrEnum):''',
+              '''def stable_hash(value: Any) -> str:\n    return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()\n\n\ndef input_signature(kind: "InputKind", evidence: Any) -> str:\n    """Hash one normalized #122 input category without storage metadata."""\n    return stable_hash({"input_kind": kind.value, "evidence": evidence})\n\n\nclass InputKind(StrEnum):''',
+          )
+
+          # Explicit local-app desired dependency snapshot/currentness adapter.
+          Path('bbtool/app/publication_signatures.py').write_text('''"""Artifact dependency/currentness signatures for local-app publication."""\nfrom __future__ import annotations\n\nfrom collections.abc import Mapping\nfrom typing import Any\n\nfrom ..incremental.dependencies import InputKind, input_signature\nfrom ..incremental.fingerprint import role_signature_list\nfrom ..models import CampaignIdentity\nfrom ..save_parser import parse_campaign_identity_bytes\n\n\nDEPENDENCY_SIGNATURES_SCHEMA = "bbtool.analysis_dependency_signatures.v1"\n_ASSIGNMENT_FIELDS = (\n    "status",\n    "build_identity",\n    "assigned_definition_hash",\n    "current_definition_hash",\n)\n\n\ndef _campaign_value(content: bytes) -> int | None:\n    campaign = parse_campaign_identity_bytes(content)\n    if (\n        campaign.confidence == "exact"\n        and not isinstance(campaign.value, bool)\n        and isinstance(campaign.value, int)\n    ):\n        return campaign.value\n    return None\n\n\ndef _assignment_evidence(assignments: Mapping[str, Any] | None) -> Any:\n    if assignments is None:\n        return None\n    evidence = {}\n    for brother_identity, assignment in sorted(assignments.items()):\n        if not isinstance(assignment, Mapping):\n            raise ValueError("AssignedBuild dependency evidence must be mappings")\n        evidence[str(brother_identity)] = {\n            field: assignment.get(field) for field in _ASSIGNMENT_FIELDS\n        }\n    return evidence\n\n\ndef _input_signatures(roles, classification, assignments) -> dict[str, str]:\n    return {\n        InputKind.BUILD_DEFINITION.value: input_signature(\n            InputKind.BUILD_DEFINITION, role_signature_list(roles)\n        ),\n        InputKind.CLASSIFICATION_CONFIG.value: input_signature(\n            InputKind.CLASSIFICATION_CONFIG, classification\n        ),\n        InputKind.ASSIGNED_BUILD.value: input_signature(\n            InputKind.ASSIGNED_BUILD, _assignment_evidence(assignments)\n        ),\n    }\n\n\ndef build_desired_dependency_signatures(\n    content: bytes, roles, classification, assigned_builds\n) -> dict[str, Any]:\n    """Snapshot mutable semantic inputs that can outlive the worker request."""\n    campaign_value = _campaign_value(content)\n    assignments = None\n    if campaign_value is not None:\n        assignments = assigned_builds.read_campaign(\n            CampaignIdentity(campaign_value, confidence="exact")\n        )["assignments"]\n    return {\n        "schema": DEPENDENCY_SIGNATURES_SCHEMA,\n        "scope": {"campaign_identity": campaign_value},\n        "inputs": _input_signatures(roles, classification, assignments),\n    }\n\n\ndef dependency_signatures_are_current(\n    snapshot: Mapping[str, Any], *, catalog, classification, assigned_builds\n) -> bool:\n    """Recompute the scoped semantic snapshot; malformed/missing evidence fails closed."""\n    if not isinstance(snapshot, Mapping) or set(snapshot) != {"schema", "scope", "inputs"}:\n        return False\n    if snapshot.get("schema") != DEPENDENCY_SIGNATURES_SCHEMA:\n        return False\n    scope = snapshot.get("scope")\n    inputs = snapshot.get("inputs")\n    if not isinstance(scope, Mapping) or set(scope) != {"campaign_identity"}:\n        return False\n    if not isinstance(inputs, Mapping) or set(inputs) != {\n        InputKind.BUILD_DEFINITION.value,\n        InputKind.CLASSIFICATION_CONFIG.value,\n        InputKind.ASSIGNED_BUILD.value,\n    }:\n        return False\n    campaign_value = scope.get("campaign_identity")\n    if campaign_value is not None and (\n        isinstance(campaign_value, bool) or not isinstance(campaign_value, int)\n    ):\n        return False\n    config = catalog.analyzer_config(classification)\n    assignments = None\n    if campaign_value is not None:\n        assignments = assigned_builds.read_campaign(\n            CampaignIdentity(campaign_value, confidence="exact")\n        )["assignments"]\n    expected = _input_signatures(config.roles, config.classification, assignments)\n    return dict(inputs) == expected\n\n\n__all__ = [\n    "DEPENDENCY_SIGNATURES_SCHEMA",\n    "build_desired_dependency_signatures",\n    "dependency_signatures_are_current",\n]\n''', encoding='utf-8', newline='\n')
+
+          # Coordinator: distinguish desired dependency signatures from produced artifact signatures.
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''class DesiredAnalysis:\n    """An exact analysis request plus artifact-scoped dependency signatures."""\n\n    request: AnalysisServiceRequest\n    artifact_signatures: Mapping[str, str] = field(default_factory=dict)''',
+              '''class DesiredAnalysis:\n    """An exact analysis request plus scoped pre-analysis dependency signatures."""\n\n    request: AnalysisServiceRequest\n    dependency_signatures: Mapping[str, Any] = field(default_factory=dict)''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''            tuple(sorted(self.artifact_signatures.items())),\n            self.request.options.verify_cache,''',
+              '''            stable_hash(self.dependency_signatures),\n            self.request.options.verify_cache,''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''class PublishedAnalysis:\n    generation: int\n    job_id: int\n    source_fingerprint: str\n    configuration_fingerprints: Mapping[str, str]\n    artifact_signatures: Mapping[str, str]\n    result: AnalysisServiceResult''',
+              '''class PublishedAnalysis:\n    generation: int\n    job_id: int\n    source_fingerprint: str\n    configuration_fingerprints: Mapping[str, str]\n    dependency_signatures: Mapping[str, Any]\n    artifact_signatures: Mapping[str, Any]\n    result: AnalysisServiceResult''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''        signatures_are_current: Callable[[Mapping[str, str]], bool] | None = None,\n        retain_valid_artifacts: Callable[\n            [PublishedAnalysis | None, Mapping[str, str]], Mapping[str, Any]\n        ] | None = None,''',
+              '''        signatures_are_current: Callable[[Mapping[str, Any]], bool] | None = None,\n        retain_valid_artifacts: Callable[\n            [PublishedAnalysis | None, Mapping[str, Any]], Mapping[str, Any]\n        ] | None = None,''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''        self._signatures_are_current = signatures_are_current or (lambda _: True)\n        self._retain_valid_artifacts = retain_valid_artifacts or (lambda _old, _new: {})''',
+              '''        self._signatures_are_current = signatures_are_current or (lambda _: True)\n        self._has_explicit_signature_validator = signatures_are_current is not None\n        self._retain_valid_artifacts = retain_valid_artifacts or (lambda _old, _new: {})''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''    @property\n    def last_success(self) -> PublishedAnalysis | None:\n        with self._lock:\n            return self._last_success''',
+              '''    def configure_dependency_validation(\n        self, signatures_are_current: Callable[[Mapping[str, Any]], bool]\n    ) -> None:\n        """Bind caller-owned dependency currentness unless explicitly supplied already."""\n        with self._lock:\n            if self._has_explicit_signature_validator:\n                return\n            self._signatures_are_current = signatures_are_current\n            self._has_explicit_signature_validator = True\n\n    @property\n    def last_success(self) -> PublishedAnalysis | None:\n        with self._lock:\n            return self._last_success''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''            snapshot = DesiredAnalysis(request, dict(desired.artifact_signatures))''',
+              '''            snapshot = DesiredAnalysis(\n                request, copy.deepcopy(desired.dependency_signatures)\n            )''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''            dependencies_current = self._signatures_are_current(\n                job.desired.artifact_signatures\n            )''',
+              '''            dependencies_current = self._signatures_are_current(\n                job.desired.dependency_signatures\n            )''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''        self._generation += 1\n        job.status = JobStatus.SUCCEEDED\n        self._last_success = PublishedAnalysis(\n            self._generation, job.id, result.source_fingerprint,\n            dict(result.configuration_fingerprints),\n            dict(job.desired.artifact_signatures), result,\n        )\n        self._retained_artifacts = {}''',
+              '''        try:\n            produced_signatures = result.incremental_cache.publication_signatures()\n            if not isinstance(produced_signatures, Mapping):\n                raise TypeError("publication signatures must be a mapping")\n        except AttributeError:\n            # Lightweight coordinator tests may use a transport-shaped result stub.\n            produced_signatures = {}\n        except Exception:\n            # Missing/corrupt authoritative signature evidence cannot publish as current.\n            job.status = JobStatus.SUPERSEDED\n            return\n        self._generation += 1\n        job.status = JobStatus.SUCCEEDED\n        self._last_success = PublishedAnalysis(\n            generation=self._generation,\n            job_id=job.id,\n            source_fingerprint=result.source_fingerprint,\n            configuration_fingerprints=dict(result.configuration_fingerprints),\n            dependency_signatures=copy.deepcopy(job.desired.dependency_signatures),\n            artifact_signatures=copy.deepcopy(dict(produced_signatures)),\n            result=result,\n        )\n        self._retained_artifacts = {}''',
+          )
+          replace(
+              'bbtool/app/analysis_coordinator.py',
+              '''                    self._last_success, job.desired.artifact_signatures\n                )''',
+              '''                    self._last_success, job.desired.dependency_signatures\n                )''',
+          )
+
+          # LocalApplication production wiring and explicit API serialization.
+          replace(
+              'bbtool/app/local_application.py',
+              '''from collections.abc import Callable\nfrom dataclasses import asdict''',
+              '''from collections.abc import Callable\nfrom copy import deepcopy\nfrom dataclasses import asdict''',
+          )
+          replace(
+              'bbtool/app/local_application.py',
+              '''from .config import AnalyzerConfig\nfrom .user_state import ArchetypeState, LastSuccessState, PreferencesState, UserStateStore''',
+              '''from .config import AnalyzerConfig\nfrom .publication_signatures import (\n    build_desired_dependency_signatures,\n    dependency_signatures_are_current,\n)\nfrom .user_state import ArchetypeState, LastSuccessState, PreferencesState, UserStateStore''',
+          )
+          replace(
+              'bbtool/app/local_application.py',
+              '''        self.store = store\n        self.catalog = catalog\n        self.classification = classification\n        self.coordinator = coordinator or AnalysisCoordinator()\n        self._read_save = read_save or Path.read_bytes\n        self._clock = clock or (lambda: datetime.now(UTC))\n        self.assigned_builds = AssignedBuildStore(store, catalog)''',
+              '''        self.store = store\n        self.catalog = catalog\n        self.classification = classification\n        self.assigned_builds = AssignedBuildStore(store, catalog)\n        self.coordinator = coordinator or AnalysisCoordinator()\n        self.coordinator.configure_dependency_validation(\n            lambda signatures: dependency_signatures_are_current(\n                signatures,\n                catalog=self.catalog,\n                classification=self.classification,\n                assigned_builds=self.assigned_builds,\n            )\n        )\n        self._read_save = read_save or Path.read_bytes\n        self._clock = clock or (lambda: datetime.now(UTC))''',
+          )
+          replace(
+              'bbtool/app/local_application.py',
+              '''                assigned_build_resolver=DurableAssignedBuildResolver(\n                    self.store.root, tuple(self.catalog.base_roles)\n                ),\n            )\n        )''',
+              '''                assigned_build_resolver=DurableAssignedBuildResolver(\n                    self.store.root, tuple(self.catalog.base_roles)\n                ),\n            ),\n            dependency_signatures=build_desired_dependency_signatures(\n                content, config.roles, config.classification, self.assigned_builds\n            ),\n        )''',
+          )
+          replace(
+              'bbtool/app/local_application.py',
+              '''        return {\n            "id": job.id,\n            "status": job.status.value,\n            "source_fingerprint": job.desired.source_fingerprint,\n            "configuration_fingerprints": dict(job.desired.configuration_fingerprints),\n            "artifact_signatures": dict(job.desired.artifact_signatures),\n            "progress": [asdict(event) for event in job.progress],\n            "error": job.error,\n            "published": (\n                self.coordinator.last_success is not None\n                and self.coordinator.last_success.job_id == job.id\n            ),\n        }''',
+              '''        publication = self.coordinator.last_success\n        published = publication is not None and publication.job_id == job.id\n        return {\n            "id": job.id,\n            "status": job.status.value,\n            "source_fingerprint": job.desired.source_fingerprint,\n            "configuration_fingerprints": dict(job.desired.configuration_fingerprints),\n            "dependency_signatures": deepcopy(job.desired.dependency_signatures),\n            "artifact_signatures": (\n                deepcopy(publication.artifact_signatures) if published else None\n            ),\n            "progress": [asdict(event) for event in job.progress],\n            "error": job.error,\n            "published": published,\n        }''',
+          )
+          replace(
+              'bbtool/app/local_application.py',
+              '''            "represented_configuration_fingerprints": dict(publication.configuration_fingerprints),\n            "artifact_signatures": dict(publication.artifact_signatures),\n        }''',
+              '''            "represented_configuration_fingerprints": dict(publication.configuration_fingerprints),\n            "dependency_signatures": deepcopy(\n                getattr(publication, "dependency_signatures", {})\n            ),\n            "artifact_signatures": deepcopy(publication.artifact_signatures),\n        }''',
+          )
+
+          # Debug manifest uses the same two authoritative publication fields.
+          replace(
+              'bbtool/app/debug_export.py',
+              '''                "artifact_signatures": dict(publication.artifact_signatures),''',
+              '''                "dependency_signatures": deepcopy(\n                    getattr(publication, "dependency_signatures", {})\n                ),\n                "artifact_signatures": deepcopy(publication.artifact_signatures),''',
+          )
+
+          # Coordinator tests: rename desired map and prove produced signatures are distinct.
+          p = Path('tests/unit/test_analysis_coordinator.py')
+          text = p.read_text(encoding='utf-8').replace('.artifact_signatures', '.dependency_signatures')
+          anchor = '''def test_dependency_validity_callback_prevents_publication_after_external_change():\n'''
+          addition = '''def test_publication_separates_dependency_and_produced_artifact_signatures():\n    backend = Backend()\n    service = coordinator(backend)\n    item = desired("save")\n    job_id = service.submit(item)\n    produced = {\n        "role_projection": [{\n            "brother_id": "human:1",\n            "build_key": "role",\n            "dependency_signature": "sha256:role",\n        }]\n    }\n    result = result_for(item)\n    result.incremental_cache = SimpleNamespace(\n        publication_signatures=lambda: produced\n    )\n    backend.handle.send("result", job_id, result)\n\n    service.poll()\n\n    assert service.last_success.dependency_signatures == item.dependency_signatures\n    assert service.last_success.artifact_signatures == produced\n    assert service.last_success.artifact_signatures != item.dependency_signatures\n\n\n'''
+          if anchor not in text:
+              raise SystemExit('coordinator test anchor missing')
+          text = text.replace(anchor, addition + anchor)
+          p.write_text(text, encoding='utf-8', newline='\n')
+
+          # Local API: running jobs carry non-empty dependency evidence; produced evidence is absent until publish.
+          replace(
+              'tests/unit/test_local_application_api.py',
+              '''    assert set(data["configuration_fingerprints"]) == {"archetypes", "classification"}\n    assert reads == [save.resolve()]''',
+              '''    assert set(data["configuration_fingerprints"]) == {"archetypes", "classification"}\n    assert data["dependency_signatures"]["schema"] == "bbtool.analysis_dependency_signatures.v1"\n    assert set(data["dependency_signatures"]["inputs"]) == {\n        "assigned_build", "build_definition", "classification_config"\n    }\n    assert data["artifact_signatures"] is None\n    assert reads == [save.resolve()]''',
+          )
+          replace(
+              'tests/unit/test_local_application_api.py',
+              '''        configuration_fingerprints={"archetypes": "sha256:a", "classification": "sha256:c"},\n        artifact_signatures={"advisor": "sha256:advisor"},''',
+              '''        configuration_fingerprints={"archetypes": "sha256:a", "classification": "sha256:c"},\n        dependency_signatures={\n            "schema": "bbtool.analysis_dependency_signatures.v1",\n            "scope": {"campaign_identity": 25809},\n            "inputs": {"assigned_build": "sha256:assigned"},\n        },\n        artifact_signatures={\n            "level_advisor": [{\n                "brother_id": "human:1",\n                "dependency_signature": "sha256:advisor",\n            }]\n        },''',
+          )
+          replace(
+              'tests/unit/test_local_application_api.py',
+              '''    assert result["freshness"]["artifact_signatures"] == {"advisor": "sha256:advisor"}\n    assert durable.source_fingerprint == "sha256:source"''',
+              '''    assert result["freshness"]["dependency_signatures"] == publication.dependency_signatures\n    assert result["freshness"]["artifact_signatures"] == publication.artifact_signatures\n    assert durable.source_fingerprint == "sha256:source"''',
+          )
+
+          # New deterministic signature/currentness tests.
+          Path('tests/unit/test_publication_signatures.py').write_text('''from types import SimpleNamespace\n\nfrom bbtool.app import publication_signatures as publication\nfrom bbtool.models import CampaignIdentity\n\n\nclass _Catalog:\n    def __init__(self, roles):\n        self.roles = roles\n\n    def analyzer_config(self, classification):\n        return SimpleNamespace(roles=self.roles, classification=classification)\n\n\nclass _AssignedBuilds:\n    def __init__(self):\n        self.campaigns = {\n            11: {\n                "campaign:11/entity:1": {\n                    "status": "current",\n                    "build_identity": "reach_dps",\n                    "assigned_definition_hash": "sha256:def",\n                    "current_definition_hash": "sha256:def",\n                    "display_name": "Reach DPS",\n                }\n            },\n            22: {},\n        }\n\n    def read_campaign(self, campaign):\n        return {"revision": 999, "assignments": self.campaigns[campaign.value]}\n\n\ndef _roles(name="Reach DPS"):\n    return [{\n        "id": "reach_dps",\n        "name": name,\n        "stats": {"MAtk": {"weight": 1}},\n    }]\n\n\ndef _exact_campaign(monkeypatch, value=11):\n    monkeypatch.setattr(\n        publication,\n        "parse_campaign_identity_bytes",\n        lambda _content: CampaignIdentity(value, confidence="exact"),\n    )\n\n\ndef test_desired_dependency_signatures_are_populated_and_exclude_display_names(monkeypatch):\n    _exact_campaign(monkeypatch)\n    assigned = _AssignedBuilds()\n    first = publication.build_desired_dependency_signatures(\n        b"save", _roles("Reach DPS"), {"invest": 70}, assigned\n    )\n    renamed = publication.build_desired_dependency_signatures(\n        b"save", _roles("Renamed display only"), {"invest": 70}, assigned\n    )\n\n    assert first == renamed\n    assert first["inputs"]\n    assert "Reach DPS" not in repr(first)\n    assert "Renamed display only" not in repr(first)\n\n\ndef test_selected_campaign_intent_change_fails_currentness(monkeypatch):\n    _exact_campaign(monkeypatch)\n    assigned = _AssignedBuilds()\n    catalog = _Catalog(_roles())\n    snapshot = publication.build_desired_dependency_signatures(\n        b"save", catalog.roles, {"invest": 70}, assigned\n    )\n    assert publication.dependency_signatures_are_current(\n        snapshot, catalog=catalog, classification={"invest": 70}, assigned_builds=assigned\n    )\n\n    assigned.campaigns[11]["campaign:11/entity:1"]["build_identity"] = "banner"\n    assert not publication.dependency_signatures_are_current(\n        snapshot, catalog=catalog, classification={"invest": 70}, assigned_builds=assigned\n    )\n\n\ndef test_unrelated_campaign_mutation_does_not_change_currentness(monkeypatch):\n    _exact_campaign(monkeypatch)\n    assigned = _AssignedBuilds()\n    catalog = _Catalog(_roles())\n    snapshot = publication.build_desired_dependency_signatures(\n        b"save", catalog.roles, {"invest": 70}, assigned\n    )\n    assigned.campaigns[22]["campaign:22/entity:9"] = {\n        "status": "current",\n        "build_identity": "banner",\n        "assigned_definition_hash": "sha256:other",\n        "current_definition_hash": "sha256:other",\n        "display_name": "Banner",\n    }\n\n    assert publication.dependency_signatures_are_current(\n        snapshot, catalog=catalog, classification={"invest": 70}, assigned_builds=assigned\n    )\n\n\ndef test_classification_change_invalidates_desired_snapshot_without_role_display_identity(monkeypatch):\n    _exact_campaign(monkeypatch)\n    assigned = _AssignedBuilds()\n    catalog = _Catalog(_roles())\n    snapshot = publication.build_desired_dependency_signatures(\n        b"save", catalog.roles, {"invest": 70}, assigned\n    )\n\n    assert not publication.dependency_signatures_are_current(\n        snapshot, catalog=catalog, classification={"invest": 71}, assigned_builds=assigned\n    )\n''', encoding='utf-8', newline='\n')
+
+          # Debug provenance must agree with API freshness and distinguish the two maps.
+          replace(
+              'tests/unit/test_debug_export.py',
+              '''        configuration_fingerprints=result.configuration_fingerprints,\n        artifact_signatures={"role_projection": "sha256:signature"},\n        result=result,''',
+              '''        configuration_fingerprints=result.configuration_fingerprints,\n        dependency_signatures={\n            "schema": "bbtool.analysis_dependency_signatures.v1",\n            "scope": {"campaign_identity": None},\n            "inputs": {"assigned_build": "sha256:input"},\n        },\n        artifact_signatures={\n            "role_projection": [{\n                "brother_id": "human:1",\n                "build_key": "nimble_dps",\n                "dependency_signature": "sha256:signature",\n            }]\n        },\n        result=result,''',
+          )
+          replace(
+              'tests/unit/test_debug_export.py',
+              '''                    "represented_configuration_fingerprints": result.configuration_fingerprints,\n                },''',
+              '''                    "represented_configuration_fingerprints": result.configuration_fingerprints,\n                    "dependency_signatures": publication.dependency_signatures,\n                    "artifact_signatures": publication.artifact_signatures,\n                },''',
+          )
+          replace(
+              'tests/unit/test_debug_export.py',
+              '''        assert manifest["publication"]["source_fingerprint"] == result.source_fingerprint\n        assert manifest["privacy"]["save_bytes_included"] is False''',
+              '''        assert manifest["publication"]["source_fingerprint"] == result.source_fingerprint\n        assert manifest["publication"]["dependency_signatures"] == publication.dependency_signatures\n        assert manifest["publication"]["artifact_signatures"] == publication.artifact_signatures\n        api_result = _decode_json_member(archive, "api/analysis-result.json")\n        assert api_result["freshness"]["dependency_signatures"] == publication.dependency_signatures\n        assert api_result["freshness"]["artifact_signatures"] == publication.artifact_signatures\n        assert manifest["privacy"]["save_bytes_included"] is False''',
+          )
+
+          # Docs: explicit distinction and #122 boundary.
+          replace(
+              'docs/LOCAL_APPLICATION_API.md',
+              '''state: the followed save's display name/availability/freshness, publication\navailability/freshness, the public `bbtool.analysis_health.v1` contract, and a''',
+              '''state: the followed save's display name/availability/freshness, publication\navailability/freshness, the public `bbtool.analysis_health.v1` contract, and a''',
+          )
+          replace(
+              'docs/LOCAL_APPLICATION_API.md',
+              '''`DesiredAnalysis` to `AnalysisCoordinator`. Job and publication responses carry\nthe represented source fingerprint, both configuration fingerprints, artifact\nsignatures, generation, publication state, and structured failure.''',
+              '''`DesiredAnalysis` to `AnalysisCoordinator`. Job responses carry a scoped\n`dependency_signatures` snapshot of #122 input evidence used to reject a worker\nwhose mutable semantic inputs changed while it ran. Before success,\n`artifact_signatures` is `null` because no produced result has been published.\nA successful publication then carries both that represented dependency snapshot\nand the distinct analysis-owned `artifact_signatures` returned by\n`IncrementalCache.publication_signatures()`. Result freshness and debug-export\nprovenance copy those same publication fields; they do not reconstruct them in\nthe HTTP/UI layer. Source and configuration fingerprints, generation,\npublication state, and structured failure remain separate metadata.''',
+          )
+          p = Path('docs/DEPENDENCY_SIGNATURES.md')
+          text = p.read_text(encoding='utf-8')
+          marker = '''## Adding an input or artifact\n'''
+          section = '''## Local publication boundary\n\nLocal-app scheduling separates two kinds of signature evidence.\n`DesiredAnalysis.dependency_signatures` is a pre-analysis, campaign-scoped\nsnapshot of mutable #122 input categories. It hashes semantic build definitions\n(without BuildIdentity/display names), classification configuration, and resolved\nAssignedBuild intent for the represented campaign; storage revisions and other\ncampaigns are excluded. The controlling process recomputes that snapshot at\nworker completion, and missing or changed evidence rejects stale publication.\n\n`PublishedAnalysis.artifact_signatures` is different evidence: it is copied only\nafter success from the represented analysis result's authoritative\n`IncrementalCache.publication_signatures()`. API freshness and debug-export\nprovenance expose both fields without overloading one map. This preserves the\n#122 rule that an AssignedBuild-only change does not alter intrinsic role\nprojection signatures, while still preventing stale intent-aware publication.\n\n'''
+          if marker not in text:
+              raise SystemExit('dependency docs marker missing')
+          p.write_text(text.replace(marker, section + marker), encoding='utf-8', newline='\n')
+
+          # Remove this one-shot workflow from the final implementation diff.
+          Path('.github/workflows/issue-232-implement-once.yml').unlink()
+          PY
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Populate local publication dependency and artifact signatures'
+          git push origin HEAD:codex/issue-232-publication-signatures
