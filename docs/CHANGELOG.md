@@ -1,3 +1,25 @@
+## v3.89.2 — Installer repair and debug evidence export hotfix
+
+- Makes Windows repair/update resilient when a previous installed launcher exists
+  but cannot initialize, while preserving verified safe-stop behavior when the
+  BB Save Toolkit application is genuinely running.
+- Adds **Export debug JSON** to the local app after a completed analysis, producing
+  one generation-bound ZIP with CLI-equivalent algorithm evidence and the exact
+  Company, Level Up, Recruitment, shell/freshness, analysis-result, followed-save,
+  and effective-archetype read models consumed by the UI.
+- Adds a machine-readable diagnostic inventory for explicit `Unknown`,
+  `Unavailable`, degraded/failure/warning states, backend reasons, and associated
+  null evidence using stable source-file JSON paths for real-campaign triage.
+- Binds exported evidence to publication generation/job, source/configuration
+  fingerprints, artifact signatures, toolkit version, and per-member SHA-256
+  metadata; rejects mixed-generation capture if analysis changes mid-export.
+- Protects debug export with the existing loopback Host/rebinding boundary plus
+  the local session capability, includes safe runtime timings/diagnostics, never
+  includes save bytes, and redacts selected-save and toolkit user-state paths.
+- Leaves level-11 Fit, classification, Level-Up Advisor, AssignedBuild, Company
+  planning, parser identity, cache, and the v3.89.1 Recruitment-prior safety
+  rollback unchanged.
+
 ## v3.89.1 — Recruitment potential safety hotfix
 
 - Disables the unvalidated Recruitment Background × Archetype prior and
