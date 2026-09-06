@@ -55,8 +55,9 @@ def test_recruitment_economics_preserve_unknown_zero_and_positive_values(
     unknown_option = browser.find_element(
         By.CSS_SELECTOR, '#recruit-mobile-select option[value="0"]'
     )
-    assert unknown_option.text.endswith(" · —")
-    assert "0g" not in unknown_option.text
+    unknown_option_text = unknown_option.get_attribute("textContent")
+    assert unknown_option_text.endswith(" · —")
+    assert "0g" not in unknown_option_text
 
     assert browser.find_element(By.ID, "recruit-hire-cost").text == "—"
     assert browser.find_element(By.ID, "recruit-daily-wage").text == "—"
