@@ -1,5 +1,11 @@
 # Recruit known-evidence estimates
 
+> **Production status:** disabled from normal application/CLI analysis as of
+> issue #205 together with the Background × Archetype prior it depends on. The
+> model code remains available for explicit research and validation only. A
+> later explicit product decision must re-establish analytical validity and
+> acceptable real-save runtime behavior before production use resumes.
+
 `bbtool.recruit_candidate_estimate.v1` is the candidate-specific intrinsic
 layer over `bbtool.background_archetype_prior.v1`. It never changes or relabels
 the population prior.
@@ -39,9 +45,13 @@ result remains `prior_only` and
 `candidate_estimate` is `null`. There is no interpolation, confidence score,
 Bayesian-sounding adjustment, or added display precision.
 
+These semantics describe the retained model implementation only. Production
+analysis currently emits an explicit unavailable/disabled state instead of
+executing this model.
+
 ## Machine-readable contract
 
-Every result contains:
+Every model result contains:
 
 - `schema`, `model_version`, and a structural `state` equal to `prior_only` or
   `known_evidence_estimate`;
@@ -53,14 +63,24 @@ Every result contains:
 
 The API accepts no roster or Company input. Extra recruit fields are ignored,
 and tests prove that roster need, assignment, economics, hidden stats, stars,
-and future rolls cannot affect the result.
+and future rolls cannot affect the retained model result.
+
+The production application does not currently call that API. Its Recruitment
+analysis entries report `state: unavailable`, `result: null`, and reason
+`background_archetype_prior_disabled_pending_validation` for authoritative
+build identities.
 
 ## Relevant roster need (#112)
 
-`bbtool.relevant_roster_need.v1` is a downstream mixed artifact. It first
-marks a role candidate-plausible when the existing #110/#111 prior or known-
-evidence distribution has mean Fit at or above the configured viable-fit
-threshold. It then intersects that set with #166 `NeedBases` only:
+`bbtool.relevant_roster_need.v1` is a downstream mixed artifact. Its candidate
+plausibility requires an available #110/#111 distribution. While production
+recruit potential is disabled under #205, player-facing Recruitment must not
+present missing prior evidence as a negative candidate-quality conclusion.
+
+When the model is explicitly exercised in research/validation, it first marks a
+role candidate-plausible when the existing #110/#111 prior or known-evidence
+distribution has mean Fit at or above the configured viable-fit threshold. It
+then intersects that set with #166 `NeedBases` only:
 `assigned_but_no_viable_holder`, `single_point_of_failure`, and
 `contested_backup_only`. `NoIntent` therefore contributes no need.
 
@@ -78,6 +98,7 @@ its transitive dependents). Target presentation integration remains #174.
 The current contract has no legitimately public observed base stats or talent
 stars. Public level alone is insufficient without a separately validated model
 of already-consumed hidden rolls. Accordingly, untried recruits and tried-out
-recruits whose traits have no supported Fit-stat effect remain prior-only. A
-future stronger candidate model requires a new legitimately observed and
-calibrated evidence source; it must not infer one from raw hidden save fields.
+recruits whose traits have no supported Fit-stat effect would remain prior-only
+inside the retained model. A future stronger candidate model requires a new
+legitimately observed and calibrated evidence source; it must not infer one from
+raw hidden save fields.
