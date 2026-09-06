@@ -73,14 +73,18 @@ class LocalApplication:
         self.classification = classification
         self.assigned_builds = AssignedBuildStore(store, catalog)
         self.coordinator = coordinator or AnalysisCoordinator()
-        self.coordinator.configure_dependency_validation(
-            lambda signatures: dependency_signatures_are_current(
-                signatures,
-                catalog=self.catalog,
-                classification=self.classification,
-                assigned_builds=self.assigned_builds,
-            )
+        configure_dependency_validation = getattr(
+            self.coordinator, "configure_dependency_validation", None
         )
+        if callable(configure_dependency_validation):
+            configure_dependency_validation(
+                lambda signatures: dependency_signatures_are_current(
+                    signatures,
+                    catalog=self.catalog,
+                    classification=self.classification,
+                    assigned_builds=self.assigned_builds,
+                )
+            )
         self._read_save = read_save or Path.read_bytes
         self._clock = clock or (lambda: datetime.now(UTC))
         self._assigned_build_changed = assigned_build_changed
