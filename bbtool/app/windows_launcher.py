@@ -237,7 +237,13 @@ def _same_executable(path: Path | None) -> bool:
 def _stop_running() -> int:
     record = _load_runtime()
     if record is None:
-        return 0
+        if _running_origin() is None:
+            return 0
+        _log_event(
+            "stop_refused",
+            "healthy toolkit instance has no verifiable runtime record",
+        )
+        return 9
     pid = int(record["pid"])
     port = int(record["port"])
     if not _probe_port(port):
