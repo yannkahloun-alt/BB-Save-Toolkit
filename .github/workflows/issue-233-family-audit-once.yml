@@ -1,0 +1,159 @@
+name: Issue 233 weapon-family source audit
+on:
+  push:
+    paths:
+      - '.github/workflows/issue-233-family-audit-once.yml'
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: codex/issue-233-weapon-family-metadata
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Audit exact pinned mastery semantics
+        shell: bash
+        run: |
+          python - <<'PY'
+          import io, json, re, zipfile
+          from pathlib import Path
+          from references import update_references as refs
+
+          archive_bytes = refs._download_bytes(refs.BB_SCRIPTS_ZIP_URL, timeout=45)
+          source_model = refs._extract_script_item_values(archive_bytes)
+          bbedit = refs.download_reference_dictionary()
+
+          texts = {}
+          with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+              for info in archive.infolist():
+                  name = info.filename.replace('\\\\', '/')
+                  if not name.endswith('.nut'):
+                      continue
+                  try:
+                      text = archive.read(info).decode('utf-8')
+                  except UnicodeDecodeError:
+                      continue
+                  rel = name.split('/', 1)[-1]
+                  texts[rel.removesuffix('.nut')] = text
+
+          flag_re = re.compile(r'\\bIsSpecializedIn([A-Za-z]+)\\b')
+          path_re = re.compile(r'"(scripts/[A-Za-z0-9_./-]+)"')
+
+          mastery_files = {
+              path: text for path, text in texts.items()
+              if path.startswith('scripts/skills/perks/perk_mastery_')
+          }
+          mastery_flags = {}
+          for path, text in sorted(mastery_files.items()):
+              flags = sorted(set(flag_re.findall(text)))
+              if flags:
+                  mastery_flags[path.rsplit('/', 1)[-1]] = flags
+
+          supported = {
+              'Axes': 'Axe', 'Bows': 'Bow', 'Cleavers': 'Cleaver',
+              'Crossbows': 'Crossbow', 'Daggers': 'Dagger', 'Flails': 'Flail',
+              'Hammers': 'Hammer', 'Maces': 'Mace', 'Polearms': 'Polearm',
+              'Spears': 'Spear', 'Swords': 'Sword', 'Throwing': 'Throwing',
+          }
+          assert set(supported) <= {flag for flags in mastery_flags.values() for flag in flags}, mastery_flags
+
+          edges = {}
+          local_flags = {}
+          for path, text in texts.items():
+              local_flags[path] = sorted(set(flag_re.findall(text)) & set(supported))
+              refs_out = set()
+              for target in path_re.findall(text):
+                  normalized = target.removesuffix('.nut')
+                  if normalized in texts:
+                      refs_out.add(normalized)
+              edges[path] = sorted(refs_out)
+
+          memo = {}
+          def closure_flags(path, stack=()):
+              if path in memo:
+                  return memo[path]
+              if path in stack:
+                  return set()
+              found = set(local_flags.get(path, ()))
+              for target in edges.get(path, ()):
+                  found.update(closure_flags(target, stack + (path,)))
+              memo[path] = found
+              return found
+
+          rows = []
+          classified = []
+          unclassified = []
+          multi = []
+          for save_hash, candidates in sorted(source_model['by_save_hash'].items()):
+              if len(candidates) != 1:
+                  continue
+              source = candidates[0]
+              path = source['Source'].removesuffix('.nut')
+              item_type = source.get('ItemTypeExpression') or ''
+              is_weapon = 'this.Const.Items.ItemType.Weapon' in item_type and 'this.Const.Items.ItemType.Tool' not in item_type
+              if not is_weapon:
+                  continue
+              flags = sorted(closure_flags(path))
+              families = sorted(supported[flag] for flag in flags)
+              row = {
+                  'save_hash': save_hash,
+                  'technical_id': source.get('ID'),
+                  'source': source.get('Source'),
+                  'bbedit_type': (bbedit.get(save_hash) or {}).get('type'),
+                  'flags': flags,
+                  'families': families,
+                  'direct_flags': local_flags.get(path, []),
+                  'direct_refs': edges.get(path, []),
+              }
+              rows.append(row)
+              if families:
+                  classified.append(row)
+                  if len(families) > 1:
+                      multi.append(row)
+              else:
+                  unclassified.append(row)
+
+          by_family = {}
+          for row in classified:
+              for family in row['families']:
+                  by_family.setdefault(family, 0)
+                  by_family[family] += 1
+
+          evidence = {
+              'schema': 'bbtool.issue233_weapon_family_investigation.v1',
+              'vanilla_scripts_revision': refs.BB_SCRIPTS_REVISION,
+              'bbedit_revision': refs.BBEDIT_DICTIONARY_REVISION,
+              'authority': 'technical IsSpecializedIn* flags set by mastery perks and consumed by reachable vanilla item/skill scripts',
+              'mastery_flags': mastery_flags,
+              'supported_flag_to_family': supported,
+              'weapon_records_considered': len(rows),
+              'classified_count': len(classified),
+              'unclassified_count': len(unclassified),
+              'multi_family_count': len(multi),
+              'classified_by_family': dict(sorted(by_family.items())),
+              'multi_family_records': multi,
+              'unclassified_records': unclassified,
+              'representative': {
+                  'bow': [row for row in rows if 'Bow' in row['families']][:3],
+                  'polearm': [row for row in rows if 'Polearm' in row['families']][:3],
+              },
+          }
+          assert set(by_family) == set(supported.values()), by_family
+          Path('docs/sources/issue-233-weapon-family-investigation.json').write_text(
+              json.dumps(evidence, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
+          )
+          print(json.dumps({k: evidence[k] for k in ('weapon_records_considered','classified_count','unclassified_count','multi_family_count','classified_by_family')}, indent=2))
+          PY
+      - name: Commit audit evidence
+        shell: bash
+        run: |
+          rm .github/workflows/issue-233-family-audit-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/sources/issue-233-weapon-family-investigation.json .github/workflows/issue-233-family-audit-once.yml
+          git commit -m "Record weapon-family source audit"
+          git push origin HEAD:codex/issue-233-weapon-family-metadata
