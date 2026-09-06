@@ -30,7 +30,7 @@ jobs:
           texts = {}
           with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
               for info in archive.infolist():
-                  name = info.filename.replace('\\\\', '/')
+                  name = info.filename.replace('\\', '/')
                   if not name.endswith('.nut'):
                       continue
                   try:
@@ -40,7 +40,7 @@ jobs:
                   rel = name.split('/', 1)[-1]
                   texts[rel.removesuffix('.nut')] = text
 
-          flag_re = re.compile(r'\\bIsSpecializedIn([A-Za-z]+)\\b')
+          flag_re = re.compile(r'\bIsSpecializedIn([A-Za-z]+)\b')
           path_re = re.compile(r'"(scripts/[A-Za-z0-9_./-]+)"')
 
           mastery_files = {
