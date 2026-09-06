@@ -1,0 +1,459 @@
+{
+  "schema": "bbtool.issue230_item_hash_investigation.v1",
+  "target_save_hash": "35A5074F",
+  "bbedit": {
+    "revision": "bdab5a8216090506a33e8263b8fb112ebf12b361",
+    "contains_target": false
+  },
+  "vanilla_scripts": {
+    "revision": "162f498ac7c49b4c317bbf54718a595ecef6a65a",
+    "contains_target": true,
+    "match": [
+      {
+        "Name": "Executioner's Sword",
+        "Value": 2900,
+        "Source": "scripts/items/weapons/exesword.nut",
+        "ValueScript": "scripts/items/weapons/exesword.nut",
+        "Stem": "exesword",
+        "CompactStem": "exesword",
+        "ID": "weapon.exesword",
+        "Parent": null,
+        "InheritedValue": false
+      }
+    ],
+    "indexed_save_hashes": 743
+  },
+  "method": "references.update_references._extract_script_item_values at repository-pinned immutable inputs",
+  "coverage_audit": {
+    "source_hash_count": 743,
+    "bbedit_hash_count": 976,
+    "source_only_hash_count": 118,
+    "source_only_record_families": {
+      "accessory": 1,
+      "ammo": 1,
+      "armor": 39,
+      "armor_upgrades": 6,
+      "helmets": 41,
+      "item.nut": 1,
+      "item_container.nut": 1,
+      "misc": 1,
+      "shields": 5,
+      "stash_container.nut": 1,
+      "supplies": 5,
+      "tools": 1,
+      "trade": 1,
+      "weapons": 14
+    },
+    "ambiguous_source_only_hashes": [],
+    "current_generator_contains_target": false,
+    "current_generator_target": null,
+    "target_records": [
+      {
+        "Name": "Executioner's Sword",
+        "Value": 2900,
+        "Source": "scripts/items/weapons/exesword.nut",
+        "ValueScript": "scripts/items/weapons/exesword.nut",
+        "Stem": "exesword",
+        "CompactStem": "exesword",
+        "ID": "weapon.exesword",
+        "Parent": null,
+        "InheritedValue": false
+      }
+    ]
+  },
+  "type_mapping_audit": {
+    "target_create_parent": "weapon",
+    "shared_hash_parent_to_bbedit_type_counts": {
+      "<none>": {
+        "auxiliary": 12
+      },
+      "accessory": {
+        "auxiliary": 20
+      },
+      "ammo": {
+        "auxiliary": 1
+      },
+      "anatomist_potion_item": {
+        "auxiliary": 34
+      },
+      "armor": {
+        "genericArmor": 83
+      },
+      "armor_upgrade": {
+        "attachment": 21
+      },
+      "food_item": {
+        "auxiliary": 20
+      },
+      "helmet": {
+        "genericHelmet": 92
+      },
+      "item": {
+        "auxiliary": 86
+      },
+      "named_armor": {
+        "namedArmor": 15
+      },
+      "named_helmet": {
+        "namedHelmet": 15
+      },
+      "named_shield": {
+        "namedShield": 13
+      },
+      "named_weapon": {
+        "namedWeapon": 47
+      },
+      "shield": {
+        "genericShield": 22
+      },
+      "trade_jug_01_item": {
+        "auxiliary": 1
+      },
+      "trading_good_item": {
+        "auxiliary": 12
+      },
+      "wardog_item": {
+        "auxiliary": 2
+      },
+      "warhound_item": {
+        "auxiliary": 2
+      },
+      "weapon": {
+        "auxiliary": 7,
+        "genericWeapon": 120
+      }
+    },
+    "source_only_create_parent_counts": {
+      "<none>": 8,
+      "armor": 37,
+      "armor_upgrade": 5,
+      "grand_diviner_headdress": 1,
+      "grand_diviner_robes": 1,
+      "helmet": 39,
+      "item": 9,
+      "miasma_flail": 1,
+      "named_shield": 1,
+      "named_weapon": 3,
+      "shield": 3,
+      "weapon": 10
+    }
+  },
+  "weapon_type_exception_audit": {
+    "shared_weapon_parent_auxiliary": [
+      {
+        "save_hash": "080888BE",
+        "bbedit_type": "auxiliary",
+        "name": "烟雾罐",
+        "id": "weapon.smoke_bomb",
+        "source": "scripts/items/tools/smoke_bomb_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "15447131",
+        "bbedit_type": "auxiliary",
+        "name": "闪光罐",
+        "id": "weapon.daze_bomb",
+        "source": "scripts/items/tools/daze_bomb_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "170BAB89",
+        "bbedit_type": "auxiliary",
+        "name": "酸瓶",
+        "id": "weapon.acid_flask",
+        "source": "scripts/items/tools/acid_flask_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "1FC72F54",
+        "bbedit_type": "auxiliary",
+        "name": "火油罐",
+        "id": "weapon.fire_bomb",
+        "source": "scripts/items/tools/fire_bomb_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "9C531274",
+        "bbedit_type": "auxiliary",
+        "name": "圣水瓶",
+        "id": "weapon.holy Water",
+        "source": "scripts/items/tools/holy_water_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "C40CE1CF",
+        "bbedit_type": "auxiliary",
+        "name": "强化投网",
+        "id": "tool.reinforced_throwing_net",
+        "source": "scripts/items/tools/reinforced_throwing_net.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool | this.Const.Items.ItemType.Defensive",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      },
+      {
+        "save_hash": "F055BDDC",
+        "bbedit_type": "auxiliary",
+        "name": "投网",
+        "id": "tool.throwing_net",
+        "source": "scripts/items/tools/throwing_net.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Tool | this.Const.Items.ItemType.Defensive",
+        "slot_expression": "this.Const.ItemSlot.Offhand"
+      }
+    ],
+    "source_only_weapon_or_named_weapon": [
+      {
+        "save_hash": "11FA61DC",
+        "bbedit_type": null,
+        "name": "战旗",
+        "id": "weapon.faction_banner",
+        "source": "scripts/items/tools/faction_banner.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon | this.Const.Items.ItemType.TwoHanded | this.Const.Items.ItemType.Defensive",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "12B5C449",
+        "bbedit_type": null,
+        "name": "Mace and Flail",
+        "id": "weapon.golem_mace_flail",
+        "source": "scripts/items/weapons/golems/golem_mace_flail.nut",
+        "create_parent": "weapon",
+        "item_type_expression": null,
+        "slot_expression": null
+      },
+      {
+        "save_hash": "182A81B0",
+        "bbedit_type": null,
+        "name": "Mace and Hammer",
+        "id": "weapon.golem_mace_hammer",
+        "source": "scripts/items/weapons/golems/golem_mace_hammer.nut",
+        "create_parent": "weapon",
+        "item_type_expression": null,
+        "slot_expression": null
+      },
+      {
+        "save_hash": "1867F83B",
+        "bbedit_type": null,
+        "name": "Cleaver and Hammer",
+        "id": "weapon.golem_cleaver_hammer",
+        "source": "scripts/items/weapons/golems/golem_cleaver_hammer.nut",
+        "create_parent": "weapon",
+        "item_type_expression": null,
+        "slot_expression": null
+      },
+      {
+        "save_hash": "2EF706FE",
+        "bbedit_type": null,
+        "name": null,
+        "id": null,
+        "source": "scripts/items/weapons/named/named_weapon.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.m.ItemType | this.Const.Items.ItemType.Named",
+        "slot_expression": null
+      },
+      {
+        "save_hash": "3298972F",
+        "bbedit_type": null,
+        "name": "战鼓",
+        "id": "weapon.barbarian_drum",
+        "source": "scripts/items/weapons/barbarians/drum_item.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.RangedWeapon | this.Const.Items.ItemType.TwoHanded | this.Const.Items.ItemType.Misc",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "35A5074F",
+        "bbedit_type": null,
+        "name": "Executioner's Sword",
+        "id": "weapon.exesword",
+        "source": "scripts/items/weapons/exesword.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "4534F102",
+        "bbedit_type": null,
+        "name": null,
+        "id": "weapon.named_exesword",
+        "source": "scripts/items/weapons/named/named_exesword.nut",
+        "create_parent": "named_weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "4E4E0604",
+        "bbedit_type": null,
+        "name": "Spear and Sword",
+        "id": "weapon.golem_spear_sword",
+        "source": "scripts/items/weapons/golems/golem_spear_sword.nut",
+        "create_parent": "weapon",
+        "item_type_expression": null,
+        "slot_expression": null
+      },
+      {
+        "save_hash": "4E6907B3",
+        "bbedit_type": null,
+        "name": null,
+        "id": "weapon.named_poleaxe",
+        "source": "scripts/items/weapons/named/named_poleaxe.nut",
+        "create_parent": "named_weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "4E76C365",
+        "bbedit_type": null,
+        "name": null,
+        "id": "weapon.named_estoc",
+        "source": "scripts/items/weapons/named/named_estoc.nut",
+        "create_parent": "named_weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "7E0B5BF3",
+        "bbedit_type": null,
+        "name": "Pollaxe",
+        "id": "weapon.poleaxe",
+        "source": "scripts/items/weapons/poleaxe.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      },
+      {
+        "save_hash": "FE7323BD",
+        "bbedit_type": null,
+        "name": "Estoc",
+        "id": "weapon.estoc",
+        "source": "scripts/items/weapons/estoc.nut",
+        "create_parent": "weapon",
+        "item_type_expression": "((this.Const.Items.ItemType.Weapon | this.Const.Items.ItemType.MeleeWeapon) | this.Const.Items.ItemType.TwoHanded)",
+        "slot_expression": "this.Const.ItemSlot.Mainhand"
+      }
+    ]
+  },
+  "post_fix_pinned_output": {
+    "source_only_added": 5,
+    "source_only_records": [
+      {
+        "save_hash": "11FA61DC",
+        "name": "战旗",
+        "type": "genericWeapon",
+        "slot": "mainhand",
+        "subType": null,
+        "durability": 0,
+        "fatigue": -14,
+        "Value": 1000,
+        "SerializedLength": 21,
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": "scripts/items/tools/faction_banner.nut",
+        "ValueScript": "scripts/items/tools/faction_banner.nut",
+        "InheritedValue": false,
+        "TechnicalID": "weapon.faction_banner",
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": "11FA61DC"
+      },
+      {
+        "save_hash": "3298972F",
+        "name": "战鼓",
+        "type": "genericWeapon",
+        "slot": "mainhand",
+        "subType": null,
+        "durability": 0,
+        "fatigue": 0,
+        "Value": 0,
+        "SerializedLength": 21,
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": "scripts/items/weapons/barbarians/drum_item.nut",
+        "ValueScript": "scripts/items/weapons/barbarians/drum_item.nut",
+        "InheritedValue": false,
+        "TechnicalID": "weapon.barbarian_drum",
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": "3298972F"
+      },
+      {
+        "save_hash": "35A5074F",
+        "name": "Executioner's Sword",
+        "type": "genericWeapon",
+        "slot": "mainhand",
+        "subType": null,
+        "durability": 72,
+        "fatigue": -12,
+        "Value": 2900,
+        "SerializedLength": 21,
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": "scripts/items/weapons/exesword.nut",
+        "ValueScript": "scripts/items/weapons/exesword.nut",
+        "InheritedValue": false,
+        "TechnicalID": "weapon.exesword",
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": "35A5074F"
+      },
+      {
+        "save_hash": "7E0B5BF3",
+        "name": "Pollaxe",
+        "type": "genericWeapon",
+        "slot": "mainhand",
+        "subType": null,
+        "durability": 72,
+        "fatigue": -13,
+        "Value": 3000,
+        "SerializedLength": 21,
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": "scripts/items/weapons/poleaxe.nut",
+        "ValueScript": "scripts/items/weapons/poleaxe.nut",
+        "InheritedValue": false,
+        "TechnicalID": "weapon.poleaxe",
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": "7E0B5BF3"
+      },
+      {
+        "save_hash": "FE7323BD",
+        "name": "Estoc",
+        "type": "genericWeapon",
+        "slot": "mainhand",
+        "subType": null,
+        "durability": 64,
+        "fatigue": -9,
+        "Value": 2600,
+        "SerializedLength": 21,
+        "ValueSource": "vanilla-script-save-hash",
+        "Script": "scripts/items/weapons/estoc.nut",
+        "ValueScript": "scripts/items/weapons/estoc.nut",
+        "InheritedValue": false,
+        "TechnicalID": "weapon.estoc",
+        "ReferenceSource": "vanilla-script-source-only",
+        "SaveHash": "FE7323BD"
+      }
+    ],
+    "target_entry": {
+      "name": "Executioner's Sword",
+      "type": "genericWeapon",
+      "slot": "mainhand",
+      "subType": null,
+      "durability": 72,
+      "fatigue": -12,
+      "Value": 2900,
+      "SerializedLength": 21,
+      "ValueSource": "vanilla-script-save-hash",
+      "Script": "scripts/items/weapons/exesword.nut",
+      "ValueScript": "scripts/items/weapons/exesword.nut",
+      "InheritedValue": false,
+      "TechnicalID": "weapon.exesword",
+      "ReferenceSource": "vanilla-script-source-only",
+      "SaveHash": "35A5074F"
+    }
+  }
+}
