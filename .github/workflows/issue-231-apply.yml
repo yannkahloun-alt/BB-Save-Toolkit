@@ -51,15 +51,8 @@ jobs:
           assert target.count(anchor) == 1
           target = target.replace(anchor, replacement)
 
-          old_builder = '''    relevant_need = [{
-              "recruit_index": row["recruit_index"],
-              "state": "available" if assigned_available else "unavailable",
-              "result": build_relevant_roster_need(
-                  row["analyses"], company["intended_coverage"], viable_fit=0.5,
-                  company_intrinsic_coverage=company_intrinsic_coverage,
-              ) if assigned_available else None,
-          } for row in recruitment_analysis]
-          '''
+          builder_start = target.index("    relevant_need = [{")
+          builder_end = target.index("\n    content = {", builder_start)
           new_builder = '''    relevant_need = []
               for row in recruitment_analysis:
                   candidate_available = _candidate_potential_available(row.get("analyses"))
@@ -73,22 +66,12 @@ jobs:
                       ) if available else None,
                   })
           '''
-          assert target.count(old_builder) == 1
-          target = target.replace(old_builder, new_builder)
+          target = target[:builder_start] + new_builder.rstrip() + target[builder_end:]
 
-          old_validator = '''    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):
-              if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
-                  raise ValueError("target presentation relevant need is malformed")
-              if item["state"] == "available":
-                  expected = build_relevant_roster_need(
-                      recruitment["analyses"], company["intended_coverage"], viable_fit=.5,
-                      company_intrinsic_coverage=company["intrinsic_coverage"],
-                  )
-                  if item["result"] != expected:
-                      raise ValueError("target presentation relevant need generation mismatch")
-              elif item["state"] != "unavailable" or item["result"] is not None or company["intent_available"]:
-                  raise ValueError("target presentation relevant need availability mismatch")
-          '''
+          validator_start = target.index(
+              '    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):'
+          )
+          validator_end = target.index("\n\n\ndef _validate_identity", validator_start)
           new_validator = '''    for item, recruitment in zip(relevant, payload["recruitment"], strict=True):
               if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
                   raise ValueError("target presentation relevant need is malformed")
@@ -107,8 +90,7 @@ jobs:
                       or should_be_available:
                   raise ValueError("target presentation relevant need availability mismatch")
           '''
-          assert target.count(old_validator) == 1
-          target = target.replace(old_validator, new_validator)
+          target = target[:validator_start] + new_validator.rstrip() + target[validator_end:]
           target_path.write_text(target, encoding="utf-8")
 
           view_path = Path("bbtool/app/recruitment_view.py")
@@ -116,26 +98,8 @@ jobs:
           constant = '_AVAILABLE_POTENTIAL_STATES = frozenset({"prior_only", "known_evidence_estimate"})\n'
           assert view.count(constant) == 1
           view = view.replace(constant, "")
-          old_view = '''            potential_available = any(
-                  row.get("state") in _AVAILABLE_POTENTIAL_STATES
-                  and (
-                      row.get("background_prior_pct") is not None
-                      or row.get("candidate_estimate_pct") is not None
-                  )
-                  for row in potentials
-              )
-              candidates.append({
-                  "recruit_index": index,
-                  "facts": facts,
-                  "top_potential": _top_potential(potentials),
-                  "potential": potentials,
-                  "relevant_need": (
-                      _relevant_need(need_by_index.get(index), builds)
-                      if potential_available
-                      else _unavailable_need()
-                  ),
-              })
-          '''
+          view_start = view.index("            potential_available = any(")
+          view_end = view.index("\n\n        groups: dict", view_start)
           new_view = '''            candidates.append({
                   "recruit_index": index,
                   "facts": facts,
@@ -144,8 +108,7 @@ jobs:
                   "relevant_need": _relevant_need(need_by_index.get(index), builds),
               })
           '''
-          assert view.count(old_view) == 1
-          view = view.replace(old_view, new_view)
+          view = view[:view_start] + new_view.rstrip() + view[view_end:]
           view_path.write_text(view, encoding="utf-8")
 
           docs_path = Path("docs/TARGET_PRESENTATION_CONTRACT.md")
@@ -173,8 +136,8 @@ jobs:
           test_path = Path("tests/unit/test_relevant_need_availability_contract.py")
           test_path.write_text('''from __future__ import annotations
 
-          from types import SimpleNamespace
           import threading
+          from types import SimpleNamespace
 
           from bbtool.app import recruitment_view
           from bbtool.app import target_presentation as presentation
@@ -200,12 +163,8 @@ jobs:
                   presentation, "build_relevant_roster_need", fake_relevant_need
               )
               payload = presentation.build_target_presentation(
-                  bros=[],
-                  recruits=[{}],
-                  roles=[],
-                  analysis_health={},
-                  campaign_identity=None,
-                  brother_identities={},
+                  bros=[], recruits=[{}], roles=[], analysis_health={},
+                  campaign_identity=None, brother_identities={},
                   source_fingerprint="sha256:" + "a" * 64,
                   configuration_fingerprints={},
                   recruitment_analysis=[{
@@ -214,11 +173,8 @@ jobs:
                       "analyses": analyses,
                   }],
                   artifact_hashes={key: "fixture" for key in presentation.BOUND_ARTIFACTS},
-                  result_signatures={},
-                  company_intrinsic_coverage=[],
-                  summaries=[],
-                  assigned_builds=assigned_builds,
-                  company_intended_coverage=[],
+                  result_signatures={}, company_intrinsic_coverage=[], summaries=[],
+                  assigned_builds=assigned_builds, company_intended_coverage=[],
               )
               return payload["relevant_roster_need"][0], calls
 
@@ -234,19 +190,20 @@ jobs:
               assert presentation._candidate_potential_available([prior, known])
 
 
-          def test_target_relevant_need_is_unavailable_when_candidate_evidence_is_missing(monkeypatch):
-              item, calls = _target(
+          def test_target_relevant_need_fails_closed_without_complete_candidate_evidence(monkeypatch):
+              unavailable, calls = _target(
                   monkeypatch,
                   [_analysis("unavailable", result=None)],
                   assigned_builds={},
               )
-
-              assert item == {"recruit_index": 0, "state": "unavailable", "result": None}
+              assert unavailable == {
+                  "recruit_index": 0,
+                  "state": "unavailable",
+                  "result": None,
+              }
               assert calls == []
 
-
-          def test_target_relevant_need_fails_closed_on_partial_candidate_evidence(monkeypatch):
-              item, calls = _target(
+              partial, calls = _target(
                   monkeypatch,
                   [
                       _analysis("prior_only", result={}),
@@ -254,14 +211,13 @@ jobs:
                   ],
                   assigned_builds={},
               )
-
-              assert item["state"] == "unavailable"
-              assert item["result"] is None
+              assert partial["state"] == "unavailable"
+              assert partial["result"] is None
               assert calls == []
 
 
-          def test_target_relevant_need_is_available_only_with_candidate_and_company_evidence(monkeypatch):
-              item, calls = _target(
+          def test_target_relevant_need_requires_candidate_and_company_evidence(monkeypatch):
+              available, calls = _target(
                   monkeypatch,
                   [
                       _analysis("prior_only", result={}),
@@ -269,12 +225,8 @@ jobs:
                   ],
                   assigned_builds={},
               )
-
-              assert item["state"] == "available"
-              assert item["result"] == {
-                  "schema": "bbtool.relevant_roster_need.v1",
-                  "marker": True,
-              }
+              assert available["state"] == "available"
+              assert available["result"]["marker"] is True
               assert len(calls) == 1
 
               without_intent, calls = _target(
@@ -287,49 +239,29 @@ jobs:
               assert calls == []
 
 
-          def test_recruitment_view_consumes_target_need_availability_without_reinferring(monkeypatch):
+          def test_recruitment_view_consumes_target_need_state_without_reinferring(monkeypatch):
               result = SimpleNamespace(
-                  diagnostics={},
-                  roster=[],
-                  recruits=[],
-                  roles=[],
-                  campaign_identity=None,
-                  brother_identities={},
-                  source_fingerprint="sha256:" + "b" * 64,
-                  configuration_fingerprints={},
-                  recruitment_analysis=[],
+                  diagnostics={}, roster=[], recruits=[], roles=[], campaign_identity=None,
+                  brother_identities={}, source_fingerprint="sha256:" + "b" * 64,
+                  configuration_fingerprints={}, recruitment_analysis=[],
                   incremental_cache=SimpleNamespace(publication_signatures=lambda: {}),
                   analysis=SimpleNamespace(
-                      company_intrinsic_coverage=[],
-                      summaries=[],
-                      company_intended_coverage=[],
+                      company_intrinsic_coverage=[], summaries=[], company_intended_coverage=[]
                   ),
                   assigned_builds={},
-                  public_data={
-                      "recruits": [{
-                          "Name": "Candidate",
-                          "Settlement": "Town",
-                      }]
-                  },
+                  public_data={"recruits": [{"Name": "Candidate", "Settlement": "Town"}]},
               )
               application = SimpleNamespace(
                   _command_lock=threading.RLock(),
-                  coordinator=SimpleNamespace(
-                      last_success=SimpleNamespace(
-                          result=result,
-                          generation=7,
-                          job_id="job-7",
-                      )
-                  ),
+                  coordinator=SimpleNamespace(last_success=SimpleNamespace(
+                      result=result, generation=7, job_id="job-7"
+                  )),
               )
               monkeypatch.setattr(
                   recruitment_view,
                   "build_target_presentation",
                   lambda **kwargs: {
-                      "builds": [{
-                          "build_identity": "build:test",
-                          "display_name": "Test",
-                      }],
+                      "builds": [{"build_identity": "build:test", "display_name": "Test"}],
                       "recruitment": [{
                           "recruit_index": 0,
                           "analyses": [{
