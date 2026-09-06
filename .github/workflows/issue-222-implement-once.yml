@@ -26,7 +26,7 @@ jobs:
         run: python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest tests/unit/test_recruitment_ui.py tests/ui/test_recruitment_browser.py -q
       - name: Run targeted Ruff
         shell: pwsh
-        run: python -m ruff check bbtool/app/recruitment_view.py bbtool/app/static/app.js bbtool/app/static/recruitment.js tests/unit/test_recruitment_ui.py tests/ui/test_recruitment_browser.py
+        run: python -m ruff check bbtool/app/recruitment_view.py tests/unit/test_recruitment_ui.py tests/ui/test_recruitment_browser.py
       - name: Run targeted Pyflakes
         shell: pwsh
         run: python -m pyflakes bbtool/app/recruitment_view.py tests/unit/test_recruitment_ui.py tests/ui/test_recruitment_browser.py
