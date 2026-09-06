@@ -104,7 +104,7 @@ python -m pytest -c tests/pytest.ini -o cache_dir=tests/cache/pytest -m "not cov
 
 Pull requests targeting `main` run those three gates in GitHub Actions. They are operational merge guards verified against the exact current PR head; GitHub-hosted branch protection/rulesets are intentionally not configured for this repository. See `docs/GITHUB_BRANCH_PROTECTION.md`.
 
-Release validation is a separate explicit workflow. It runs the reproducible suite excluding `coverage_slow`, branch coverage, Pyflakes, Ruff, and verified tracked-file release-ZIP packaging against one exact candidate revision. `coverage_slow` and mutation testing remain separate explicitly requested pre-release/pre-production work; they are not started automatically by normal PR or release validation.
+Release validation is a separate explicit workflow. It runs the reproducible suite excluding `coverage_slow`, branch coverage, Pyflakes, Ruff, and verified tracked-file release-ZIP packaging against one exact candidate revision. Under current policy, `coverage_slow` and mutation testing are excluded from all required validation, merge, pre-release, release, and publication gates until an explicit later decision re-enables them.
 
 See `docs/TESTING.md`, `docs/RELEASE.md`, and `docs/MUTATION_TESTING.md` for policy.
 
