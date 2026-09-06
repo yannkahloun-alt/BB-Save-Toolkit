@@ -1,9 +1,16 @@
 # Background × Archetype prior
 
-`bbtool.background_archetype_prior.v1` is the intrinsic population prior used
-as the input boundary for Recruitment. It answers only: given a vanilla
-background and a stable build definition, what level-11 natural Fit outcomes
-does the model assign before anything is known about a particular candidate?
+> **Production status:** disabled from normal application/CLI analysis as of
+> issue #205. The model code remains available for explicit research and
+> validation only. Re-enabling it in production requires a later explicit
+> product decision plus validation of both analytical semantics and acceptable
+> real-save runtime behavior.
+
+`bbtool.background_archetype_prior.v1` is the intrinsic population prior model
+originally designed as an input boundary for Recruitment. While production use
+is disabled, it answers only: given a vanilla background and a stable build
+definition, what level-11 natural Fit outcomes does the model assign before
+anything is known about a particular candidate?
 
 ## Inputs and identity
 
@@ -46,6 +53,9 @@ oracle engine versions.
   economic evidence enters this prior. #111 may condition on legitimate known
   candidate evidence without mutating this object; #112 may separately combine
   plausible roles with Company need.
+
+These assumptions describe the retained model implementation only. They are not
+currently a claim that the model is validated for player-facing production use.
 
 ## Machine-readable distribution
 
