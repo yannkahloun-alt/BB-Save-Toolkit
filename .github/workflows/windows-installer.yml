@@ -10,6 +10,7 @@ on:
       - "packaging/windows/**"
       - "tools/build_windows_installer.ps1"
       - "tools/smoke_windows_installer.ps1"
+      - "tools/test_windows_installer_stale_launcher.ps1"
       - "docs/WINDOWS_DELIVERY.md"
       - ".github/workflows/windows-installer.yml"
   workflow_dispatch:
@@ -70,6 +71,11 @@ jobs:
         env:
           INSTALLER_PATH: ${{ steps.build.outputs.installer }}
         run: ./tools/smoke_windows_installer.ps1 -InstallerPath $env:INSTALLER_PATH
+      - name: Regression-test repair with a stale broken launcher
+        shell: pwsh
+        env:
+          INSTALLER_PATH: ${{ steps.build.outputs.installer }}
+        run: ./tools/test_windows_installer_stale_launcher.ps1 -InstallerPath $env:INSTALLER_PATH
       - name: Upload validated installer
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
