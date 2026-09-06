@@ -171,6 +171,11 @@ input {
   border-color: #4b5a70;
 }
 
+.health-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .status-pill[data-state="current"],
 .health-button[data-state="healthy"] {
   border-color: #426f55;
