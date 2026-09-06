@@ -75,7 +75,13 @@ artifacts. The latter is validated by recomputation from resolved current
 assignments and carries #166 holder, availability, fragility, and need-base
 facts. `relevant_roster_need` is one separate mixed artifact per recruit; its
 candidate evidence and authoritative intended-coverage/intrinsic-coverage
-upstreams are recomputed and its signature must match. Unavailable intent is
+upstreams are recomputed and its signature must match. It is available only
+when Company intent is available and every build has established candidate
+plausibility evidence (`prior_only` or `known_evidence_estimate`). Any
+unavailable build keeps Relevant Need unavailable; partial evidence is not
+silently converted into proven implausibility. `no_match` therefore means a
+proven candidate-plausible role set has no relevant Company need, not that
+candidate plausibility could not be established. Unavailable intent is
 explicit rather than interpreted as Company need.
 
 These additions remain presentation data only: AssignedBuild changes can affect

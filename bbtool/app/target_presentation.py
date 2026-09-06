@@ -46,6 +46,21 @@ EXCLUDED_RECRUIT_FIELDS = [
     "level", "settlement", "name", "title", "hire_cost", "daily_wage",
     "roster_need", "assigned_build", "hidden_stats", "talent_stars", "future_rolls",
 ]
+_AVAILABLE_RECRUITMENT_STATES = frozenset({
+    "prior_only", "known_evidence_estimate",
+})
+
+
+def _candidate_potential_available(analyses: Any) -> bool:
+    """Return true only when every build has established plausibility evidence."""
+    return isinstance(analyses, list) and bool(analyses) and all(
+        isinstance(item, Mapping)
+        and item.get("state") in _AVAILABLE_RECRUITMENT_STATES
+        and isinstance(item.get("result"), Mapping)
+        for item in analyses
+    )
+
+
 
 
 def build_recruitment_presentation(recruits, roles, reference_path) -> list[dict]:
@@ -151,14 +166,18 @@ def build_target_presentation(
     }
     advisors = [{"brother_id": row["BrotherID"], "advice": row.get("LevelUpAdvice")}
                 for row in (summaries or [])]
-    relevant_need = [{
-        "recruit_index": row["recruit_index"],
-        "state": "available" if assigned_available else "unavailable",
-        "result": build_relevant_roster_need(
-            row["analyses"], company["intended_coverage"], viable_fit=0.5,
-            company_intrinsic_coverage=company_intrinsic_coverage,
-        ) if assigned_available else None,
-    } for row in recruitment_analysis]
+    relevant_need = []
+    for row in recruitment_analysis:
+        candidate_available = _candidate_potential_available(row.get("analyses"))
+        available = assigned_available and candidate_available
+        relevant_need.append({
+            "recruit_index": row["recruit_index"],
+            "state": "available" if available else "unavailable",
+            "result": build_relevant_roster_need(
+                row["analyses"], company["intended_coverage"], viable_fit=0.5,
+                company_intrinsic_coverage=company_intrinsic_coverage,
+            ) if available else None,
+        })
     content = {
         "campaign_identity": _identity_payload(campaign_identity),
         "brothers": brothers,
@@ -405,14 +424,19 @@ def validate_target_presentation(
     for item, recruitment in zip(relevant, payload["recruitment"], strict=True):
         if not isinstance(item, dict) or set(item) != {"recruit_index", "state", "result"}:
             raise ValueError("target presentation relevant need is malformed")
+        candidate_available = _candidate_potential_available(recruitment["analyses"])
+        should_be_available = company["intent_available"] and candidate_available
         if item["state"] == "available":
+            if not should_be_available:
+                raise ValueError("target presentation relevant need availability mismatch")
             expected = build_relevant_roster_need(
                 recruitment["analyses"], company["intended_coverage"], viable_fit=.5,
                 company_intrinsic_coverage=company["intrinsic_coverage"],
             )
             if item["result"] != expected:
                 raise ValueError("target presentation relevant need generation mismatch")
-        elif item["state"] != "unavailable" or item["result"] is not None or company["intent_available"]:
+        elif item["state"] != "unavailable" or item["result"] is not None \
+                or should_be_available:
             raise ValueError("target presentation relevant need availability mismatch")
 
 

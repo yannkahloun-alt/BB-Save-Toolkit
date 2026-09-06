@@ -128,19 +128,8 @@ def test_disabled_potential_keeps_player_facing_relevant_need_unavailable(monkey
         }],
         "relevant_roster_need": [{
             "recruit_index": 0,
-            "state": "available",
-            "result": {
-                "relevant_need": None,
-                "relevant_need_matches": [],
-                "other_company_gaps": [{
-                    "build_identity": "bf_tank",
-                    "need_bases": ["assigned_but_no_viable_holder"],
-                    "assigned_viable_count": 0,
-                    "free_viable_backup_count": 0,
-                    "contested_viable_backup_count": 0,
-                    "candidate_plausible": False,
-                }],
-            },
+            "state": "unavailable",
+            "result": None,
         }],
     }
     monkeypatch.setattr(
