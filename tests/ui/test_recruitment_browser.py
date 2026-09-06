@@ -52,6 +52,7 @@ def _candidate(index, name, *, tryout):
             "candidate_estimate_pct": estimate,
             "score_pct": score if tryout else score - 4.0,
         },
+        "potential_availability": {"state": "available", "reason": None},
         "potential": [
             {
                 "build_identity": "bf_tank",
@@ -64,6 +65,8 @@ def _candidate(index, name, *, tryout):
         ],
         "relevant_need": {
             "state": "available",
+            "reason": None,
+            "upstream_reason": None,
             "relevant": need,
             "matches": [need],
             "other_company_gaps": [],
@@ -160,6 +163,7 @@ function clear(element) {{
   while (element.firstChild) element.removeChild(element.firstChild);
 }}
 function formatPct(value, fallback = '—') {{
+  if (value === null || value === undefined || value === '') return fallback;
   const number = Number(value);
   return Number.isFinite(number) ? `${{number.toFixed(1)}}%` : fallback;
 }}
@@ -427,4 +431,160 @@ def test_publication_change_clears_ordinal_scoped_decision_state(browser, surfac
         "return document.querySelector('[data-recruit-index=\"1\"]').getAttribute('aria-pressed')"
     ) == "false"
     assert browser.execute_script("return document.getElementById('recruit-compare').hidden")
+    _assert_no_js_errors(browser)
+
+
+
+def _unavailable_publication(job_id=303):
+    payload = _publication(job_id, "Unavailable")
+    for settlement in payload["settlements"]:
+        for candidate in settlement["candidates"]:
+            candidate["top_potential"] = None
+            candidate["potential_availability"] = {
+                "state": "unavailable",
+                "reason": "background_archetype_prior_disabled_pending_validation",
+            }
+            candidate["potential"] = [
+                {
+                    "build_identity": "bf_tank",
+                    "role": "BF Tank",
+                    "state": "unavailable",
+                    "reason": "background_archetype_prior_disabled_pending_validation",
+                    "background_prior_pct": None,
+                    "candidate_estimate_pct": None,
+                    "evidence": [],
+                },
+                {
+                    "build_identity": "reach_dps",
+                    "role": "Reach DPS",
+                    "state": "unavailable",
+                    "reason": "background_archetype_prior_disabled_pending_validation",
+                    "background_prior_pct": None,
+                    "candidate_estimate_pct": None,
+                    "evidence": [],
+                },
+            ]
+            candidate["relevant_need"] = {
+                "state": "unavailable",
+                "reason": "candidate_potential_unavailable",
+                "upstream_reason": "background_archetype_prior_disabled_pending_validation",
+                "relevant": None,
+                "matches": [],
+                "other_company_gaps": [],
+            }
+    first = payload["settlements"][0]["candidates"]
+    first[0]["facts"]["Name"] = "Ludolf"
+    first[0]["facts"]["Background"] = "Poacher"
+    first[1]["facts"]["Name"] = "Ludolf"
+    first[1]["facts"]["Background"] = "Hunter"
+    return payload
+
+
+def _partial_publication(job_id=404):
+    payload = _publication(job_id, "Partial")
+    candidate = payload["settlements"][0]["candidates"][0]
+    candidate["top_potential"] = {
+        "build_identity": "bf_tank",
+        "role": "BF Tank",
+        "state": "prior_only",
+        "background_prior_pct": 61.0,
+        "candidate_estimate_pct": None,
+        "score_pct": 61.0,
+    }
+    candidate["potential_availability"] = {
+        "state": "partial",
+        "reason": "candidate_potential_partially_unavailable",
+    }
+    candidate["potential"] = [
+        {
+            "build_identity": "bf_tank",
+            "role": "BF Tank",
+            "state": "prior_only",
+            "reason": None,
+            "background_prior_pct": 61.0,
+            "candidate_estimate_pct": None,
+            "evidence": [],
+        },
+        {
+            "build_identity": "reach_dps",
+            "role": "Reach DPS",
+            "state": "unavailable",
+            "reason": "background_identity_unavailable",
+            "background_prior_pct": None,
+            "candidate_estimate_pct": None,
+            "evidence": [],
+        },
+    ]
+    candidate["relevant_need"] = {
+        "state": "unavailable",
+        "reason": "candidate_potential_incomplete",
+        "upstream_reason": "candidate_potential_partially_unavailable",
+        "relevant": None,
+        "matches": [],
+        "other_company_gaps": [],
+    }
+    return payload
+
+
+def test_globally_unavailable_candidate_potential_is_compact_truthful_and_mobile_useful(browser, surface_server):
+    server, base_url = surface_server
+    _load_surface(browser, server, base_url, _unavailable_publication(), width=390)
+
+    option_texts = browser.execute_script(
+        "return [...document.getElementById('recruit-mobile-select').options].slice(0, 2).map((item) => item.textContent)"
+    )
+    assert "Poacher" in option_texts[0]
+    assert "Hunter" in option_texts[1]
+    assert all("Unavailable" not in text for text in option_texts)
+
+    assert browser.execute_script(
+        "return document.querySelectorAll('#recruit-potential .recruit-potential-row').length"
+    ) == 0
+    potential_text = browser.execute_script(
+        "return document.getElementById('recruit-potential').textContent"
+    )
+    assert "Background × Archetype model is disabled pending validation" in potential_text
+    assert "0.0%" not in potential_text
+
+    evidence_text = browser.execute_script(
+        "return document.getElementById('recruit-evidence').textContent"
+    )
+    assert "Analysis unavailable" in evidence_text
+    assert "Prior-only evidence" not in evidence_text
+    need_text = browser.execute_script(
+        "return document.getElementById('recruit-needs').textContent"
+    )
+    assert "candidate potential is disabled pending validation" in need_text
+    assert "Company coverage" not in need_text
+    assert browser.execute_script(
+        "return document.getElementById('recruit-hire-cost').textContent"
+    ) == "300g"
+
+    browser.execute_script("document.getElementById('recruit-shortlist-current').click()")
+    WebDriverWait(browser, 5).until(
+        lambda current: current.execute_script(
+            "return document.querySelectorAll('.recruit-shortlist-chip').length"
+        ) == 1
+    )
+    _assert_no_js_errors(browser)
+
+
+def test_partial_candidate_potential_keeps_per_build_rows_and_null_percent_unknown(browser, surface_server):
+    server, base_url = surface_server
+    _load_surface(browser, server, base_url, _partial_publication())
+
+    assert browser.execute_script(
+        "return document.querySelectorAll('#recruit-potential .recruit-potential-row').length"
+    ) == 2
+    potential_text = browser.execute_script(
+        "return document.getElementById('recruit-potential').textContent"
+    )
+    assert "61.0%" in potential_text
+    assert "Unavailable" in potential_text
+    assert "0.0%" not in potential_text
+    assert "—" in potential_text
+    need_text = browser.execute_script(
+        "return document.getElementById('recruit-needs').textContent"
+    )
+    assert "candidate-potential evidence is incomplete" in need_text
     _assert_no_js_errors(browser)

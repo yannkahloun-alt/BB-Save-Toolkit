@@ -50,6 +50,7 @@ field-level details where applicable.
 | GET | `/api/v1/session` | Same-origin mutation capability |
 | GET | `/api/v1/shell` | Least-privilege shell read model: save display context, freshness, public Run Health, and summarized current progress |
 | GET | `/api/v1/company-brother` | Company + Brother read model from the latest publication plus current AssignedBuild intent |
+| GET | `/api/v1/recruitment` | Recruitment read model with factual candidate/economics data plus bounded analytical availability/reasons |
 | GET | `/api/v1/followed-save` | Inspect selected-save preference and availability |
 | POST | `/api/v1/followed-save/select` | Select/change an existing `.sav` with expected revision |
 | POST | `/api/v1/followed-save/forget` | Forget the selected save with expected revision |
@@ -101,6 +102,17 @@ hashes, because those validity fingerprints are internal analytical provenance
 and are not required by the Company/Brother frontend. It also does not expose
 FutureRolls, source/configuration/artifact fingerprints, filesystem paths,
 diagnostic samples, save bytes, or generic durable state.
+
+`GET /api/v1/recruitment` keeps factual recruit identity/economics separate from
+analytical availability. Each candidate retains raw build-indexed `potential` rows
+for partial/future evidence and also publishes `potential_availability` as
+`available`, `partial`, or `unavailable` with a bounded backend reason. Uniform
+unavailability may therefore be rendered once at candidate level without the
+frontend inferring semantics from repeated display rows. `relevant_need` publishes
+its own bounded reason (`candidate_potential_unavailable`,
+`candidate_potential_incomplete`, `company_intent_coverage_unavailable`, or the
+combined/fallback states) and may preserve the upstream candidate-potential reason.
+Nullable analytical percentages remain unavailable values rather than numeric zero.
 
 Analysis handlers never execute parsing or projection. The application reads
 the explicitly selected save into immutable bytes and submits a

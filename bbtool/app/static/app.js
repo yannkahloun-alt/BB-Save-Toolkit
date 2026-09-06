@@ -61,6 +61,7 @@ function clear(element) {
 }
 
 function formatPct(value, fallback = '—') {
+  if (value === null || value === undefined || value === '') return fallback;
   const number = Number(value);
   return Number.isFinite(number) ? `${number.toFixed(1)}%` : fallback;
 }
