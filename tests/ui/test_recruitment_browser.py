@@ -65,12 +65,11 @@ def _candidate(index, name, *, tryout):
         ],
         "relevant_need": {
             "state": "available",
-            "reason": None,
-            "upstream_reason": None,
             "relevant": need,
             "matches": [need],
             "other_company_gaps": [],
         },
+        "relevant_need_availability": {"state": "available", "reason": None, "upstream_reason": None},
     }
 
 
@@ -466,11 +465,14 @@ def _unavailable_publication(job_id=303):
             ]
             candidate["relevant_need"] = {
                 "state": "unavailable",
-                "reason": "candidate_potential_unavailable",
-                "upstream_reason": "background_archetype_prior_disabled_pending_validation",
                 "relevant": None,
                 "matches": [],
                 "other_company_gaps": [],
+            }
+            candidate["relevant_need_availability"] = {
+                "state": "unavailable",
+                "reason": "candidate_potential_unavailable",
+                "upstream_reason": "background_archetype_prior_disabled_pending_validation",
             }
     first = payload["settlements"][0]["candidates"]
     first[0]["facts"]["Name"] = "Ludolf"
@@ -517,11 +519,14 @@ def _partial_publication(job_id=404):
     ]
     candidate["relevant_need"] = {
         "state": "unavailable",
-        "reason": "candidate_potential_incomplete",
-        "upstream_reason": "candidate_potential_partially_unavailable",
         "relevant": None,
         "matches": [],
         "other_company_gaps": [],
+    }
+    candidate["relevant_need_availability"] = {
+        "state": "unavailable",
+        "reason": "candidate_potential_incomplete",
+        "upstream_reason": "candidate_potential_partially_unavailable",
     }
     return payload
 

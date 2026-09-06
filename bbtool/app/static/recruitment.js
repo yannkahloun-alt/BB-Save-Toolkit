@@ -64,20 +64,20 @@
   }
 
   function relevantNeedUnavailableMessage(candidate) {
-    const need = candidate?.relevant_need || {};
-    if (need.reason === 'candidate_potential_unavailable') {
-      if (need.upstream_reason === 'background_archetype_prior_disabled_pending_validation') {
+    const availability = candidate?.relevant_need_availability || {};
+    if (availability.reason === 'candidate_potential_unavailable') {
+      if (availability.upstream_reason === 'background_archetype_prior_disabled_pending_validation') {
         return 'Relevant Need is unavailable because candidate potential is disabled pending validation.';
       }
       return 'Relevant Need is unavailable because candidate-potential evidence is unavailable.';
     }
-    if (need.reason === 'candidate_potential_incomplete') {
+    if (availability.reason === 'candidate_potential_incomplete') {
       return 'Relevant Need is unavailable because candidate-potential evidence is incomplete.';
     }
-    if (need.reason === 'company_intent_coverage_unavailable') {
+    if (availability.reason === 'company_intent_coverage_unavailable') {
       return 'Relevant Need is unavailable because intent-aware Company coverage is unavailable.';
     }
-    if (need.reason === 'candidate_potential_and_company_intent_unavailable') {
+    if (availability.reason === 'candidate_potential_and_company_intent_unavailable') {
       return 'Relevant Need is unavailable because candidate potential and intent-aware Company coverage are unavailable.';
     }
     return 'Relevant Need is unavailable from the current analytical evidence.';

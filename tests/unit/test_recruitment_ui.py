@@ -275,6 +275,7 @@ def test_recruitment_static_contract_covers_settlement_browser_shortlist_and_res
     assert "potential_availability" in js
     assert "candidate_potential_unavailable" in js
     assert "candidate_potential_incomplete" in js
+    assert "relevant_need_availability" in js
     assert "value === null || value === undefined || value === ''" in app_js
     assert "innerHTML" not in js
     assert "@media (max-width: 980px)" in css
@@ -337,11 +338,14 @@ def test_recruitment_compacts_uniform_unavailability_and_preserves_backend_reaso
     }
     assert candidate["relevant_need"] == {
         "state": "unavailable",
-        "reason": "candidate_potential_unavailable",
-        "upstream_reason": "background_archetype_prior_disabled_pending_validation",
         "relevant": None,
         "matches": [],
         "other_company_gaps": [],
+    }
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "candidate_potential_unavailable",
+        "upstream_reason": "background_archetype_prior_disabled_pending_validation",
     }
 
 
@@ -363,8 +367,12 @@ def test_recruitment_distinguishes_company_coverage_unavailability(monkeypatch):
     candidate = payload["settlements"][0]["candidates"][0]
 
     assert candidate["potential_availability"]["state"] == "available"
-    assert candidate["relevant_need"]["reason"] == "company_intent_coverage_unavailable"
-    assert candidate["relevant_need"]["upstream_reason"] is None
+    assert candidate["relevant_need"]["state"] == "unavailable"
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "company_intent_coverage_unavailable",
+        "upstream_reason": None,
+    }
 
 
 def test_recruitment_preserves_partial_per_build_evidence(monkeypatch):
@@ -393,4 +401,9 @@ def test_recruitment_preserves_partial_per_build_evidence(monkeypatch):
     assert len(candidate["potential"]) == 3
     assert next(row for row in candidate["potential"] if row["role"] == "Reach DPS")["reason"] == "background_identity_unavailable"
     assert candidate["top_potential"]["role"] == "BF Tank"
-    assert candidate["relevant_need"]["reason"] == "candidate_potential_incomplete"
+    assert candidate["relevant_need"]["state"] == "unavailable"
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "candidate_potential_incomplete",
+        "upstream_reason": "candidate_potential_partially_unavailable",
+    }

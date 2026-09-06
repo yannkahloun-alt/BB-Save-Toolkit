@@ -114,48 +114,22 @@ def _need_row(value: Any, build_names: Mapping[str, str]) -> dict[str, Any] | No
     }
 
 
-def _unavailable_need(reason: str, *, upstream_reason: str | None = None) -> dict[str, Any]:
+def _unavailable_need() -> dict[str, Any]:
     return {
         "state": "unavailable",
-        "reason": reason,
-        "upstream_reason": upstream_reason,
         "relevant": None,
         "matches": [],
         "other_company_gaps": [],
     }
 
 
-def _relevant_need(
-    value: Any,
-    build_names: Mapping[str, str],
-    *,
-    potential_availability: Mapping[str, Any],
-    company_intent_available: bool,
-) -> dict[str, Any]:
+def _relevant_need(value: Any, build_names: Mapping[str, str]) -> dict[str, Any]:
+    """Project the Target-owned Relevant Need state without re-inferring it."""
     if not isinstance(value, Mapping) or value.get("state") != "available":
-        potential_state = potential_availability.get("state")
-        upstream_reason = potential_availability.get("reason")
-        if not company_intent_available and potential_state != "available":
-            return _unavailable_need(
-                "candidate_potential_and_company_intent_unavailable",
-                upstream_reason=upstream_reason if isinstance(upstream_reason, str) else None,
-            )
-        if not company_intent_available:
-            return _unavailable_need("company_intent_coverage_unavailable")
-        if potential_state == "unavailable":
-            return _unavailable_need(
-                "candidate_potential_unavailable",
-                upstream_reason=upstream_reason if isinstance(upstream_reason, str) else None,
-            )
-        if potential_state == "partial":
-            return _unavailable_need(
-                "candidate_potential_incomplete",
-                upstream_reason=upstream_reason if isinstance(upstream_reason, str) else None,
-            )
-        return _unavailable_need("relevant_need_unavailable")
+        return _unavailable_need()
     result = value.get("result")
     if not isinstance(result, Mapping):
-        return _unavailable_need("relevant_need_result_unavailable")
+        return _unavailable_need()
     matches = [
         row
         for row in (
@@ -174,12 +148,38 @@ def _relevant_need(
     ]
     return {
         "state": "available",
-        "reason": None,
-        "upstream_reason": None,
         "relevant": _need_row(result.get("relevant_need"), build_names),
         "matches": matches,
         "other_company_gaps": others,
     }
+
+
+def _relevant_need_availability(
+    value: Any,
+    *,
+    potential_availability: Mapping[str, Any],
+    company_intent_available: bool | None,
+) -> dict[str, Any]:
+    """Explain an unavailable Target state without changing that state."""
+    if isinstance(value, Mapping) and value.get("state") == "available":
+        return {"state": "available", "reason": None, "upstream_reason": None}
+
+    potential_state = potential_availability.get("state")
+    upstream_reason = potential_availability.get("reason")
+    upstream = upstream_reason if isinstance(upstream_reason, str) else None
+    company_unavailable = company_intent_available is False
+
+    if company_unavailable and potential_state != "available":
+        reason = "candidate_potential_and_company_intent_unavailable"
+    elif company_unavailable:
+        reason = "company_intent_coverage_unavailable"
+    elif potential_state == "unavailable":
+        reason = "candidate_potential_unavailable"
+    elif potential_state == "partial":
+        reason = "candidate_potential_incomplete"
+    else:
+        reason = "relevant_need_unavailable"
+    return {"state": "unavailable", "reason": reason, "upstream_reason": upstream}
 
 
 def build_recruitment_view(application) -> dict[str, Any]:
@@ -223,9 +223,9 @@ def build_recruitment_view(application) -> dict[str, Any]:
             if isinstance(row, Mapping)
         }
         company = presentation.get("company")
-        company_intent_available = (
-            isinstance(company, Mapping) and company.get("intent_available") is True
-        )
+        company_intent_available = None
+        if isinstance(company, Mapping) and isinstance(company.get("intent_available"), bool):
+            company_intent_available = company["intent_available"]
         candidates = []
         for analytical in presentation.get("recruitment", []):
             if not isinstance(analytical, Mapping):
@@ -249,9 +249,9 @@ def build_recruitment_view(application) -> dict[str, Any]:
                 "top_potential": _top_potential(potentials),
                 "potential_availability": potential_availability,
                 "potential": potentials,
-                "relevant_need": _relevant_need(
+                "relevant_need": _relevant_need(need_by_index.get(index), builds),
+                "relevant_need_availability": _relevant_need_availability(
                     need_by_index.get(index),
-                    builds,
                     potential_availability=potential_availability,
                     company_intent_available=company_intent_available,
                 ),

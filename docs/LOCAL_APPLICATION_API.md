@@ -108,10 +108,13 @@ analytical availability. Each candidate retains raw build-indexed `potential` ro
 for partial/future evidence and also publishes `potential_availability` as
 `available`, `partial`, or `unavailable` with a bounded backend reason. Uniform
 unavailability may therefore be rendered once at candidate level without the
-frontend inferring semantics from repeated display rows. `relevant_need` publishes
-its own bounded reason (`candidate_potential_unavailable`,
+frontend inferring semantics from repeated display rows. The established
+`relevant_need` object continues to project the Target-owned availability state
+without re-inference. Additive sibling `relevant_need_availability` explains an
+unavailable state with a bounded reason (`candidate_potential_unavailable`,
 `candidate_potential_incomplete`, `company_intent_coverage_unavailable`, or the
 combined/fallback states) and may preserve the upstream candidate-potential reason.
+Missing Company metadata is unknown, not evidence that Company intent is unavailable.
 Nullable analytical percentages remain unavailable values rather than numeric zero.
 
 Analysis handlers never execute parsing or projection. The application reads
