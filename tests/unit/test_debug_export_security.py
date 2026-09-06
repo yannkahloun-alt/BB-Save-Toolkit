@@ -12,7 +12,7 @@ ORIGIN = "http://127.0.0.1:48123"
 HOST = "127.0.0.1:48123"
 
 
-def test_debug_export_preserves_existing_host_rebinding_guard(monkeypatch):
+def test_debug_export_preserves_host_guard_and_requires_session_capability(monkeypatch):
     app = SimpleNamespace(
         coordinator=SimpleNamespace(last_success=SimpleNamespace(generation=3)),
         _command_lock=threading.RLock(),
@@ -27,14 +27,25 @@ def test_debug_export_preserves_existing_host_rebinding_guard(monkeypatch):
     hostile = api.handle(
         "GET",
         "/api/v1/debug-export",
-        {"Host": "hostile.example"},
+        {"Host": "hostile.example", "X-BBST-Session": "capability"},
+    )
+    missing_capability = api.handle(
+        "GET",
+        "/api/v1/debug-export",
+        {"Host": HOST},
     )
 
     assert hostile.status == 403
     assert json.loads(hostile.body)["error"]["code"] == "invalid_host"
+    assert missing_capability.status == 403
+    assert json.loads(missing_capability.body)["error"]["code"] == "invalid_session"
     assert called == []
 
-    allowed = api.handle("GET", "/api/v1/debug-export", {"Host": HOST})
+    allowed = api.handle(
+        "GET",
+        "/api/v1/debug-export",
+        {"Host": HOST, "X-BBST-Session": "capability"},
+    )
     assert allowed.status == 200
     assert allowed.content_type == "application/zip"
     assert called == [True]
