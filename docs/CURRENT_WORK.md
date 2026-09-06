@@ -19,9 +19,9 @@ The pinned `.agent-workflow` plus repository policy remain authoritative for the
 
 Issue #195 is the active v3.89 release lifecycle. Its release-preparation branch was cut only after #196 merged, from post-#196 `main` at `9d8dacb819ebebe31928470d16833f27be08ffda`.
 
-The release candidate is intended to consolidate the completed local-first application milestone into one supported release record. New product implementation should not be folded into the release-preparation branch merely because it is open while #195 is active.
+The release candidate is intended to consolidate the completed local-first application milestone into one supported release record. New product implementation should not be folded into #195 merely because it is open while the release lifecycle is active.
 
-Before tagging or publishing, #195 still requires its repository-defined sequence: release metadata PR, exact-head routine CI and independent review, merge, exact-candidate release validation, artifact verification, and final publication checks. This snapshot does not claim those later gates have passed until live GitHub says so.
+The repository-defined #195 sequence is: release metadata PR, exact-head routine CI and independent review, merge, exact-candidate pre-release/release validation, artifact verification, and final publication checks. Live GitHub determines which phase has already completed; this snapshot does not claim any later gate has passed merely because the release-preparation metadata is present on `main`.
 
 ## Completed product milestone
 
