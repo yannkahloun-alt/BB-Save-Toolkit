@@ -45,10 +45,33 @@ def _potential_row(analysis: Mapping[str, Any], build_names: Mapping[str, str]) 
         "build_identity": build_identity,
         "role": build_names.get(build_identity, build_identity),
         "state": state,
+        "reason": analysis.get("reason"),
         "background_prior_pct": prior,
         "candidate_estimate_pct": estimate,
         "evidence": sorted(set(evidence)),
     }
+
+
+def _potential_availability(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Collapse only a coherent candidate-wide unavailable analytical layer."""
+    if not rows:
+        return {"state": "unavailable", "reason": "candidate_potential_unavailable"}
+    unavailable = [row for row in rows if row.get("state") == "unavailable"]
+    if len(unavailable) == len(rows):
+        reasons = sorted({
+            row.get("reason") for row in unavailable
+            if isinstance(row.get("reason"), str) and row.get("reason")
+        })
+        return {
+            "state": "unavailable",
+            "reason": reasons[0] if len(reasons) == 1 else "candidate_potential_unavailable",
+        }
+    if unavailable:
+        return {
+            "state": "partial",
+            "reason": "candidate_potential_partially_unavailable",
+        }
+    return {"state": "available", "reason": None}
 
 
 def _top_potential(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -101,6 +124,7 @@ def _unavailable_need() -> dict[str, Any]:
 
 
 def _relevant_need(value: Any, build_names: Mapping[str, str]) -> dict[str, Any]:
+    """Project the Target-owned Relevant Need state without re-inferring it."""
     if not isinstance(value, Mapping) or value.get("state") != "available":
         return _unavailable_need()
     result = value.get("result")
@@ -128,6 +152,34 @@ def _relevant_need(value: Any, build_names: Mapping[str, str]) -> dict[str, Any]
         "matches": matches,
         "other_company_gaps": others,
     }
+
+
+def _relevant_need_availability(
+    value: Any,
+    *,
+    potential_availability: Mapping[str, Any],
+    company_intent_available: bool | None,
+) -> dict[str, Any]:
+    """Explain an unavailable Target state without changing that state."""
+    if isinstance(value, Mapping) and value.get("state") == "available":
+        return {"state": "available", "reason": None, "upstream_reason": None}
+
+    potential_state = potential_availability.get("state")
+    upstream_reason = potential_availability.get("reason")
+    upstream = upstream_reason if isinstance(upstream_reason, str) else None
+    company_unavailable = company_intent_available is False
+
+    if company_unavailable and potential_state != "available":
+        reason = "candidate_potential_and_company_intent_unavailable"
+    elif company_unavailable:
+        reason = "company_intent_coverage_unavailable"
+    elif potential_state == "unavailable":
+        reason = "candidate_potential_unavailable"
+    elif potential_state == "partial":
+        reason = "candidate_potential_incomplete"
+    else:
+        reason = "relevant_need_unavailable"
+    return {"state": "unavailable", "reason": reason, "upstream_reason": upstream}
 
 
 def build_recruitment_view(application) -> dict[str, Any]:
@@ -170,6 +222,10 @@ def build_recruitment_view(application) -> dict[str, Any]:
             for row in presentation.get("relevant_roster_need", [])
             if isinstance(row, Mapping)
         }
+        company = presentation.get("company")
+        company_intent_available = None
+        if isinstance(company, Mapping) and isinstance(company.get("intent_available"), bool):
+            company_intent_available = company["intent_available"]
         candidates = []
         for analytical in presentation.get("recruitment", []):
             if not isinstance(analytical, Mapping):
@@ -186,12 +242,19 @@ def build_recruitment_view(application) -> dict[str, Any]:
                 for item in analytical.get("analyses", [])
                 if isinstance(item, Mapping)
             ]
+            potential_availability = _potential_availability(potentials)
             candidates.append({
                 "recruit_index": index,
                 "facts": facts,
                 "top_potential": _top_potential(potentials),
+                "potential_availability": potential_availability,
                 "potential": potentials,
                 "relevant_need": _relevant_need(need_by_index.get(index), builds),
+                "relevant_need_availability": _relevant_need_availability(
+                    need_by_index.get(index),
+                    potential_availability=potential_availability,
+                    company_intent_available=company_intent_available,
+                ),
             })
 
         groups: dict[str, list[dict[str, Any]]] = defaultdict(list)

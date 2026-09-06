@@ -52,6 +52,46 @@
     return `${top.role || 'Unknown role'} · ${formatPct(top.score_pct)}`;
   }
 
+  function potentialUnavailableMessage(candidate) {
+    const reason = candidate?.potential_availability?.reason;
+    const messages = {
+      background_archetype_prior_disabled_pending_validation: 'Unavailable — the Background × Archetype model is disabled pending validation.',
+      background_identity_unavailable: 'Unavailable — candidate background identity is unavailable.',
+      build_identity_unavailable: 'Unavailable — build identity is unavailable.',
+      candidate_potential_unavailable: 'Unavailable — candidate-potential analysis is unavailable.',
+    };
+    return messages[reason] || 'Unavailable — candidate-potential analysis is unavailable.';
+  }
+
+  function relevantNeedUnavailableMessage(candidate) {
+    const availability = candidate?.relevant_need_availability || {};
+    if (availability.reason === 'candidate_potential_unavailable') {
+      if (availability.upstream_reason === 'background_archetype_prior_disabled_pending_validation') {
+        return 'Relevant Need is unavailable because candidate potential is disabled pending validation.';
+      }
+      return 'Relevant Need is unavailable because candidate-potential evidence is unavailable.';
+    }
+    if (availability.reason === 'candidate_potential_incomplete') {
+      return 'Relevant Need is unavailable because candidate-potential evidence is incomplete.';
+    }
+    if (availability.reason === 'company_intent_coverage_unavailable') {
+      return 'Relevant Need is unavailable because intent-aware Company coverage is unavailable.';
+    }
+    if (availability.reason === 'candidate_potential_and_company_intent_unavailable') {
+      return 'Relevant Need is unavailable because candidate potential and intent-aware Company coverage are unavailable.';
+    }
+    return 'Relevant Need is unavailable from the current analytical evidence.';
+  }
+
+  function mobileCandidateLabel(settlement, candidate) {
+    const facts = candidate?.facts || {};
+    const name = facts.Name || `Candidate ${candidate.recruit_index + 1}`;
+    const context = candidate?.potential_availability?.state === 'unavailable'
+      ? (facts.Background || 'Unknown background')
+      : potentialLabel(candidate.top_potential);
+    return `${settlement} · ${name} · ${context} · ${money(facts.HireCost)}`;
+  }
+
   function needLabel(candidate) {
     const need = candidate?.relevant_need || {};
     if (need.state !== 'available') return 'Unavailable';
@@ -68,10 +108,23 @@
   }
 
   function evidenceLabel(candidate) {
+    const availability = candidate?.potential_availability?.state;
+    if (availability === 'unavailable') return 'Analysis unavailable';
+    const partial = availability === 'partial';
     const names = evidenceNames(candidate);
-    if (names.length) return names.join(', ');
-    const known = (candidate?.potential || []).some((row) => row.state === 'known_evidence_estimate');
-    return known ? 'Known evidence applied' : 'Prior-only evidence';
+    if (names.length) {
+      const applied = names.join(', ');
+      return partial ? `${applied} · analysis partially unavailable` : applied;
+    }
+    const potential = candidate?.potential || [];
+    if (potential.some((row) => row.state === 'known_evidence_estimate')) {
+      return partial ? 'Known evidence applied · analysis partially unavailable' : 'Known evidence applied';
+    }
+    if (potential.some((row) => row.state === 'prior_only')) {
+      return partial ? 'Prior-only evidence · analysis partially unavailable' : 'Prior-only evidence';
+    }
+    if (partial) return 'Analysis partially unavailable';
+    return 'Analysis unavailable';
   }
 
   function setLoading(message) {
@@ -178,7 +231,7 @@
         });
         group.append(row);
 
-        const option = node('option', '', `${settlement.settlement} · ${facts.Name || `Candidate ${candidate.recruit_index + 1}`} · ${potentialLabel(candidate.top_potential)} · ${money(facts.HireCost)}`);
+        const option = node('option', '', mobileCandidateLabel(settlement.settlement, candidate));
         option.value = candidate.recruit_index;
         select.append(option);
       }
@@ -200,6 +253,10 @@
   function renderPotential(candidate) {
     const host = document.getElementById('recruit-potential');
     clear(host);
+    if (candidate?.potential_availability?.state === 'unavailable') {
+      host.append(node('p', 'subtle', potentialUnavailableMessage(candidate)));
+      return;
+    }
     const topIdentity = candidate.top_potential?.build_identity;
     for (const potential of candidate.potential || []) {
       const row = node('article', 'recruit-potential-row');
@@ -248,7 +305,7 @@
     clear(other);
     const need = candidate.relevant_need || {};
     if (need.state !== 'available') {
-      host.append(node('p', 'subtle', 'Relevant Need is unavailable until intent-aware Company coverage is available.'));
+      host.append(node('p', 'subtle', relevantNeedUnavailableMessage(candidate)));
       return;
     }
     for (const row of need.matches || []) {

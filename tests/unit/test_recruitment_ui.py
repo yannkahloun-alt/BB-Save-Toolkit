@@ -50,10 +50,11 @@ def _analysis(build_identity, *, state, prior, estimate=None, evidence=None):
     }
 
 
-def _application(monkeypatch):
+def _application(monkeypatch, presentation_mutator=None):
     from bbtool.app import recruitment_view
 
     presentation = {
+        "company": {"intent_available": True},
         "builds": [
             {"build_identity": "bf_tank", "display_name": "BF Tank", "build_definition_hash": "sha256:private-build-1"},
             {"build_identity": "reach_dps", "display_name": "Reach DPS", "build_definition_hash": "sha256:private-build-2"},
@@ -142,6 +143,8 @@ def _application(monkeypatch):
             },
         ],
     }
+    if presentation_mutator is not None:
+        presentation_mutator(presentation)
     monkeypatch.setattr(recruitment_view, "build_target_presentation", lambda **_kwargs: presentation)
 
     result = SimpleNamespace(
@@ -219,6 +222,7 @@ def test_recruitment_projects_intrinsic_top_potential_without_fabricating_prior_
         "candidate_estimate_pct": None,
         "score_pct": 72.0,
     }
+    assert horic["potential_availability"] == {"state": "available", "reason": None}
     assert all(row["candidate_estimate_pct"] is None for row in horic["potential"])
     assert horic["relevant_need"]["relevant"]["role"] == "Banner"
     assert horic["top_potential"]["role"] == "BF Tank"
@@ -249,6 +253,7 @@ def test_recruitment_groups_settlements_and_strips_private_provenance(monkeypatc
 def test_recruitment_static_contract_covers_settlement_browser_shortlist_and_responsiveness():
     page = (ROOT / "bbtool" / "app" / "static" / "index.html").read_text(encoding="utf-8")
     js = (ROOT / "bbtool" / "app" / "static" / "recruitment.js").read_text(encoding="utf-8")
+    app_js = (ROOT / "bbtool" / "app" / "static" / "app.js").read_text(encoding="utf-8")
     css = (ROOT / "bbtool" / "app" / "static" / "recruitment.css").read_text(encoding="utf-8")
 
     for marker in (
@@ -267,6 +272,11 @@ def test_recruitment_static_contract_covers_settlement_browser_shortlist_and_res
     assert "browser.scrollTop = scrollTop" in js
     assert "loadedJobId" in js
     assert "top_potential" in js
+    assert "potential_availability" in js
+    assert "candidate_potential_unavailable" in js
+    assert "candidate_potential_incomplete" in js
+    assert "relevant_need_availability" in js
+    assert "value === null || value === undefined || value === ''" in app_js
     assert "innerHTML" not in js
     assert "@media (max-width: 980px)" in css
     assert "@media (max-width: 720px)" in css
@@ -285,3 +295,115 @@ def test_recruitment_assets_are_fixed_local_routes(monkeypatch):
     assert js.status == 200 and js.content_type == "text/javascript; charset=utf-8"
     assert b"https://" not in css.body + js.body
     assert b"http://" not in css.body + js.body
+
+
+
+def _unavailable_analysis(build_identity, reason="background_archetype_prior_disabled_pending_validation"):
+    return {
+        "build_identity": build_identity,
+        "state": "unavailable",
+        "reason": reason,
+        "result": None,
+    }
+
+
+def test_recruitment_compacts_uniform_unavailability_and_preserves_backend_reason(monkeypatch):
+    def mutate(presentation):
+        presentation["recruitment"][0]["analyses"] = [
+            _unavailable_analysis("bf_tank"),
+            _unavailable_analysis("reach_dps"),
+            _unavailable_analysis("banner"),
+        ]
+        presentation["relevant_roster_need"][0] = {
+            "recruit_index": 0,
+            "state": "unavailable",
+            "result": None,
+        }
+
+    api = LocalApplicationApi(
+        _application(monkeypatch, presentation_mutator=mutate),
+        origin=ORIGIN,
+        token="capability",
+    )
+    payload = decode(api.handle("GET", "/api/v1/recruitment", {"Host": HOST}))["data"]
+    candidate = payload["settlements"][0]["candidates"][0]
+
+    assert candidate["top_potential"] is None
+    assert candidate["potential_availability"] == {
+        "state": "unavailable",
+        "reason": "background_archetype_prior_disabled_pending_validation",
+    }
+    assert {row["reason"] for row in candidate["potential"]} == {
+        "background_archetype_prior_disabled_pending_validation"
+    }
+    assert candidate["relevant_need"] == {
+        "state": "unavailable",
+        "relevant": None,
+        "matches": [],
+        "other_company_gaps": [],
+    }
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "candidate_potential_unavailable",
+        "upstream_reason": "background_archetype_prior_disabled_pending_validation",
+    }
+
+
+def test_recruitment_distinguishes_company_coverage_unavailability(monkeypatch):
+    def mutate(presentation):
+        presentation["company"]["intent_available"] = False
+        presentation["relevant_roster_need"][0] = {
+            "recruit_index": 0,
+            "state": "unavailable",
+            "result": None,
+        }
+
+    api = LocalApplicationApi(
+        _application(monkeypatch, presentation_mutator=mutate),
+        origin=ORIGIN,
+        token="capability",
+    )
+    payload = decode(api.handle("GET", "/api/v1/recruitment", {"Host": HOST}))["data"]
+    candidate = payload["settlements"][0]["candidates"][0]
+
+    assert candidate["potential_availability"]["state"] == "available"
+    assert candidate["relevant_need"]["state"] == "unavailable"
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "company_intent_coverage_unavailable",
+        "upstream_reason": None,
+    }
+
+
+def test_recruitment_preserves_partial_per_build_evidence(monkeypatch):
+    def mutate(presentation):
+        presentation["recruitment"][0]["analyses"][1] = _unavailable_analysis(
+            "reach_dps", reason="background_identity_unavailable"
+        )
+        presentation["relevant_roster_need"][0] = {
+            "recruit_index": 0,
+            "state": "unavailable",
+            "result": None,
+        }
+
+    api = LocalApplicationApi(
+        _application(monkeypatch, presentation_mutator=mutate),
+        origin=ORIGIN,
+        token="capability",
+    )
+    payload = decode(api.handle("GET", "/api/v1/recruitment", {"Host": HOST}))["data"]
+    candidate = payload["settlements"][0]["candidates"][0]
+
+    assert candidate["potential_availability"] == {
+        "state": "partial",
+        "reason": "candidate_potential_partially_unavailable",
+    }
+    assert len(candidate["potential"]) == 3
+    assert next(row for row in candidate["potential"] if row["role"] == "Reach DPS")["reason"] == "background_identity_unavailable"
+    assert candidate["top_potential"]["role"] == "BF Tank"
+    assert candidate["relevant_need"]["state"] == "unavailable"
+    assert candidate["relevant_need_availability"] == {
+        "state": "unavailable",
+        "reason": "candidate_potential_incomplete",
+        "upstream_reason": "candidate_potential_partially_unavailable",
+    }
