@@ -37,6 +37,25 @@ def test_running_origin_rejects_stale_record_and_scans_known_ports(monkeypatch):
     assert launcher._running_origin() == f"http://127.0.0.1:{second}"
 
 
+def test_serve_skips_conflicting_port_and_uses_next_available(monkeypatch):
+    first, second = launcher.PORT_RANGE[:2]
+    starts = []
+    runtime_ports = []
+    monkeypatch.setattr(launcher, "_running_origin", lambda: None)
+    monkeypatch.setattr(launcher, "_port_available", lambda port: port != first)
+    monkeypatch.setattr(launcher, "_write_runtime", runtime_ports.append)
+    monkeypatch.setattr(launcher, "_remove_runtime", lambda **kwargs: None)
+    monkeypatch.setattr(
+        launcher,
+        "serve_local_application",
+        lambda **kwargs: starts.append(kwargs),
+    )
+
+    assert launcher._serve(open_browser=False) == 0
+    assert runtime_ports == [second]
+    assert starts == [{"port": second, "open_browser": False}]
+
+
 def test_open_reuses_running_instance(monkeypatch):
     origin = "http://127.0.0.1:41571"
     opened = []
@@ -112,6 +131,10 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "PyInstaller" in build
     assert "Second launch created a conflicting application instance" in smoke
     assert "Assert-PersistedState" in smoke
+    assert "Assert-InstalledDisplayedReport" in smoke
+    assert "selenium.webdriver" in smoke
+    assert "BBST_CHROMEDRIVER" in smoke
+    assert "host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1" in smoke
     assert "Packaging Smoke Build" in smoke
     assert "/api/v1/archetypes/set-disabled" in smoke
     assert "Synthetic Smoke Brother" in smoke
