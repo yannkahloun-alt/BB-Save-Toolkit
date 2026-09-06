@@ -112,6 +112,8 @@ def test_installer_contract_is_per_user_state_preserving_and_windowless():
     assert "PyInstaller" in build
     assert "Second launch created a conflicting application instance" in smoke
     assert "Assert-PersistedState" in smoke
+    assert "Assert-InstalledDisplayedReport" in smoke
+    assert "--dump-dom" in smoke
     assert "Packaging Smoke Build" in smoke
     assert "/api/v1/archetypes/set-disabled" in smoke
     assert "Synthetic Smoke Brother" in smoke
