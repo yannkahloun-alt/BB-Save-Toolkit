@@ -261,8 +261,7 @@ class IncrementalCache:
         result = prior.get("result")
         old_labels = prior.get("role_labels")
         if (
-            not isinstance(result, dict)
-            or not isinstance(old_labels, list)
+            not isinstance(old_labels, list)
             or any(
                 not isinstance(item, dict)
                 or set(item) != {"identity", "signature", "name"}
