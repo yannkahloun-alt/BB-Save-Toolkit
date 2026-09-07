@@ -31,6 +31,25 @@ holders. Unrelated assignment targets and role projections remain reusable.
 Stored definition-changed, deprecated, or missing assignments are not accepted
 as current intent evidence.
 
+## Cached artifact integrity
+
+Dependency fingerprints prove that an artifact's inputs are still current; they
+do not prove that the cached result payload itself is intact. Reusable role,
+strategic-classification, Level Advisor, and validation-oracle records therefore
+also carry producer-owned `bbtool.incremental_artifact_integrity.v1` evidence.
+That evidence hashes the artifact kind plus the canonical normalized record
+fields required for that artifact. Role integrity deliberately excludes its
+nested validation oracle so the two artifacts retain independent validity
+domains.
+
+Reuse is fail-closed. Missing integrity evidence (including manifests written
+before this contract) or a hash mismatch produces an explicit artifact-local
+cache miss and recomputes only the affected dependency closure. Existing engine,
+input, association, schema, and range checks remain defense in depth and retain
+their more specific miss reasons when they fail first. Integrity hashes are a
+cache-correctness mechanism, not an authentication or hostile-tamper security
+boundary.
+
 ## Local publication boundary
 
 Local-app scheduling separates two kinds of signature evidence.
