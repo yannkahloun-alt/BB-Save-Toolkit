@@ -1,10 +1,12 @@
 from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
+from math import isfinite
 
 from ..build_identity import build_identity, build_result_key
 from .manifest import SCHEMA, campaign_identity_payload
 from .dependencies import stable_hash
+from .integrity import integrity_status, sign_artifact
 
 from .fingerprint import (
     ADVISOR_ENGINE_VERSION,
@@ -17,6 +19,62 @@ from .fingerprint import (
     role_fingerprint,
     validation_oracle_fingerprint,
 )
+
+
+_ROLE_PERCENTAGE_FIELDS = {
+    "ProjectedFitPct",
+    "ProjectedFitLikelyMinPct",
+    "ProjectedFitLikelyMaxPct",
+    "ProjectedFitFullMinPct",
+    "ProjectedFitFullMaxPct",
+    "FitFeasibilityPct",
+}
+
+
+def _bounded_number(value, low: float, high: float) -> bool:
+    return (
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
+        and isfinite(float(value))
+        and low <= float(value) <= high
+    )
+
+
+def _valid_role_result(result) -> bool:
+    if not isinstance(result, dict):
+        return False
+    if "ProjectedFit" in result and not _bounded_number(result["ProjectedFit"], 0.0, 1.0):
+        return False
+    return all(
+        field not in result or _bounded_number(result[field], 0.0, 100.0)
+        for field in _ROLE_PERCENTAGE_FIELDS
+    )
+
+
+def _integrity_valid(cache, *, kind: str, artifact: dict, keys: tuple[str, ...], reason: str) -> bool:
+    status = integrity_status(kind, artifact, keys)
+    if status == "valid":
+        return True
+    cache.miss_reasons[f"{reason}_integrity_{status}"] += 1
+    return False
+
+
+def _role_artifact(role, row) -> dict:
+    return sign_artifact("role_projection", {
+        "role_hash": role_fingerprint(role),
+        "engine_version": ROLE_PROJECTION_ENGINE_VERSION,
+        "result": dict(row),
+    })
+
+
+def _validation_oracle_artifact(bro, role, outcomes) -> dict:
+    values = list(outcomes)
+    return sign_artifact("validation_oracle", {
+        "engine_version": VALIDATION_ORACLE_ENGINE_VERSION,
+        "input_hash": validation_oracle_fingerprint(bro, role),
+        "outcomes_pct": values,
+        "sample_count": len(values),
+    })
 
 
 @dataclass
@@ -98,8 +156,16 @@ class IncrementalCache:
             self.miss_reasons["archetype_changed"] += 1
             return None
         result = prior.get("result")
-        if not isinstance(result, dict):
+        if not _valid_role_result(result):
             self.miss_reasons["role_artifact_invalid"] += 1
+            return None
+        if not _integrity_valid(
+            self,
+            kind="role_projection",
+            artifact=prior,
+            keys=("role_hash", "engine_version", "result"),
+            reason="role_artifact",
+        ):
             return None
         self.stats.role_reused += 1
         self._current_entry(bro)["roles"][self._role_storage_key(role)] = dict(prior)
@@ -115,15 +181,13 @@ class IncrementalCache:
         entry = self._current_entry(bro)
         role_key = self._role_storage_key(role)
         existing = (entry.get("roles") or {}).get(role_key)
-        artifact = {
-            "role_hash": role_fingerprint(role),
-            "engine_version": ROLE_PROJECTION_ENGINE_VERSION,
-            "result": dict(row),
-        }
+        artifact = _role_artifact(role, row)
         if isinstance(validation_oracle, dict):
-            artifact["validation_oracle"] = dict(validation_oracle)
-            artifact["validation_oracle"]["engine_version"] = VALIDATION_ORACLE_ENGINE_VERSION
-            artifact["validation_oracle"]["input_hash"] = validation_oracle_fingerprint(bro, role)
+            outcomes = validation_oracle.get("outcomes_pct", ())
+            if isinstance(outcomes, (list, tuple)) and outcomes:
+                artifact["validation_oracle"] = _validation_oracle_artifact(
+                    bro, role, outcomes
+                )
         elif isinstance(existing, dict) and "validation_oracle" in existing:
             artifact["validation_oracle"] = existing["validation_oracle"]
         entry["roles"][role_key] = artifact
@@ -152,11 +216,20 @@ class IncrementalCache:
             or any(
                 isinstance(value, bool)
                 or not isinstance(value, (int, float))
+                or not isfinite(float(value))
                 or not 0 <= value <= 100
                 for value in outcomes
             )
         ):
             self.miss_reasons["validation_oracle_corrupt"] += 1
+            return None
+        if not _integrity_valid(
+            self,
+            kind="validation_oracle",
+            artifact=oracle,
+            keys=("engine_version", "input_hash", "outcomes_pct", "sample_count"),
+            reason="validation_oracle",
+        ):
             return None
         return {"_outcomes_pct": tuple(float(value) for value in outcomes)}
 
@@ -166,12 +239,7 @@ class IncrementalCache:
         artifact = (entry.get("roles") or {}).get(self._role_storage_key(role))
         if not isinstance(artifact, dict) or not outcomes:
             return
-        artifact["validation_oracle"] = {
-            "engine_version": VALIDATION_ORACLE_ENGINE_VERSION,
-            "input_hash": validation_oracle_fingerprint(bro, role),
-            "outcomes_pct": outcomes,
-            "sample_count": len(outcomes),
-        }
+        artifact["validation_oracle"] = _validation_oracle_artifact(bro, role, outcomes)
 
     def mark_computed(self):
         self.stats.role_computed += 1
@@ -192,15 +260,26 @@ class IncrementalCache:
             return None
         result = prior.get("result")
         old_labels = prior.get("role_labels")
-        if not isinstance(old_labels, list) or any(
-            not isinstance(item, dict)
-            or set(item) != {"identity", "signature", "name"}
-            or item["identity"] is not None and not isinstance(item["identity"], str)
-            or not isinstance(item["signature"], str)
-            or not isinstance(item["name"], str)
-            for item in old_labels
+        if (
+            not isinstance(old_labels, list)
+            or any(
+                not isinstance(item, dict)
+                or set(item) != {"identity", "signature", "name"}
+                or item["identity"] is not None and not isinstance(item["identity"], str)
+                or not isinstance(item["signature"], str)
+                or not isinstance(item["name"], str)
+                for item in old_labels
+            )
         ):
             self.miss_reasons["advisor_artifact_invalid"] += 1
+            return None
+        if not _integrity_valid(
+            self,
+            kind="level_advisor",
+            artifact=prior,
+            keys=("input_hash", "engine_version", "role_labels", "result"),
+            reason="advisor_artifact",
+        ):
             return None
         current_labels = [{
             "identity": build_identity(role),
@@ -248,7 +327,7 @@ class IncrementalCache:
 
     def store_advisor(self, bro, roles, result, assigned_build=None):
         entry = self._current_entry(bro)
-        entry["advisor"] = {
+        entry["advisor"] = sign_artifact("level_advisor", {
             "input_hash": advisor_fingerprint(bro, roles, assigned_build),
             "engine_version": ADVISOR_ENGINE_VERSION,
             "role_labels": [{
@@ -257,7 +336,7 @@ class IncrementalCache:
                 "name": role["name"],
             } for role in roles],
             "result": result,
-        }
+        })
 
     def mark_advisor_computed(self):
         self.stats.advisor_computed += 1
@@ -282,12 +361,21 @@ class IncrementalCache:
         if not isinstance(result, dict):
             self.miss_reasons["summary_artifact_invalid"] += 1
             return None
+        if not _integrity_valid(
+            self,
+            kind="strategic_classification",
+            artifact=prior,
+            keys=("input_hash", "engine_version", "result"),
+            reason="summary_artifact",
+        ):
+            return None
         self.stats.summary_reused += 1
         current = self._current_entry(bro)
         current["summary"] = dict(prior)
         # A valid summary implies the same brother-state and role inputs as its
         # advisor dependency. Carry it forward so the newest
-        # manifest remains a complete cache source.
+        # manifest remains a complete cache source. Advisor validity is checked
+        # independently before publication or reuse.
         artifact = entry.get("advisor")
         if isinstance(artifact, dict):
             current["advisor"] = dict(artifact)
@@ -312,13 +400,13 @@ class IncrementalCache:
         entry = self._current_entry(bro)
         intrinsic_summary = dict(summary)
         intrinsic_summary.pop("LevelUpAdvice", None)
-        entry["summary"] = {
+        entry["summary"] = sign_artifact("strategic_classification", {
             "input_hash": brother_summary_fingerprint(
                 bro, roles, classification_cfg
             ),
             "engine_version": BROTHER_SUMMARY_ENGINE_VERSION,
             "result": intrinsic_summary,
-        }
+        })
 
     def mark_summary_computed(self):
         self.stats.summary_computed += 1
