@@ -50,7 +50,7 @@ def test_in_range_role_tamper_fails_integrity_and_cannot_publish_with_stale_summ
     corrupt = copy.deepcopy(manifest)
     artifact = _entry(corrupt)["roles"][IncrementalCache._role_storage_key(role)]
     original = float(artifact["result"]["ProjectedFitPct"])
-    artifact["result"]["ProjectedFitPct"] = max(0.0, min(100.0, original + 0.1))
+    artifact["result"]["ProjectedFitPct"] = 42.0 if original != 42.0 else 41.0
 
     warm_cache = IncrementalCache(corrupt)
     warm = analyze_brothers([bro], [role], cfg.classification, warm_cache)
