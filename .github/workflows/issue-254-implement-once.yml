@@ -39,3 +39,4 @@ jobs:
           git add bbtool/app/static/recruitment.js tests/ui/test_recruitment_economics_browser.py
           git commit -m "Preserve unavailable Recruitment economics"
           git push origin HEAD:codex/issue-254-null-economics
+# retry after mobile-option visibility assertion fix
