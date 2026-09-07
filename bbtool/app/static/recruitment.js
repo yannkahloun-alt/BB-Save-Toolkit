@@ -14,8 +14,8 @@
   };
 
   function money(value) {
-    const number = Number(value);
-    return Number.isFinite(number) ? `${Math.round(number)}g` : '—';
+    if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
+    return `${Math.round(value)}g`;
   }
 
   function candidateByIndex(index) {
