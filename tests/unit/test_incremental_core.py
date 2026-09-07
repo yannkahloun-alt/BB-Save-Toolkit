@@ -20,9 +20,9 @@ def test_stable_build_id_alone_does_not_validate_role_cache(simple_role):
     assert role_fingerprint(original) != role_fingerprint(changed)
 
 def _manifest(bro,role,result):
-    state=brother_projection_fingerprint(bro)
-    key=IncrementalCache._role_storage_key(role)
-    return {"schema":"bb-incremental-v1","brothers":{state:{"projection_state_hash":state,"roles":{key:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":result}}}}}
+    cache=IncrementalCache(None)
+    cache.store_role_row(bro,role,result)
+    return cache.manifest_payload(generated_at="x",source_save="x.sav")
 
 def test_exact_role_reuse_and_role_invalidation(bro_factory,simple_role):
     bro=bro_factory();role=simple_role(("HP","Fatigue"));result={"Role":role["name"],"ProjectedFitPct":75.0}
@@ -39,6 +39,15 @@ def test_ambiguous_identical_state_is_not_reused(bro_factory,simple_role):
     key=IncrementalCache._role_storage_key(role)
     entry={"projection_state_hash":state,"roles":{key:{"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":{"Role":role["name"]}}}}
     cache=IncrementalCache({"schema":"bb-incremental-v1","brothers":{"x":entry,"y":dict(entry)}});assert cache.get_role_row(bro,role) is None;assert cache.stats.ambiguous_states==1
+
+def test_unsigned_legacy_role_artifact_fails_closed(bro_factory,simple_role):
+    bro=bro_factory();role=simple_role(("HP",));state=brother_projection_fingerprint(bro)
+    key=IncrementalCache._role_storage_key(role)
+    artifact={"role_hash":role_fingerprint(role),"engine_version":ROLE_PROJECTION_ENGINE_VERSION,"result":{"Role":role["name"],"ProjectedFitPct":75.0}}
+    cache=IncrementalCache({"schema":"bb-incremental-v1","brothers":{"old":{"projection_state_hash":state,"roles":{key:artifact}}}})
+    assert cache.get_role_row(bro,role) is None
+    assert cache.stats.role_reused==0
+    assert cache.miss_reasons["role_artifact_integrity_missing"]==1
 
 def test_manifest_atomic_write_and_discovery(tmp_path):
     root=tmp_path/"output";run=root/"run";run.mkdir(parents=True);ws=SimpleNamespace(root=run,base="save-1")
