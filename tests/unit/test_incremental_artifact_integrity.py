@@ -16,6 +16,16 @@ def _entry(manifest):
     return next(iter(manifest["brothers"].values()))
 
 
+def _future_rolls(bro, rounds):
+    from bbtool.models import STATS
+    from bbtool.projection import gain_range
+
+    return {
+        stat: [gain_range(stat, int(getattr(bro, stat + "Stars")))[0]] * rounds
+        for stat in STATS
+    }
+
+
 def test_impossible_role_payload_is_rejected_and_only_corrupted_role_recomputes(
     bro_factory, simple_role, cfg
 ):
@@ -89,7 +99,8 @@ def test_advisor_tamper_recomputes_advisor_without_invalidating_valid_intrinsic_
     role = {**simple_role(("HP", "MAtk", "MDef")), "id": "one"}
     cold, manifest = _cold_run(bro, [role], cfg.classification)
     corrupt = copy.deepcopy(manifest)
-    _entry(corrupt)["advisor"]["result"]["tampered"] = True
+    advisor = _entry(corrupt)["advisor"]
+    advisor["result"] = {"tampered": True} if advisor["result"] != {"tampered": True} else None
 
     warm_cache = IncrementalCache(corrupt)
     warm = analyze_brothers([bro], [role], cfg.classification, warm_cache)
@@ -106,6 +117,7 @@ def test_validation_oracle_in_range_tamper_recomputes_oracle_only(
     monkeypatch, bro_factory, simple_role, cfg
 ):
     bro = bro_factory(Level=10, LevelPoints=0)
+    bro.FutureRolls = _future_rolls(bro, 1)
     role = {**simple_role(("HP", "MAtk", "MDef")), "id": "one"}
     _cold, manifest = _cold_run(bro, [role], cfg.classification)
     corrupt = copy.deepcopy(manifest)
