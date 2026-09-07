@@ -1,13 +1,6 @@
 from bbtool.incremental.cache import IncrementalCache
 from bbtool.app import analysis as analysis_module
-from bbtool.incremental.fingerprint import (
-    ADVISOR_ENGINE_VERSION,
-    BROTHER_SUMMARY_ENGINE_VERSION,
-    advisor_fingerprint,
-    brother_projection_fingerprint,
-    brother_summary_fingerprint,
-    role_fingerprint,
-)
+from bbtool.incremental.fingerprint import BROTHER_SUMMARY_ENGINE_VERSION
 
 
 def test_cosmetic_build_rename_reuses_all_intrinsic_artifacts_and_matches_full(
@@ -138,32 +131,25 @@ def test_idless_legacy_rename_does_not_guess_cache_association(
 
 
 def manifest_with_downstream(bro, roles, class_cfg):
-    state=brother_projection_fingerprint(bro)
-    return {
-        "schema":"bb-incremental-v1",
-        "brothers":{
-            "previous":{
-                "projection_state_hash":state,
-                "roles":{},
-                "advisor":{
-                    "input_hash":advisor_fingerprint(bro,roles),
-                    "engine_version":ADVISOR_ENGINE_VERSION,
-                    "role_labels":[{
-                        "identity":role.get("id"),
-                        "signature":role_fingerprint(role),
-                        "name":role["name"],
-                    } for role in roles],
-                    "result":{"Recommended":{"Stats":["HP","MAtk","MDef"]}},
-                },
-                "summary":{
-                    "input_hash":brother_summary_fingerprint(bro,roles,class_cfg),
-                    "engine_version":BROTHER_SUMMARY_ENGINE_VERSION,
-                    "result":{"Category":"Use","BrotherID":bro.BrotherID,"Name":bro.Name,
-                              "Level":bro.Level,"Background":bro.Background},
-                },
-            }
+    cache=IncrementalCache(None)
+    cache.store_advisor(
+        bro,
+        roles,
+        {"Recommended":{"Stats":["HP","MAtk","MDef"]}},
+    )
+    cache.store_summary(
+        bro,
+        roles,
+        class_cfg,
+        {
+            "Category":"Use","BrotherID":bro.BrotherID,"Name":bro.Name,
+            "Level":bro.Level,"Background":bro.Background,
         },
-    }
+    )
+    manifest=cache.manifest_payload(generated_at="x",source_save="x")
+    entry=next(iter(manifest["brothers"].values()))
+    manifest["brothers"]={"previous":entry}
+    return manifest
 
 
 def test_classification_change_reuses_advisor_but_not_summary(bro_factory,simple_role):
@@ -190,7 +176,9 @@ def test_valid_summary_carries_downstream_artifacts_into_new_manifest(bro_factor
     assert "advisor" in entry
 
 
-def test_summary_and_advisor_remain_independently_validatable(bro_factory,simple_role):
+def test_tampered_summary_does_not_invalidate_independent_advisor(
+    bro_factory,simple_role
+):
     bro=bro_factory()
     roles=[simple_role(("HP","MAtk","MDef"))]
     cfg={"invest":0.8}
@@ -201,7 +189,8 @@ def test_summary_and_advisor_remain_independently_validatable(bro_factory,simple
     summary=cache.get_summary(bro,roles,cfg)
     advice=cache.get_advisor(bro,roles)
 
-    assert "LevelUpAdvice" not in summary
+    assert summary is None
+    assert cache.miss_reasons["summary_artifact_integrity_mismatch"]==1
     assert advice=={"Recommended":{"Stats":["HP","MAtk","MDef"]}}
 
 
@@ -251,11 +240,13 @@ def test_reused_summary_rehydrates_non_projection_display_state(bro_factory,simp
     )
     roles=[simple_role(("HP","MAtk","MDef"))]
     cfg={"invest":0.8}
-    manifest=manifest_with_downstream(old,roles,cfg)
-    result=manifest["brothers"]["previous"]["summary"]["result"]
-    result.update({
-        "Perks":"Old perk", "Traits":"Old trait", "Injuries":"Cut leg",
+    cache=IncrementalCache(None)
+    cache.store_summary(old,roles,cfg,{
+        "Category":"Use","BrotherID":old.BrotherID,"Name":old.Name,
+        "Level":old.Level,"Background":old.Background,
+        "Perks":"Old perk","Traits":"Old trait","Injuries":"Cut leg",
     })
+    manifest=cache.manifest_payload(generated_at="x",source_save="x")
 
     summary=IncrementalCache(manifest).get_summary(current,roles,cfg)
 
